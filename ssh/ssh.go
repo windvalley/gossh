@@ -123,7 +123,7 @@ func (c *Client) Run(addr, command string) (string, error) {
 	if c.CommandTimeout > 0 {
 		select {
 		case <-done:
-		case <-time.After(c.CommandTimeout * time.Second):
+		case <-time.After(c.CommandTimeout):
 			return "", errors.New("command timeout")
 		}
 	}
@@ -147,7 +147,7 @@ func (c *Client) getClientSession(addr string) (*ssh.Client, *ssh.Session, error
 		Auth: []ssh.AuthMethod{ssh.Password(c.Password)},
 	}
 	sshConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-	sshConfig.Timeout = c.ConnTimeout * time.Second
+	sshConfig.Timeout = c.ConnTimeout
 
 	client, err := ssh.Dial("tcp", addr+":"+strconv.Itoa(c.Port), sshConfig)
 	if err != nil {
@@ -176,7 +176,10 @@ func (c *Client) handleOutput(w io.Writer, r io.Reader) <-chan []byte {
 			}
 
 			if s := string(buf); strings.Contains(s, "[sudo]") {
-				w.Write([]byte(c.Password + "\n"))
+				if _, err := w.Write([]byte(c.Password + "\n")); err != nil {
+					close(out)
+					return
+				}
 			}
 
 			out <- buf[:n]
@@ -184,13 +187,6 @@ func (c *Client) handleOutput(w io.Writer, r io.Reader) <-chan []byte {
 	}()
 
 	return out
-}
-
-// WithPort port option
-func WithPort(port int) func(*Client) {
-	return func(s *Client) {
-		s.Port = port
-	}
 }
 
 // WithConnTimeout ssh connection timeout option
@@ -204,6 +200,13 @@ func WithConnTimeout(timeout time.Duration) func(*Client) {
 func WithCommandTimeout(timeout time.Duration) func(*Client) {
 	return func(s *Client) {
 		s.CommandTimeout = timeout
+	}
+}
+
+// WithPort port option
+func WithPort(port int) func(*Client) {
+	return func(s *Client) {
+		s.Port = port
 	}
 }
 
