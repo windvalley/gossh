@@ -1,0 +1,45 @@
+name: GosshCI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  gosshci:
+    name: Test with go ${{ matrix.go_version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    environment:
+      name: gosshCI
+
+    strategy:
+      matrix:
+        go_version: [1.17]
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Set up Go ${{ matrix.go_version }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go_version }}
+        id: go
+
+      - name: Checkout codes
+        uses: actions/checkout@v2
+
+      - name: Lint codes
+        run: |
+          make lint
+
+      - name: Run unit test and get test coverage
+        run: |
+          make cover
+
+      - name: Build binary for host platform
+        run: |
+          make build
+
+      - name: Install binary test
+        run: |
+          make install
