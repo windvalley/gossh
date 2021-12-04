@@ -97,3 +97,16 @@ go.updates: tools.verify.go-mod-outdated
 go.tidy:
 	@echo "==========> go mod tidy"
 	@${GO} mod tidy
+
+.PHONY: go.install.%
+go.install.%:
+	$(eval COMMAND := $(word 2,$(subst ., ,$*)))
+	$(eval PLATFORM := $(word 1,$(subst ., ,$*)))
+	$(eval OS := $(word 1,$(subst _, ,${PLATFORM})))
+	$(eval ARCH := $(word 2,$(subst _, ,${PLATFORM})))
+	$(eval GO_BIN_EXT = $(if $(findstring windows,${OS}),.exe,))
+	@echo "==========> Install binary '${COMMAND}${GO_BIN_EXT}' ${VERSION} for ${OS} ${ARCH}"
+	cp ${OUTPUT_DIR}/platforms/${OS}/${ARCH}/${COMMAND}${GO_BIN_EXT} /usr/local/bin/
+
+.PHONY: go.install
+go.install: $(addprefix go.install., $(addprefix ${PLATFORM}., ${BINS})) 

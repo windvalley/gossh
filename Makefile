@@ -47,10 +47,10 @@ build:
 build.multiarch:
 	@${MAKE} go.build.multiarch
 
-##  install: Install the binary to your system.
+##  install: Install the binary gossh to your system.
 .PHONY: install
 install:
-	@{MAKE} go.install
+	@${MAKE} go.install
 
 ##  lint: Check syntax and style of Go source code.
 .PHONY: lint
