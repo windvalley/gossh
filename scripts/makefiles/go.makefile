@@ -31,8 +31,8 @@ ifeq ($(origin GOBIN), undefined)
 	GOBIN := ${GOPATH}/bin
 endif
 
-COMMANDS ?= ${ROOT_PACKAGE}
-BINS ?= gossh
+COMMANDS ?= $(filter-out %.md, $(wildcard ${ROOT_DIR}/cmd/*))
+BINS ?= $(foreach cmd,${COMMANDS},$(notdir ${cmd}))
 
 ifeq (${COMMANDS},)
 	$(error Could not determine COMMANDS, set ROOT_DIR or run in source dir)
@@ -59,7 +59,7 @@ go.build.%:
 	$(eval GO_BIN_EXT = $(if $(findstring windows,${OS}),.exe,))
 	@echo "==========> Building binary '${COMMAND}${GO_BIN_EXT}' ${VERSION} for ${OS} ${ARCH}"
 	@mkdir -p ${OUTPUT_DIR}/platforms/${OS}/${ARCH}
-	@CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} ${GO} build ${GO_BUILD_FLAGS} -o ${OUTPUT_DIR}/platforms/${OS}/${ARCH}/${COMMAND}${GO_BIN_EXT} ${ROOT_PACKAGE}/
+	@CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} ${GO} build ${GO_BUILD_FLAGS} -o ${OUTPUT_DIR}/platforms/${OS}/${ARCH}/${COMMAND}${GO_BIN_EXT} ${ROOT_PACKAGE}/cmd/${COMMAND}
 	@echo "${OUTPUT_DIR}/platforms/${OS}/${ARCH}/${COMMAND}${GO_BIN_EXT}"
 
 .PHONY: go.build
