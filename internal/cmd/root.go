@@ -30,7 +30,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
+var (
+	cfgFile string
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -42,7 +44,8 @@ This tool can efficiently manage tens of thousands of Linux server clusters.
 It can efficiently execute commands, execute script files, transfer files, etc.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	// Run: func(cmd *cobra.Command, args []string) {
+	// },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -58,7 +61,9 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gossh.yaml)")
+	persistentFlags := rootCmd.PersistentFlags()
+
+	persistentFlags.StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.gossh.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

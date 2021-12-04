@@ -21,7 +21,7 @@ THE SOFTWARE.
 */
 package main
 
-import "github.com/windvalley/gossh/cmd"
+import "github.com/windvalley/gossh/internal/cmd"
 
 func main() {
 	cmd.Execute()
