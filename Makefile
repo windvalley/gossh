@@ -31,11 +31,11 @@ include scripts/makefiles/tools.makefile
 # Targets =====================================================================
 
 # Print help information by default.
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := build
 
-##  all: Make lint, build
-.PHONY: all
-all: lint build
+##  dev: Make lint, cover, build and install for development stage.
+.PHONY: dev
+dev: lint cover build install
 
 ##  build: Compile packages and dependencies to generate binary file for current platform.
 .PHONY: build
