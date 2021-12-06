@@ -8,22 +8,27 @@ auth:
   # use pubkey authentication or not.
   pubkey: false
   # specify identity files when use pubkey authentication.
+  # default:
+  #   - $HOME/.ssh/id_rsa
+  #   - $HOME/.ssh/id_dsa
   identity-file:
-    - $HOME/.ssh/id_rsa
-    - $HOME/.ssh/id_dsa
+    -
 
 hosts:
   # the file containing the hosts that to ssh.
   file: ""
   # the port to be used when connecting to hosts.
+  # default: 22
   port: 22
 
 run:
   # use sudo to execute the command.
   sudo: false
   # run via sudo as this user (default "root").
+  # default: "root"
   as-user: "root"
   # number of goroutines to spawn for simultaneous connection attempts (default 1).
+  # default: 1
   concurrency: 1
 
 output:
@@ -38,6 +43,7 @@ output:
 
 timeout:
   # connection timeout for each ssh connection (default 10).
+  # default: 10
   conn: 10
   # timeout for the command executing on each remote host.
   command: 0
