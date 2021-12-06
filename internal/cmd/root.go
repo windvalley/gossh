@@ -23,13 +23,13 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/windvalley/gossh/internal/pkg/configflags"
+	"github.com/windvalley/gossh/pkg/log"
 	"github.com/windvalley/gossh/pkg/util"
 )
 
@@ -61,7 +61,7 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(initConfig, initLogger, printDebugInfo)
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
@@ -98,9 +98,7 @@ func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
-	}
+	_ = viper.ReadInConfig()
 
 	if err := viper.BindPFlags(rootCmd.PersistentFlags()); err != nil {
 		util.CheckErr(err)
@@ -117,4 +115,18 @@ func initConfig() {
 	if errs := config.Validate(); len(errs) != 0 {
 		util.CheckErr(errs)
 	}
+}
+
+func initLogger() {
+	log.Init(
+		config.Output.File,
+		config.Output.JSON,
+		config.Output.Verbose,
+		config.Output.Quiet,
+	)
+}
+
+func printDebugInfo() {
+	log.Debugf("Using config file: %s", viper.ConfigFileUsed())
+	log.Debugf("Config contents: %s", config.String())
 }
