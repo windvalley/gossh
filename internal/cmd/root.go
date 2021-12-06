@@ -30,11 +30,15 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/windvalley/gossh/internal/pkg/configflags"
+	"github.com/windvalley/gossh/pkg/util"
 )
 
 const cfgFileFlag = "config"
 
-var cfgFile string
+var (
+	cfgFile string
+	config  *configflags.ConfigFlags
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -67,9 +71,8 @@ func init() {
 
 	persistentFlags.StringVarP(&cfgFile, cfgFileFlag, "", "", "config file (default is $HOME/.gossh.yaml)")
 
-	configflags.New().AddFlagsTo(persistentFlags)
-
-	_ = viper.BindPFlags(persistentFlags)
+	configFlags := configflags.New()
+	configFlags.AddFlagsTo(persistentFlags)
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -84,7 +87,7 @@ func initConfig() {
 	} else {
 		// Find home directory.
 		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
+		util.CheckErr(err)
 
 		// Search config in home directory with name ".gossh" (without extension).
 		viper.AddConfigPath(home)
@@ -97,5 +100,21 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
+
+	if err := viper.BindPFlags(rootCmd.PersistentFlags()); err != nil {
+		util.CheckErr(err)
+	}
+
+	if err := viper.Unmarshal(&config); err != nil {
+		util.CheckErr(err)
+	}
+
+	if err := config.Complete(); err != nil {
+		util.CheckErr(err)
+	}
+
+	if errs := config.Validate(); len(errs) != 0 {
+		util.CheckErr(errs)
 	}
 }
