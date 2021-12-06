@@ -1,0 +1,45 @@
+auth:
+  # the login user (default is $USER).
+  user: ""
+  # password of the login user.
+  password: ""
+  # file that contains 'username:password'.
+  file: ""
+  # use pubkey authentication or not.
+  pubkey: false
+  # specify identity files when use pubkey authentication.
+  identity-file:
+    - $HOME/.ssh/id_rsa
+    - $HOME/.ssh/id_dsa
+
+hosts:
+  # the file containing the hosts that to ssh.
+  file: ""
+  # the port to be used when connecting to hosts.
+  port: 22
+
+run:
+  # use sudo to execute the command.
+  sudo: false
+  # run via sudo as this user (default "root").
+  as-user: "root"
+  # number of goroutines to spawn for simultaneous connection attempts (default 1).
+  concurrency: 1
+
+output:
+  # the file where the results will be saved.
+  file: ""
+  # outputs format is json or not.
+  json: false
+  # print debug information or not.
+  verbose: false
+  # do not print messages to stdout (except for error messages).
+  quite: false
+
+timeout:
+  # connection timeout for each ssh connection (default 10).
+  conn: 10
+  # timeout for the command executing on each remote host.
+  command: 0
+  # timeout for all ssh connections.
+  task: 0
