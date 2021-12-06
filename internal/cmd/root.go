@@ -28,11 +28,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/windvalley/gossh/internal/pkg/configflags"
 )
 
-var (
-	cfgFile string
-)
+const cfgFileFlag = "config"
+
+var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -63,7 +65,11 @@ func init() {
 
 	persistentFlags := rootCmd.PersistentFlags()
 
-	persistentFlags.StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.gossh.yaml)")
+	persistentFlags.StringVarP(&cfgFile, cfgFileFlag, "", "", "config file (default is $HOME/.gossh.yaml)")
+
+	configflags.New().AddFlagsTo(persistentFlags)
+
+	_ = viper.BindPFlags(persistentFlags)
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
