@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/pflag"
+
+	"github.com/windvalley/gossh/pkg/util"
 )
 
 const (
@@ -44,6 +46,10 @@ func (h *Hosts) Validate() (errs []error) {
 			flagHostsPort,
 			h.Port,
 		))
+	}
+
+	if h.File != "" && !util.FileExists(h.File) {
+		errs = append(errs, fmt.Errorf("invalid %s: %s not found", flagHostsFile, h.File))
 	}
 
 	return

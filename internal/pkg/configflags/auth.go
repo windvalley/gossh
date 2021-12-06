@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/spf13/pflag"
+
+	"github.com/windvalley/gossh/pkg/util"
 )
 
 const (
@@ -48,6 +50,10 @@ func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 
 // Complete ...
 func (a *Auth) Complete() error {
+	if a.User == "" {
+		a.User = os.Getenv("USER")
+	}
+
 	if len(a.IdentityFiles) == 0 {
 		home, err := os.UserHomeDir()
 		if err != nil {
@@ -65,5 +71,13 @@ func (a *Auth) Complete() error {
 
 // Validate ...
 func (a *Auth) Validate() (errs []error) {
+	if a.File != "" && !util.FileExists(a.File) {
+		errs = append(errs, fmt.Errorf("invalid %s: %s not found", flagAuthFile, a.File))
+	}
+
+	if a.File == "" && a.Password == "" && !a.Pubkey {
+		errs = append(errs, fmt.Errorf("no auth info: need flag -p|-a|-k or valid value in config file"))
+	}
+
 	return
 }
