@@ -12,6 +12,8 @@ var (
 	Infof  = std.Infof
 	Warnf  = std.Warnf
 	Errorf = std.Errorf
+
+	WithFields = std.WithFields
 )
 
 // std global

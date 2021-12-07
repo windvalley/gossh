@@ -26,7 +26,7 @@ const exportLangPattern = "export LANG=%s;export LC_ALL=%s;export LANGUAGE=%s;"
 
 // Task execute command or copy file or execute script
 type Task interface {
-	Run(addr string) (string, error)
+	RunSSH(addr string) (string, error)
 }
 
 // Result of ssh command
@@ -48,8 +48,11 @@ type Client struct {
 }
 
 // NewClient session
-func NewClient(user, password, sshAuthSock string, keys []string, verbose, quiet bool,
-	options ...func(*Client)) (*Client, error) {
+func NewClient(
+	user, password, sshAuthSock string,
+	keys []string,
+	options ...func(*Client),
+) (*Client, error) {
 	var auth []ssh.AuthMethod
 
 	log.Debugf("Login user: %s", user)
@@ -88,12 +91,12 @@ func NewClient(user, password, sshAuthSock string, keys []string, verbose, quiet
 
 			auth = []ssh.AuthMethod{ssh.PublicKeys(signers...)}
 
-			log.Debugf("Auth Info: use identity file '%s'", strings.Join(keys, ","))
+			log.Debugf("Auth method: use identity file '%s'", strings.Join(keys, ","))
 		}
 	} else {
 		auth = []ssh.AuthMethod{ssh.Password(password)}
 
-		log.Debugf("Auth Info: use password")
+		log.Debugf("Auth method: use password")
 	}
 
 	client := Client{
@@ -133,7 +136,7 @@ func (c *Client) BatchRun(
 		go func(wg *sync.WaitGroup) {
 			for addr := range addrCh {
 				var result *Result
-				output, err := sshTask.Run(addr)
+				output, err := sshTask.RunSSH(addr)
 				if err != nil {
 					result = &Result{addr, "Failed", err.Error()}
 				} else {
