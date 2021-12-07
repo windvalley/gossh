@@ -38,10 +38,20 @@ var execCmd = &cobra.Command{
 	Long: `
 Execute given commands in remote hosts.`,
 	Example: `
-  $ gossh exec hostname1 hostname2 -e "uname -r;uptime"
-  $ gossh exec -H hosts.txt -e "uname -r;uptime"`,
-	SilenceUsage:  true,
-	SilenceErrors: true,
+  # Promt password.
+  $ gossh exec host1 -e "uptime"
+
+  # Given password by -p flag.
+  # gossh exec host1 -e "uptime" -p "your-password"
+
+  # Given user:password from a file.
+  # gossh exec host1 host2 -e "uptime" -a auth.txt
+
+  # Use pubkey authentication, if env $SSH_AUTH_SOCK exist, use sshagent auth first.
+  $ gossh exec -H hosts.txt -e "uptime" -k
+
+  # Hosts can be given from both flag -H and arguments.
+  $ gossh exec host1 host2 -H hosts.txt -e "uptime" -k`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
