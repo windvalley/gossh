@@ -48,10 +48,6 @@ var rootCmd = &cobra.Command{
 Gossh is a high-performance and high-concurrency ssh tool.
 This tool can efficiently manage tens of thousands of Linux server clusters.
 It can efficiently execute commands, execute script files, transfer files, etc.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) {
-	// },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -63,20 +59,12 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig, initLogger, printDebugInfo)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
 	persistentFlags := rootCmd.PersistentFlags()
 
 	persistentFlags.StringVarP(&cfgFile, cfgFileFlag, "", "", "config file (default is $HOME/.gossh.yaml)")
 
 	configFlags := configflags.New()
 	configFlags.AddFlagsTo(persistentFlags)
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -110,10 +98,6 @@ func initConfig() {
 
 	if err := config.Complete(); err != nil {
 		util.CheckErr(err)
-	}
-
-	if errs := config.Validate(); len(errs) != 0 {
-		util.CheckErr(errs)
 	}
 }
 
