@@ -21,8 +21,15 @@ THE SOFTWARE.
 */
 package main
 
-import "github.com/windvalley/gossh/internal/cmd"
+import (
+	"math/rand"
+	"time"
+
+	"github.com/windvalley/gossh/internal/cmd"
+)
 
 func main() {
+	rand.Seed(time.Now().UTC().UnixNano())
+
 	cmd.Execute()
 }
