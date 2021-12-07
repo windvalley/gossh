@@ -23,10 +23,13 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"github.com/windvalley/gossh/internal/pkg/sshtask"
+	"github.com/windvalley/gossh/pkg/util"
 )
+
+var shellCommand string
 
 // execCmd represents the exec command
 var execCmd = &cobra.Command{
@@ -34,21 +37,36 @@ var execCmd = &cobra.Command{
 	Short: "Execute commands in remote hosts",
 	Long: `
 Execute given commands in remote hosts.`,
+	Example: `
+  $ gossh exec hostname1 hostname2 -e "uname -r;uptime"
+  $ gossh exec -H hosts.txt -e "uname -r;uptime"`,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if errs := config.Validate(); len(errs) != 0 {
+			util.CheckErr(errs)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("exec called")
+		task := sshtask.NewTask(sshtask.CommandTask, config)
+
+		task.SetHosts(args)
+		task.SetCommand(shellCommand)
+		task.Start()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(execCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// execCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// execCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	execCmd.Flags().StringVarP(
+		&shellCommand,
+		"execute",
+		"e",
+		"",
+		"commands that will be executed in remote hosts",
+	)
+	if err := execCmd.MarkFlagRequired("execute"); err != nil {
+		util.CheckErr(err)
+	}
 }

@@ -111,6 +111,12 @@ func initLogger() {
 }
 
 func printDebugInfo() {
-	log.Debugf("Using config file: %s", viper.ConfigFileUsed())
+	configFileUsed := viper.ConfigFileUsed()
+	if configFileUsed != "" {
+		log.Debugf("Using config file: %s", viper.ConfigFileUsed())
+	} else {
+		log.Debugf("Not using config file")
+	}
+
 	log.Debugf("Config contents: %s", config.String())
 }
