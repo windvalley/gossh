@@ -75,9 +75,5 @@ func (a *Auth) Validate() (errs []error) {
 		errs = append(errs, fmt.Errorf("invalid %s: %s not found", flagAuthFile, a.File))
 	}
 
-	if a.File == "" && a.Password == "" && !a.Pubkey {
-		errs = append(errs, fmt.Errorf("no auth info: need flag -p|-a|-k or valid value in config file"))
-	}
-
 	return
 }

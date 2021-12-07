@@ -27,6 +27,8 @@ run:
   # run via sudo as this user (default "root").
   # default: "root"
   as-user: "root"
+  # specify i18n envs when execute command/script.
+  lang: ""
   # number of goroutines to spawn for simultaneous connection attempts (default 1).
   # default: 1
   concurrency: 1

@@ -9,6 +9,7 @@ import (
 const (
 	flagRunSudo        = "run.sudo"
 	flagRunAsUser      = "run.as-user"
+	flagRunLang        = "run.lang"
 	flagRunConcurrency = "run.concurrency"
 )
 
@@ -16,6 +17,7 @@ const (
 type Run struct {
 	Sudo        bool   `json:"sudo" mapstructure:"sudo"`
 	AsUser      string `json:"as-user" mapstructure:"as-user"`
+	Lang        string `json:"lang" mapstructure:"lang"`
 	Concurrency int    `json:"concurrency" mapstructure:"concurrency"`
 }
 
@@ -32,6 +34,14 @@ func NewRun() *Run {
 func (r *Run) AddFlagsTo(flags *pflag.FlagSet) {
 	flags.BoolVarP(&r.Sudo, flagRunSudo, "s", r.Sudo, "use sudo to execute the command")
 	flags.StringVarP(&r.AsUser, flagRunAsUser, "U", r.AsUser, "run via sudo as this user")
+	flags.StringVarP(
+		&r.Lang,
+		flagRunLang,
+		"l",
+		r.Lang,
+		`specify i18n env value when executing command/script
+(e.g.: zh_CN.UTF-8|en_US.UTF-8)`,
+	)
 	flags.IntVarP(&r.Concurrency, flagRunConcurrency, "c", r.Concurrency,
 		"number of goroutines to spawn for simultaneous connection attempts")
 }
