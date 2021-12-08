@@ -115,10 +115,15 @@ func (t *Task) SetCopyfileOrScript(file string) {
 	t.copyFile = file
 }
 
-// SetFileOptions ...
-func (t *Task) SetFileOptions(destPath string, remove bool) {
+// SetScriptOptions ...
+func (t *Task) SetScriptOptions(destPath string, remove bool) {
 	t.dstDir = destPath
 	t.remove = remove
+}
+
+// SetFileOptions ...
+func (t *Task) SetFileOptions(destPath string) {
+	t.dstDir = destPath
 }
 
 // RunSSH implements batchssh.Task
@@ -264,7 +269,14 @@ func (t *Task) getAuthInfo() (user, password, sshAuthSock string, keys []string,
 	sshAuthSock = os.Getenv("SSH_AUTH_SOCK")
 
 	if t.configFlags.Auth.Pubkey {
-		keys = t.configFlags.Auth.IdentityFiles
+		homeDir := os.Getenv("HOME")
+		for _, file := range t.configFlags.Auth.IdentityFiles {
+			if strings.HasPrefix(file, "~/") {
+				file = strings.Replace(file, "~", homeDir, 1)
+			}
+
+			keys = append(keys, file)
+		}
 	}
 
 	authFile := t.configFlags.Auth.File

@@ -23,6 +23,8 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/windvalley/gossh/internal/pkg/sshtask"
@@ -39,13 +41,18 @@ var (
 var scriptCmd = &cobra.Command{
 	Use:   "script",
 	Short: "Execute script in remote hosts",
-	Long:  `Execute given script in remote hosts`,
+	Long: `
+Execute given script in remote hosts`,
 	Example: `
   # Promt password.
-  $ gossh exec host1 -e foo.sh`,
+  $ gossh script host1 -e foo.sh`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
+		}
+
+		if scriptFile != "" && !util.FileExists(scriptFile) {
+			util.CheckErr(fmt.Sprintf("script '%s' not found", scriptFile))
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -53,7 +60,7 @@ var scriptCmd = &cobra.Command{
 
 		task.SetHosts(args)
 		task.SetCopyfileOrScript(scriptFile)
-		task.SetFileOptions(destPath, remove)
+		task.SetScriptOptions(destPath, remove)
 
 		task.Start()
 	},
