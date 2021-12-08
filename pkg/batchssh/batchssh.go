@@ -370,6 +370,8 @@ func buildAuthMethods(password, sshAuthSock string, keys []string) ([]ssh.AuthMe
 
 	if len(keys) != 0 {
 		if sshAuthSock != "" {
+			log.Debugf("Auth method: use SSH_AUTH_SOCK=%s", sshAuthSock)
+
 			var (
 				err           error
 				agentUnixSock net.Conn
@@ -393,10 +395,10 @@ func buildAuthMethods(password, sshAuthSock string, keys []string) ([]ssh.AuthMe
 				break
 			}
 
-			log.Debugf("Auth method: use SSH_AUTH_SOCK=%s", sshAuthSock)
-
 			return auth, nil
 		}
+
+		log.Debugf("Auth method: use identity file '%s'", strings.Join(keys, ","))
 
 		signers := makeSigners(keys)
 		if len(signers) == 0 {
@@ -405,14 +407,12 @@ func buildAuthMethods(password, sshAuthSock string, keys []string) ([]ssh.AuthMe
 
 		auth = []ssh.AuthMethod{ssh.PublicKeys(signers...)}
 
-		log.Debugf("Auth method: use identity file '%s'", strings.Join(keys, ","))
-
 		return auth, nil
 	}
 
-	auth = []ssh.AuthMethod{ssh.Password(password)}
-
 	log.Debugf("Auth method: use password")
+
+	auth = []ssh.AuthMethod{ssh.Password(password)}
 
 	return auth, nil
 }

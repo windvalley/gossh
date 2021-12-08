@@ -264,7 +264,14 @@ func (t *Task) getAuthInfo() (user, password, sshAuthSock string, keys []string,
 	sshAuthSock = os.Getenv("SSH_AUTH_SOCK")
 
 	if t.configFlags.Auth.Pubkey {
-		keys = t.configFlags.Auth.IdentityFiles
+		homeDir := os.Getenv("HOME")
+		for _, file := range t.configFlags.Auth.IdentityFiles {
+			if strings.HasPrefix(file, "~/") {
+				file = strings.Replace(file, "~", homeDir, 1)
+			}
+
+			keys = append(keys, file)
+		}
 	}
 
 	authFile := t.configFlags.Auth.File
