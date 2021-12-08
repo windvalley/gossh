@@ -74,7 +74,7 @@ func init() {
 		"execute",
 		"e",
 		"",
-		"commands that will be executed in remote hosts",
+		"commands to be executed on the remote hosts",
 	)
 	if err := execCmd.MarkFlagRequired("execute"); err != nil {
 		util.CheckErr(err)
