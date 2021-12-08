@@ -43,8 +43,11 @@ var pushCmd = &cobra.Command{
 	Long: `
 Push local file to remote hosts`,
 	Example: `
-  # Promt password.
-  $ gossh file host1 -f foo.txt`,
+  # Copy file to /tmp by default.
+  $ gossh push host1 -f foo.txt
+
+  # Specify dest dir by '-d' flag.
+  $ gossh push host1 -f foo.txt -d /home/username/`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
