@@ -39,11 +39,11 @@ var (
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "Push local file to remote hosts",
+	Short: "Push a local file to remote hosts",
 	Long: `
-Push local file to remote hosts`,
+Push a local file to remote hosts`,
 	Example: `
-  # Copy file to /tmp by default.
+  # Copy a file to /tmp by default.
   $ gossh push host1 -f foo.txt
 
   # Specify dest dir by '-d' flag.

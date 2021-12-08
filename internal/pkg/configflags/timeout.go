@@ -27,7 +27,7 @@ func NewTimeout() *Timeout {
 // AddFlagsTo ...
 func (t *Timeout) AddFlagsTo(flags *pflag.FlagSet) {
 	flags.IntVarP(&t.Conn, flagTimeoutConn, "", t.Conn,
-		"timeout for each ssh connection")
+		"timeout for connecting each remote host")
 	flags.IntVarP(&t.Command, flagTimeoutCommand, "", t.Command,
 		"timeout for executing commands/script on each remote host")
 	flags.IntVarP(&t.Task, flagTimeoutTask, "", t.Task, "the overall timeout for this gossh task")

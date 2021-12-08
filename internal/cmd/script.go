@@ -40,9 +40,9 @@ var (
 // scriptCmd represents the script command
 var scriptCmd = &cobra.Command{
 	Use:   "script",
-	Short: "Execute script in remote hosts",
+	Short: "Execute a local script in remote hosts",
 	Long: `
-Execute given script in remote hosts`,
+Execute a local script in remote hosts`,
 	Example: `
   # Promt password.
   $ gossh script host1 -e foo.sh`,
