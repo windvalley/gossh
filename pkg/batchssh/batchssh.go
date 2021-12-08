@@ -181,12 +181,12 @@ func (c *Client) ExecuteCmd(addr, command, lang, runAs string, sudo bool) (strin
 		command = exportLang + command
 	}
 
-	return c.executecmd(session, command)
+	return c.executeCmd(session, command)
 }
 
 // CopyFile to remote host
 func (c *Client) CopyFile(addr, srcFile, dstDir string) (string, error) {
-	client, ftpC, file, err := c.copyfile(addr, srcFile, dstDir)
+	client, ftpC, file, err := c.copyFile(addr, srcFile, dstDir)
 	if err != nil {
 		return "", err
 	}
@@ -199,7 +199,7 @@ func (c *Client) CopyFile(addr, srcFile, dstDir string) (string, error) {
 
 // ExecuteScript on remote host
 func (c *Client) ExecuteScript(addr, srcFile, dstDir, lang, runAs string, sudo, remove bool) (string, error) {
-	client, ftpC, file, err := c.copyfile(addr, srcFile, dstDir)
+	client, ftpC, file, err := c.copyFile(addr, srcFile, dstDir)
 	if err != nil {
 		return "", err
 	}
@@ -238,10 +238,10 @@ func (c *Client) ExecuteScript(addr, srcFile, dstDir, lang, runAs string, sudo, 
 		command = exportLang + script
 	}
 
-	return c.executecmd(session, command)
+	return c.executeCmd(session, command)
 }
 
-func (c *Client) executecmd(session *ssh.Session, command string) (string, error) {
+func (c *Client) executeCmd(session *ssh.Session, command string) (string, error) {
 	modes := ssh.TerminalModes{
 		ssh.ECHO:          0,
 		ssh.TTY_OP_ISPEED: 28800,
@@ -294,7 +294,7 @@ func (c *Client) executecmd(session *ssh.Session, command string) (string, error
 	return outputStr, nil
 }
 
-func (c *Client) copyfile(addr, srcFile, dstDir string) (*ssh.Client, *sftp.Client, *sftp.File, error) {
+func (c *Client) copyFile(addr, srcFile, dstDir string) (*ssh.Client, *sftp.Client, *sftp.File, error) {
 	client, err := c.getClient(addr)
 	if err != nil {
 		return nil, nil, nil, err
