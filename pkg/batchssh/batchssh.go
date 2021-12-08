@@ -53,56 +53,17 @@ func NewClient(
 	keys []string,
 	options ...func(*Client),
 ) (*Client, error) {
-	var auth []ssh.AuthMethod
-
 	log.Debugf("Login user: %s", user)
 
-	if len(keys) != 0 {
-		if sshAuthSock != "" {
-			var (
-				err           error
-				agentUnixSock net.Conn
-			)
-
-			for {
-				agentUnixSock, err = net.Dial("unix", sshAuthSock)
-				if err != nil {
-					netErr := err.(net.Error)
-					if netErr.Temporary() {
-						//nolint:gosec,gomnd
-						time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
-						continue
-					}
-
-					return nil, fmt.Errorf("cannot open connection to SSH Agent: %v ", netErr)
-				}
-
-				auth = []ssh.AuthMethod{ssh.PublicKeysCallback(agent.NewClient(agentUnixSock).Signers)}
-
-				break
-			}
-
-			log.Debugf("Auth method: use SSH_AUTH_SOCK=%s", sshAuthSock)
-		} else {
-			signers := makeSigners(keys)
-			if len(signers) == 0 {
-				return nil, fmt.Errorf("no valid pubkeys")
-			}
-
-			auth = []ssh.AuthMethod{ssh.PublicKeys(signers...)}
-
-			log.Debugf("Auth method: use identity file '%s'", strings.Join(keys, ","))
-		}
-	} else {
-		auth = []ssh.AuthMethod{ssh.Password(password)}
-
-		log.Debugf("Auth method: use password")
+	authMethods, err := buildAuthMethods(password, sshAuthSock, keys)
+	if err != nil {
+		return nil, err
 	}
 
 	client := Client{
 		User:           user,
 		Password:       password,
-		Auth:           auth,
+		Auth:           authMethods,
 		Port:           22,
 		ConnTimeout:    10 * time.Second,
 		CommandTimeout: 0, // default no timeout
@@ -402,6 +363,58 @@ func WithConcurrency(count int) func(*Client) {
 	return func(s *Client) {
 		s.Concurrency = count
 	}
+}
+
+func buildAuthMethods(password, sshAuthSock string, keys []string) ([]ssh.AuthMethod, error) {
+	var auth []ssh.AuthMethod
+
+	if len(keys) != 0 {
+		if sshAuthSock != "" {
+			var (
+				err           error
+				agentUnixSock net.Conn
+			)
+
+			for {
+				agentUnixSock, err = net.Dial("unix", sshAuthSock)
+				if err != nil {
+					netErr := err.(net.Error)
+					if netErr.Temporary() {
+						//nolint:gosec,gomnd
+						time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+						continue
+					}
+
+					return nil, fmt.Errorf("cannot open connection to SSH Agent: %v ", netErr)
+				}
+
+				auth = []ssh.AuthMethod{ssh.PublicKeysCallback(agent.NewClient(agentUnixSock).Signers)}
+
+				break
+			}
+
+			log.Debugf("Auth method: use SSH_AUTH_SOCK=%s", sshAuthSock)
+
+			return auth, nil
+		}
+
+		signers := makeSigners(keys)
+		if len(signers) == 0 {
+			return nil, fmt.Errorf("no valid pubkeys")
+		}
+
+		auth = []ssh.AuthMethod{ssh.PublicKeys(signers...)}
+
+		log.Debugf("Auth method: use identity file '%s'", strings.Join(keys, ","))
+
+		return auth, nil
+	}
+
+	auth = []ssh.AuthMethod{ssh.Password(password)}
+
+	log.Debugf("Auth method: use password")
+
+	return auth, nil
 }
 
 func makeSigners(keys []string) []ssh.Signer {
