@@ -115,6 +115,12 @@ func (t *Task) SetCopyfileOrScript(file string) {
 	t.copyFile = file
 }
 
+// SetFileOptions ...
+func (t *Task) SetFileOptions(destPath string, remove bool) {
+	t.dstDir = destPath
+	t.remove = remove
+}
+
 // RunSSH implements batchssh.Task
 func (t *Task) RunSSH(addr string) (string, error) {
 	lang := t.configFlags.Run.Lang
@@ -125,9 +131,9 @@ func (t *Task) RunSSH(addr string) (string, error) {
 	case CommandTask:
 		return t.sshClient.ExecuteCmd(addr, t.command, lang, runAs, sudo)
 	case ScriptTask:
-		return t.sshClient.CopyFile(addr, t.copyFile, t.dstDir)
-	case PushTask:
 		return t.sshClient.ExecuteScript(addr, t.copyFile, t.dstDir, lang, runAs, sudo, t.remove)
+	case PushTask:
+		return t.sshClient.CopyFile(addr, t.copyFile, t.dstDir)
 	default:
 		return "", fmt.Errorf("unknown task type: %v", t.taskType)
 	}
