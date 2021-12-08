@@ -29,8 +29,8 @@ func NewHosts() *Hosts {
 
 // AddFlagsTo pflagSet.
 func (h *Hosts) AddFlagsTo(fs *pflag.FlagSet) {
-	fs.StringVarP(&h.File, flagHostsFile, "H", h.File, "the file containing the hosts that to ssh")
-	fs.IntVarP(&h.Port, flagHostsPort, "P", h.Port, "the port to be used when connecting")
+	fs.StringVarP(&h.File, flagHostsFile, "H", h.File, "file containing target hosts")
+	fs.IntVarP(&h.Port, flagHostsPort, "P", h.Port, "port of target hosts")
 }
 
 // Complete ...

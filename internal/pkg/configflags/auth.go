@@ -39,13 +39,13 @@ func NewAuth() *Auth {
 
 // AddFlagsTo pflagSet.
 func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
-	fs.StringVarP(&a.User, flagAuthUser, "u", "", "specify the login user (default is $USER)")
+	fs.StringVarP(&a.User, flagAuthUser, "u", "", "login user (default is $USER)")
 	fs.StringVarP(&a.Password, flagAuthPassword, "p", a.Password, "password of the login user")
 	fs.StringVarP(&a.File, flagAuthFile, "a", a.File,
 		`file containing the credentials (format is "username:password")`)
-	fs.BoolVarP(&a.Pubkey, flagAuthPubkey, "k", a.Pubkey, "use pubkey auth or not")
+	fs.BoolVarP(&a.Pubkey, flagAuthPubkey, "k", a.Pubkey, "use pubkey authentication")
 	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "i", nil,
-		"specify the identity files (default is $HOME/.ssh/{id_rsa,id_dsa})")
+		"identity files (default is $HOME/.ssh/{id_rsa,id_dsa})")
 }
 
 // Complete ...

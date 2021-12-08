@@ -29,11 +29,11 @@ func NewOutput() *Output {
 
 // AddFlagsTo flagset.
 func (o *Output) AddFlagsTo(flags *pflag.FlagSet) {
-	flags.StringVarP(&o.File, flagOutputFile, "o", o.File, "the file where the results will be saved")
-	flags.BoolVarP(&o.JSON, flagOutputJSON, "j", o.JSON, "outputs format is json or not")
+	flags.StringVarP(&o.File, flagOutputFile, "o", o.File, "file to which messages are output")
+	flags.BoolVarP(&o.JSON, flagOutputJSON, "j", o.JSON, "output messages in json format")
 	flags.BoolVarP(&o.Quiet, flagOutputQuite, "q", o.Quiet,
-		"do not print messages to stdout (only print errors)")
-	flags.BoolVarP(&o.Verbose, flagOutputVerbose, "v", o.Verbose, "print debug information or not")
+		"do not output messages to screen (except error messages)")
+	flags.BoolVarP(&o.Verbose, flagOutputVerbose, "v", o.Verbose, "show debug messages")
 }
 
 // Complete ...
