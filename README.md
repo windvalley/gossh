@@ -19,7 +19,7 @@ It can efficiently execute commands, execute script file, transfer file, etc.
 
 - Supports using sudo to execute the commands or a script as other user(default is `root`).
 
-- Supports specify i18n environment variable value while executing commands or a script to help keep the language of the outputs consistent. For example: zh_CN.UTF-8, en_US.UTF-8.
+- Supports specify i18n environment variable value while executing commands or a script to help keep the language of the outputs consistent. For example: `zh_CN.UTF-8`, `en_US.UTF-8`.
 
 - Supports four authentication methods.  
   Priority: `ssh-agent authentication` -> `pubkey authentication` -> `password from command flag` -> `username:password from a file`.  
@@ -67,6 +67,7 @@ Usage:
 
 Available Commands:
   completion  generate the autocompletion script for the specified shell
+  config      Generate gossh configuration file
   exec        Execute commands in remote hosts
   help        Help about any command
   push        Push a local file to remote hosts
