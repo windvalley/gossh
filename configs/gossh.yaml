@@ -1,13 +1,13 @@
 auth:
-  # the login user (default is $USER).
+  # login user (default is $USER).
   user: ""
   # password of the login user.
   password: ""
   # file that contains 'username:password'.
   file: ""
-  # use pubkey authentication or not.
+  # use pubkey authentication.
   pubkey: false
-  # specify identity files when use pubkey authentication.
+  # identity files.
   # default:
   #   - $HOME/.ssh/id_rsa
   #   - $HOME/.ssh/id_dsa
@@ -15,39 +15,39 @@ auth:
     -
 
 hosts:
-  # the file containing the hosts that to ssh.
+  # file containing target hosts (format: one host per line).
   file: ""
-  # the port to be used when connecting to hosts.
+  # port of target hosts.
   # default: 22
   port: 22
 
 run:
   # use sudo to execute the command.
   sudo: false
-  # run via sudo as this user (default "root").
-  # default: "root"
-  as-user: "root"
+  # run via sudo as this user.
+  # default: root
+  as-user: root
   # specify i18n envs when execute command/script.
   lang: ""
-  # number of goroutines to spawn for simultaneous connection attempts (default 1).
+  # number of concurrent connections.
   # default: 1
   concurrency: 1
 
 output:
-  # the file where the results will be saved.
+  # file to which messages are output.
   file: ""
-  # outputs format is json or not.
+  # output messages in json format
   json: false
-  # print debug information or not.
+  # show debug messages.
   verbose: false
-  # do not print messages to stdout (except for error messages).
+  # do not output messages to screen (except error messages).
   quite: false
 
 timeout:
-  # connection timeout for each ssh connection (default 10).
-  # default: 10
+  # timeout for connecting each remote host.
+  # default: 10 (seconds)
   conn: 10
-  # timeout for the command executing on each remote host.
+  # timeout for executing commands/script on each remote host.
   command: 0
-  # timeout for all ssh connections.
+  # timeout for the current gossh task.
   task: 0
