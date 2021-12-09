@@ -48,7 +48,7 @@ func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 		"identity files (default is $HOME/.ssh/{id_rsa,id_dsa})")
 }
 
-// Complete ...
+// Complete some flags value.
 func (a *Auth) Complete() error {
 	if a.User == "" {
 		a.User = os.Getenv("USER")
@@ -69,7 +69,7 @@ func (a *Auth) Complete() error {
 	return nil
 }
 
-// Validate ...
+// Validate flags.
 func (a *Auth) Validate() (errs []error) {
 	if a.File != "" && !util.FileExists(a.File) {
 		errs = append(errs, fmt.Errorf("invalid %s: %s not found", flagAuthFile, a.File))
