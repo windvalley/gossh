@@ -155,7 +155,7 @@ func (c *Client) CopyFile(addr, srcFile, dstDir string) (string, error) {
 	defer ftpC.Close()
 	defer file.Close()
 
-	return fmt.Sprintf("'%s' has copied to '%s'", srcFile, dstDir), nil
+	return fmt.Sprintf("'%s' has been copied to '%s'", srcFile, dstDir), nil
 }
 
 // ExecuteScript on remote host
