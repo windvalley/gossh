@@ -1,6 +1,10 @@
 # GoSSH
 
+[![Language](https://img.shields.io/badge/Language-Go-blue.svg)](https://go.dev)
+[![Github Workflow Status](https://img.shields.io/github/workflow/status/windvalley/gossh/GosshCI)](https://github.com/windvalley/gossh/actions/workflows/gosshci.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=windvalley_gossh&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=windvalley_gossh)
+[![Version](https://img.shields.io/github/v/release/windvalley/gossh?include_prereleases)](https://github.com/windvalley/gossh/releases)
+[![LICENSE](https://img.shields.io/github/license/windvalley/gossh)](LICENSE)
 
 Gossh is a high-performance and high-concurrency ssh tool.
 This tool can efficiently manage tens of thousands of Linux server clusters.
@@ -36,7 +40,7 @@ It can efficiently execute commands, execute script file, transfer file, etc.
 
 ## Installation
 
-Prebuilt binaries for macOS, Linux and Windows can be downloaded from the [GitHub releases page](https://github.com/windvalley/gossh/releases).
+Prebuilt binaries for macOS and Linux can be downloaded from the [GitHub releases page](https://github.com/windvalley/gossh/releases).
 
 Also you can install gossh by compiling:
 
@@ -70,7 +74,7 @@ Available Commands:
   version     Show the gossh version information
 
 Flags:
-  -a, --auth.file string              file containing the credentials (format is "username:password")
+  -a, --auth.file string              file containing the credentials (format: "username:password")
   -i, --auth.identity-files strings   identity files (default is $HOME/.ssh/{id_rsa,id_dsa})
   -p, --auth.password string          password of the login user
   -k, --auth.pubkey                   use pubkey authentication
@@ -85,11 +89,11 @@ Flags:
   -v, --output.verbose                show debug messages
   -U, --run.as-user string            run via sudo as this user (default "root")
   -c, --run.concurrency int           number of concurrent connections (default 1)
-  -l, --run.lang string               specify i18n while executing command (e.g.: zh_CN.UTF-8|en_US.UTF-8)
+  -l, --run.lang string               specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
   -s, --run.sudo                      use sudo to execute commands/script
       --timeout.command int           timeout for executing commands/script on each remote host
       --timeout.conn int              timeout for connecting each remote host (default 10)
-      --timeout.task int              the overall timeout for this gossh task
+      --timeout.task int              timeout for the current gossh task
 
 Use "gossh [command] --help" for more information about a command.
 ```
