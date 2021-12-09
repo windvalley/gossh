@@ -36,11 +36,16 @@ It can efficiently execute commands, execute script file, transfer file, etc.
 
 ## Installation
 
+Prebuilt binaries for macOS, Linux and Windows can be downloaded from the [GitHub releases page](https://github.com/windvalley/gossh/releases).
+
+Also you can install gossh by compiling:
+
 ```sh
 $ git clone --depth 1 https://github.com/windvalley/gossh
 
 $ cd gossh
 
+# Note: need to install Go environment first.
 $ make && make install
 ```
 
