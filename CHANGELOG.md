@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Subcommand 'push' supports copying directory.
+
+## [0.6.0]
+
+### Added
+
+- Provide the subcommand `config` to help users generate configuration file in easy way.
+
 ## [0.5.1]
 
 ### Added
