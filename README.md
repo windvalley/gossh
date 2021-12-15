@@ -4,6 +4,7 @@
 [![Github Workflow Status](https://img.shields.io/github/workflow/status/windvalley/gossh/GosshCI)](https://github.com/windvalley/gossh/actions/workflows/gosshci.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=windvalley_gossh&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=windvalley_gossh)
 [![Version](https://img.shields.io/github/v/release/windvalley/gossh?include_prereleases)](https://github.com/windvalley/gossh/releases)
+[![Clones](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.sre.im%2Fv1%2Frepo-traffic-clones%3Fgit_user%3Dwindvalley%26git_repo%3Dgossh%26git_token%3D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)](https://github.com/windvalley/traffic-clones-api)
 [![LICENSE](https://img.shields.io/github/license/windvalley/gossh)](LICENSE)
 
 Gossh is a high-performance and high-concurrency ssh tool.
@@ -23,7 +24,7 @@ It can efficiently execute commands, execute script file, transfer file, etc.
 
 - Supports four authentication methods.  
   Priority: `ssh-agent authentication` -> `pubkey authentication` -> `password from command flag` -> `username:password from a file`.  
-  If the user is not specified, the system environment variable `$USER` will be used by default.
+  If the login user is not specified, the system environment variable `$USER` will be used by default.
 
 - Supports two methods to specify target hosts. One is through command line arguments, input one or more target hosts, separated by space. The other is through command line flag or configuration file option to specify the hosts file. Both methods can be used at the same time.
 
@@ -32,7 +33,7 @@ It can efficiently execute commands, execute script file, transfer file, etc.
   Timeout for executing commands or a script on each remote host.  
   Timeout for the current gossh task.
 
-- Supports printing the execution results of `gossh` to a file or screen or to a file and screen at the same time. Supports json format output. Supports printing debug information. Supports silent output.
+- Supports printing the execution results of `gossh` to a file or screen or a file and screen at the same time. Supports json format output. Supports printing debug information. Supports silent output.
 
 - High-performance and high-concurrency. You can specify number of concurrent connections (default `1`).
 
