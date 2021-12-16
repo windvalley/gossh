@@ -102,6 +102,28 @@ Flags:
 Use "gossh [command] --help" for more information about a command.
 ```
 
+## Performance
+
+Client server: `4vCPUs` and `8GiB`
+
+Target servers: There are a total of `955` servers distributed in `90` different IDCs across the country.
+
+```sh
+$ time gossh exec -H hosts.list -e "uptime" -c 130
+```
+
+Output:
+
+```sh
+...
+
+level=info msg=success count: 955, failed count: 0, elapsed:  8s time=2021-12-15 22:17:33
+
+real    0m8.261s
+user    0m12.605s
+sys     0m0.658s
+```
+
 ## License
 
 This project is under the MIT License.
