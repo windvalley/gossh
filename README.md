@@ -4,7 +4,8 @@
 [![Github Workflow Status](https://img.shields.io/github/workflow/status/windvalley/gossh/GosshCI)](https://github.com/windvalley/gossh/actions/workflows/gosshci.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=windvalley_gossh&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=windvalley_gossh)
 [![Version](https://img.shields.io/github/v/release/windvalley/gossh?include_prereleases)](https://github.com/windvalley/gossh/releases)
-[![Clones](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.sre.im%2Fv1%2Frepo-traffic-clones%3Fgit_user%3Dwindvalley%26git_repo%3Dgossh%26git_token%3D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)](https://github.com/windvalley/traffic-clones-api)
+![Page Views](https://views.whatilearened.today/views/github/windvalley/gossh.svg)
+[![Clones](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.sre.im%2Fv1%2Frepo-traffic-clones%3Fgit_user%3Dwindvalley%26git_repo%3Dgossh)](https://github.com/windvalley/traffic-clones-api)
 [![LICENSE](https://img.shields.io/github/license/windvalley/gossh)](LICENSE)
 
 Gossh is a high-performance and high-concurrency ssh tool.
