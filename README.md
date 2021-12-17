@@ -4,9 +4,11 @@
 [![Github Workflow Status](https://img.shields.io/github/workflow/status/windvalley/gossh/GosshCI)](https://github.com/windvalley/gossh/actions/workflows/gosshci.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=windvalley_gossh&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=windvalley_gossh)
 [![Version](https://img.shields.io/github/v/release/windvalley/gossh?include_prereleases)](https://github.com/windvalley/gossh/releases)
+[![LICENSE](https://img.shields.io/github/license/windvalley/gossh)](LICENSE) <br>
 ![Page Views](https://views.whatilearened.today/views/github/windvalley/gossh.svg)
-[![Clones](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.sre.im%2Fv1%2Frepo-traffic-clones%3Fgit_user%3Dwindvalley%26git_repo%3Dgossh)](https://github.com/windvalley/traffic-clones-api)
-[![LICENSE](https://img.shields.io/github/license/windvalley/gossh)](LICENSE)
+[![Traffic Clones Total](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.sre.im%2Fv1%2Fgithub%2Ftraffic%2Fclones%2Ftotal%3Fgit_user%3Dwindvalley%26git_repo%3Dgossh%26type%3Dcount%26label%3Dclones-total)](https://github.com/windvalley/traffic-clones-api)
+[![Traffic Clones Uniques](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.sre.im%2Fv1%2Fgithub%2Ftraffic%2Fclones%2Ftotal%3Fgit_user%3Dwindvalley%26git_repo%3Dgossh%26type%3Duniques%26label%3Dclones-uniques)](https://github.com/windvalley/traffic-clones-api)
+[![Release Download Total](https://img.shields.io/github/downloads/windvalley/gossh/total)](https://github.com/windvalley/gossh/releases)
 
 Gossh is a high-performance and high-concurrency ssh tool.
 This tool can efficiently manage tens of thousands of Linux server clusters.
