@@ -88,6 +88,6 @@ func init() {
 	}
 
 	pushCmd.Flags().StringVarP(&fileDstPath, "dest-path", "d", "/tmp",
-		"path of remote hosts where file will be copied to",
+		"path of remote hosts where files will be copied to",
 	)
 }
