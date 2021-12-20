@@ -11,9 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Subcommand 'push' supports copying directory.
 
+## [0.6.2]
+
+### Added
+
+- Subcommand `push`: keep mode and mtime of dest files and source files the same.
+
 ## [0.6.1]
 
-### Changed
+### Added
 
 - Subcommand 'push' can push files, not only a file.
 

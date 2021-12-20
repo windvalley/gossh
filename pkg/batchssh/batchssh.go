@@ -198,17 +198,18 @@ func (c *Client) ExecuteScript(addr, srcFile, dstDir, lang, runAs string, sudo, 
 	if err != nil {
 		return "", err
 	}
+	defer client.Close()
 
 	ftpC, err := sftp.NewClient(client)
 	if err != nil {
 		return "", err
 	}
+	defer ftpC.Close()
 
 	file, err := c.copyFile(ftpC, srcFile, dstDir)
 	if err != nil {
 		return "", err
 	}
-	defer client.Close()
 
 	//nolint:gomnd,govet
 	if err := file.Chmod(0755); err != nil {
@@ -216,9 +217,7 @@ func (c *Client) ExecuteScript(addr, srcFile, dstDir, lang, runAs string, sudo, 
 	}
 
 	script := file.Name()
-
 	file.Close()
-	ftpC.Close()
 
 	session, err := client.NewSession()
 	if err != nil {
@@ -310,15 +309,29 @@ func (c *Client) copyFile(ftpC *sftp.Client, srcFile, dstDir string) (*sftp.File
 		return nil, err
 	}
 
-	srcFileBaseName := filepath.Base(srcFile)
+	fileStat, err := os.Stat(srcFile)
+	if err != nil {
+		return nil, err
+	}
 
-	file, err := ftpC.Create(dstDir + "/" + srcFileBaseName)
+	srcFileBaseName := filepath.Base(srcFile)
+	dstFile := dstDir + "/" + srcFileBaseName
+
+	file, err := ftpC.Create(dstFile)
 	if err != nil {
 		return nil, err
 	}
 
 	_, err = file.Write(content)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := file.Chmod(fileStat.Mode()); err != nil {
+		return nil, err
+	}
+
+	if err := ftpC.Chtimes(dstFile, time.Now(), fileStat.ModTime()); err != nil {
 		return nil, err
 	}
 
