@@ -145,22 +145,44 @@ func (c *Client) ExecuteCmd(addr, command, lang, runAs string, sudo bool) (strin
 	return c.executeCmd(session, command)
 }
 
-// CopyFile to remote host
-func (c *Client) CopyFile(addr, srcFile, dstDir string) (string, error) {
-	client, ftpC, file, err := c.copyFile(addr, srcFile, dstDir)
+// CopyFiles to remote host
+func (c *Client) CopyFiles(addr string, srcFiles []string, dstDir string) (string, error) {
+	client, err := c.getClient(addr)
 	if err != nil {
 		return "", err
 	}
 	defer client.Close()
-	defer ftpC.Close()
-	defer file.Close()
 
-	return fmt.Sprintf("'%s' has been copied to '%s'", srcFile, dstDir), nil
+	ftpC, err := sftp.NewClient(client)
+	if err != nil {
+		return "", err
+	}
+	defer ftpC.Close()
+
+	for _, f := range srcFiles {
+		file, err := c.copyFile(ftpC, f, dstDir)
+		if err != nil {
+			return "", err
+		}
+		file.Close()
+	}
+
+	return fmt.Sprintf("'%s' has been copied to '%s'", strings.Join(srcFiles, ","), dstDir), nil
 }
 
 // ExecuteScript on remote host
 func (c *Client) ExecuteScript(addr, srcFile, dstDir, lang, runAs string, sudo, remove bool) (string, error) {
-	client, ftpC, file, err := c.copyFile(addr, srcFile, dstDir)
+	client, err := c.getClient(addr)
+	if err != nil {
+		return "", err
+	}
+
+	ftpC, err := sftp.NewClient(client)
+	if err != nil {
+		return "", err
+	}
+
+	file, err := c.copyFile(ftpC, srcFile, dstDir)
 	if err != nil {
 		return "", err
 	}
@@ -255,17 +277,7 @@ func (c *Client) executeCmd(session *ssh.Session, command string) (string, error
 	return outputStr, nil
 }
 
-func (c *Client) copyFile(addr, srcFile, dstDir string) (*ssh.Client, *sftp.Client, *sftp.File, error) {
-	client, err := c.getClient(addr)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	ftpC, err := sftp.NewClient(client)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
+func (c *Client) copyFile(ftpC *sftp.Client, srcFile, dstDir string) (*sftp.File, error) {
 	homeDir := os.Getenv("HOME")
 	if strings.HasPrefix(srcFile, "~/") {
 		srcFile = strings.Replace(srcFile, "~", homeDir, 1)
@@ -273,22 +285,22 @@ func (c *Client) copyFile(addr, srcFile, dstDir string) (*ssh.Client, *sftp.Clie
 
 	content, err := ioutil.ReadFile(srcFile)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	srcFileBaseName := filepath.Base(srcFile)
 
 	file, err := ftpC.Create(dstDir + "/" + srcFileBaseName)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	_, err = file.Write(content)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
-	return client, ftpC, file, nil
+	return file, nil
 }
 
 func (c *Client) getClient(addr string) (*ssh.Client, error) {

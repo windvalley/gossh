@@ -32,36 +32,45 @@ import (
 )
 
 var (
-	file        string
+	files       []string
 	fileDstPath string
 )
 
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "Push a local file to remote hosts",
+	Short: "Push local files to remote hosts",
 	Long: `
-Push a local file to remote hosts`,
+Push local files to remote hosts`,
 	Example: `
-  # Copy a file to /tmp by default.
-  $ gossh push host1 -f foo.txt
+  # Push a local file to host1:/tmp/.
+  $ gossh push host1 -f ./foo.txt
 
   # Specify dest dir by '-d' flag.
-  $ gossh push host1 -f foo.txt -d /home/username/`,
+  $ gossh push host1 -f ./foo.txt -d /home/user
+
+  # Push local files to remote hosts. 
+  $ gossh push host1 -f ./foo.txt -f ./bar.txt 
+    or
+  $ gossh push host1 -f ./foo.txt,./bar.txt`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
 		}
 
-		if file != "" && !util.FileExists(file) {
-			util.CheckErr(fmt.Sprintf("file '%s' not found", file))
+		if len(files) != 0 {
+			for _, file := range files {
+				if !util.FileExists(file) {
+					util.CheckErr(fmt.Sprintf("file '%s' not found", file))
+				}
+			}
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		task := sshtask.NewTask(sshtask.PushTask, config)
 
 		task.SetHosts(args)
-		task.SetCopyfileOrScript(file)
+		task.SetCopyfiles(files)
 		task.SetFileOptions(fileDstPath)
 
 		task.Start()
@@ -71,10 +80,10 @@ Push a local file to remote hosts`,
 func init() {
 	rootCmd.AddCommand(pushCmd)
 
-	pushCmd.Flags().StringVarP(&file, "file", "f", "",
-		"file to be copied to the remote hosts",
+	pushCmd.Flags().StringSliceVarP(&files, "files", "f", nil,
+		"files to be copied to the remote hosts",
 	)
-	if err := pushCmd.MarkFlagRequired("file"); err != nil {
+	if err := pushCmd.MarkFlagRequired("files"); err != nil {
 		util.CheckErr(err)
 	}
 

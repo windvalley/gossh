@@ -59,7 +59,7 @@ Execute a local script in remote hosts`,
 		task := sshtask.NewTask(sshtask.ScriptTask, config)
 
 		task.SetHosts(args)
-		task.SetCopyfileOrScript(scriptFile)
+		task.SetScriptFile(scriptFile)
 		task.SetScriptOptions(destPath, remove)
 
 		task.Start()

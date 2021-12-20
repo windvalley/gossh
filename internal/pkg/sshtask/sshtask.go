@@ -54,10 +54,11 @@ type Task struct {
 	// hostnames or ips from command line arguments.
 	hosts []string
 
-	command  string
-	copyFile string
-	dstDir   string
-	remove   bool
+	command    string
+	scriptFile string
+	copyFiles  []string
+	dstDir     string
+	remove     bool
 
 	taskOutput   chan taskResult
 	detailOutput chan detailResult
@@ -110,9 +111,14 @@ func (t *Task) SetCommand(command string) {
 	t.command = command
 }
 
-// SetCopyfileOrScript ...
-func (t *Task) SetCopyfileOrScript(file string) {
-	t.copyFile = file
+// SetScriptFile ...
+func (t *Task) SetScriptFile(sciptFile string) {
+	t.scriptFile = sciptFile
+}
+
+// SetCopyfiles ...
+func (t *Task) SetCopyfiles(files []string) {
+	t.copyFiles = files
 }
 
 // SetScriptOptions ...
@@ -136,9 +142,9 @@ func (t *Task) RunSSH(addr string) (string, error) {
 	case CommandTask:
 		return t.sshClient.ExecuteCmd(addr, t.command, lang, runAs, sudo)
 	case ScriptTask:
-		return t.sshClient.ExecuteScript(addr, t.copyFile, t.dstDir, lang, runAs, sudo, t.remove)
+		return t.sshClient.ExecuteScript(addr, t.scriptFile, t.dstDir, lang, runAs, sudo, t.remove)
 	case PushTask:
-		return t.sshClient.CopyFile(addr, t.copyFile, t.dstDir)
+		return t.sshClient.CopyFiles(addr, t.copyFiles, t.dstDir)
 	default:
 		return "", fmt.Errorf("unknown task type: %v", t.taskType)
 	}

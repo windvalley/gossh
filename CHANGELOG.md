@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Subcommand 'push' supports copying directory.
 
+## [0.6.1]
+
+### Changed
+
+- Subcommand 'push' can push files, not only a file.
+
 ## [0.6.0]
 
 ### Added
