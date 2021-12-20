@@ -31,6 +31,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -168,7 +169,7 @@ func (c *Client) ExecuteCmd(addr, command, lang, runAs string, sudo bool) (strin
 }
 
 // CopyFiles to remote host
-func (c *Client) CopyFiles(addr string, srcFiles []string, dstDir string) (string, error) {
+func (c *Client) CopyFiles(addr string, srcFiles []string, dstDir string, allowOverwrite bool) (string, error) {
 	client, err := c.getClient(addr)
 	if err != nil {
 		return "", err
@@ -182,7 +183,7 @@ func (c *Client) CopyFiles(addr string, srcFiles []string, dstDir string) (strin
 	defer ftpC.Close()
 
 	for _, f := range srcFiles {
-		file, err := c.copyFile(ftpC, f, dstDir)
+		file, err := c.copyFile(ftpC, f, dstDir, allowOverwrite)
 		if err != nil {
 			return "", err
 		}
@@ -193,7 +194,10 @@ func (c *Client) CopyFiles(addr string, srcFiles []string, dstDir string) (strin
 }
 
 // ExecuteScript on remote host
-func (c *Client) ExecuteScript(addr, srcFile, dstDir, lang, runAs string, sudo, remove bool) (string, error) {
+func (c *Client) ExecuteScript(
+	addr, srcFile, dstDir, lang, runAs string,
+	sudo, remove, allowOverwrite bool,
+) (string, error) {
 	client, err := c.getClient(addr)
 	if err != nil {
 		return "", err
@@ -206,7 +210,7 @@ func (c *Client) ExecuteScript(addr, srcFile, dstDir, lang, runAs string, sudo, 
 	}
 	defer ftpC.Close()
 
-	file, err := c.copyFile(ftpC, srcFile, dstDir)
+	file, err := c.copyFile(ftpC, srcFile, dstDir, allowOverwrite)
 	if err != nil {
 		return "", err
 	}
@@ -298,7 +302,7 @@ func (c *Client) executeCmd(session *ssh.Session, command string) (string, error
 	return outputStr, nil
 }
 
-func (c *Client) copyFile(ftpC *sftp.Client, srcFile, dstDir string) (*sftp.File, error) {
+func (c *Client) copyFile(ftpC *sftp.Client, srcFile, dstDir string, allowOverwrite bool) (*sftp.File, error) {
 	homeDir := os.Getenv("HOME")
 	if strings.HasPrefix(srcFile, "~/") {
 		srcFile = strings.Replace(srcFile, "~", homeDir, 1)
@@ -315,7 +319,17 @@ func (c *Client) copyFile(ftpC *sftp.Client, srcFile, dstDir string) (*sftp.File
 	}
 
 	srcFileBaseName := filepath.Base(srcFile)
-	dstFile := dstDir + "/" + srcFileBaseName
+	dstFile := path.Join(dstDir, srcFileBaseName)
+
+	if !allowOverwrite {
+		dstFileInfo, _ := ftpC.Stat(dstFile)
+		if dstFileInfo != nil {
+			return nil, fmt.Errorf(
+				"%s alreay exists, you can add '-F' flag to overwrite it",
+				dstFile,
+			)
+		}
+	}
 
 	file, err := ftpC.Create(dstFile)
 	if err != nil {

@@ -76,11 +76,12 @@ type Task struct {
 	// hostnames or ips from command line arguments.
 	hosts []string
 
-	command    string
-	scriptFile string
-	copyFiles  []string
-	dstDir     string
-	remove     bool
+	command        string
+	scriptFile     string
+	copyFiles      []string
+	dstDir         string
+	remove         bool
+	allowOverwrite bool
 
 	taskOutput   chan taskResult
 	detailOutput chan detailResult
@@ -144,14 +145,16 @@ func (t *Task) SetCopyfiles(files []string) {
 }
 
 // SetScriptOptions ...
-func (t *Task) SetScriptOptions(destPath string, remove bool) {
+func (t *Task) SetScriptOptions(destPath string, remove, allowOverwrite bool) {
 	t.dstDir = destPath
 	t.remove = remove
+	t.allowOverwrite = allowOverwrite
 }
 
 // SetFileOptions ...
-func (t *Task) SetFileOptions(destPath string) {
+func (t *Task) SetFileOptions(destPath string, allowOverwrite bool) {
 	t.dstDir = destPath
+	t.allowOverwrite = allowOverwrite
 }
 
 // RunSSH implements batchssh.Task
@@ -164,9 +167,9 @@ func (t *Task) RunSSH(addr string) (string, error) {
 	case CommandTask:
 		return t.sshClient.ExecuteCmd(addr, t.command, lang, runAs, sudo)
 	case ScriptTask:
-		return t.sshClient.ExecuteScript(addr, t.scriptFile, t.dstDir, lang, runAs, sudo, t.remove)
+		return t.sshClient.ExecuteScript(addr, t.scriptFile, t.dstDir, lang, runAs, sudo, t.remove, t.allowOverwrite)
 	case PushTask:
-		return t.sshClient.CopyFiles(addr, t.copyFiles, t.dstDir)
+		return t.sshClient.CopyFiles(addr, t.copyFiles, t.dstDir, t.allowOverwrite)
 	default:
 		return "", fmt.Errorf("unknown task type: %v", t.taskType)
 	}

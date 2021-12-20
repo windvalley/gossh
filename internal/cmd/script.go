@@ -35,6 +35,7 @@ var (
 	scriptFile string
 	destPath   string
 	remove     bool
+	force      bool
 )
 
 // scriptCmd represents the script command
@@ -60,7 +61,7 @@ Execute a local script in remote hosts`,
 
 		task.SetHosts(args)
 		task.SetScriptFile(scriptFile)
-		task.SetScriptOptions(destPath, remove)
+		task.SetScriptOptions(destPath, remove, force)
 
 		task.Start()
 	},
@@ -82,5 +83,9 @@ func init() {
 
 	scriptCmd.Flags().BoolVarP(&remove, "remove", "r", false,
 		"remove the copied script after execution",
+	)
+
+	scriptCmd.Flags().BoolVarP(&force, "force", "F", false,
+		"allow overwrite script file if it already exists in remote hosts",
 	)
 }

@@ -32,8 +32,9 @@ import (
 )
 
 var (
-	files       []string
-	fileDstPath string
+	files          []string
+	fileDstPath    string
+	allowOverwrite bool
 )
 
 // pushCmd represents the push command
@@ -71,7 +72,7 @@ Push local files to remote hosts`,
 
 		task.SetHosts(args)
 		task.SetCopyfiles(files)
-		task.SetFileOptions(fileDstPath)
+		task.SetFileOptions(fileDstPath, allowOverwrite)
 
 		task.Start()
 	},
@@ -89,5 +90,13 @@ func init() {
 
 	pushCmd.Flags().StringVarP(&fileDstPath, "dest-path", "d", "/tmp",
 		"path of remote hosts where files will be copied to",
+	)
+
+	pushCmd.Flags().BoolVarP(
+		&allowOverwrite,
+		"force",
+		"F",
+		false,
+		"allow overwrite dst files if they already exist",
 	)
 }
