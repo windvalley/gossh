@@ -11,11 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Subcommand 'push' supports copying directory.
 
-## [0.6.2]
+## [0.7.0]
 
 ### Added
 
 - Subcommand `push`: keep mode and mtime of dest files and source files the same.
+
+### Security
+
+- For subcommand `push`: For security reasons, if the files to be copied already exists on the target hosts, error messages will be output. If you think it is safe to overwrite the files, you can specify `-F/--force` flag to force overwrite them.
+
+- For subcommand `script`: For security reasons, if the script file already on the target hosts, error messages will
+  be output. If you think it is safe to overwrite the script, you can specify `-F/--force` flag to force overwrite it.
 
 ## [0.6.1]
 
