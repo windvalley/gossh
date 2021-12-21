@@ -41,9 +41,9 @@ var (
 // scriptCmd represents the script command
 var scriptCmd = &cobra.Command{
 	Use:   "script",
-	Short: "Execute a local script in remote hosts",
+	Short: "Execute a local script on remote hosts",
 	Long: `
-Execute a local script in remote hosts`,
+Execute a local script on remote hosts`,
 	Example: `
   # Promt password.
   $ gossh script host1 -e foo.sh`,
@@ -71,7 +71,7 @@ func init() {
 	rootCmd.AddCommand(scriptCmd)
 
 	scriptCmd.Flags().StringVarP(&scriptFile, "execute", "e", "",
-		"script to be executed on the remote hosts",
+		"script to be executed on remote hosts",
 	)
 	if err := scriptCmd.MarkFlagRequired("execute"); err != nil {
 		util.CheckErr(err)
@@ -86,6 +86,6 @@ func init() {
 	)
 
 	scriptCmd.Flags().BoolVarP(&force, "force", "F", false,
-		"allow overwrite script file if it already exists in remote hosts",
+		"allow overwrite script file if it already exists on remote hosts",
 	)
 }

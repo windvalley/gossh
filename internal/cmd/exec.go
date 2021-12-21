@@ -34,9 +34,9 @@ var shellCommand string
 // execCmd represents the exec command
 var execCmd = &cobra.Command{
 	Use:   "exec",
-	Short: "Execute commands in remote hosts",
+	Short: "Execute commands on remote hosts",
 	Long: `
-Execute given commands in remote hosts.`,
+Execute given commands on remote hosts.`,
 	Example: `
   # Promt password.
   $ gossh exec host1 -e "uptime"
@@ -74,7 +74,7 @@ func init() {
 		"execute",
 		"e",
 		"",
-		"commands to be executed on the remote hosts",
+		"commands to be executed on remote hosts",
 	)
 	if err := execCmd.MarkFlagRequired("execute"); err != nil {
 		util.CheckErr(err)

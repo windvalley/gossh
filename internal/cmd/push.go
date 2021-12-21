@@ -82,7 +82,7 @@ func init() {
 	rootCmd.AddCommand(pushCmd)
 
 	pushCmd.Flags().StringSliceVarP(&files, "files", "f", nil,
-		"files to be copied to the remote hosts",
+		"files to be copied to remote hosts",
 	)
 	if err := pushCmd.MarkFlagRequired("files"); err != nil {
 		util.CheckErr(err)
@@ -97,6 +97,6 @@ func init() {
 		"force",
 		"F",
 		false,
-		"allow overwrite dst files if they already exist",
+		"allow overwrite files if they already exist on remote hosts",
 	)
 }
