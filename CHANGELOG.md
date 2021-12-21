@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Subcommand 'push' supports copying directory.
 
+## [0.7.1]
+
+### Changed
+
+Optimize flag `-d/--dest-path` for subcommand `push` and `script`.
+If the dest directory given by flag `-d` does not exist or does not have permission to write, output an easy-to-understand error message.
+
 ## [0.7.0]
 
 ### Added
