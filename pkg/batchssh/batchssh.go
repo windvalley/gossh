@@ -333,6 +333,14 @@ func (c *Client) copyFile(ftpC *sftp.Client, srcFile, dstDir string, allowOverwr
 
 	file, err := ftpC.Create(dstFile)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("dest dir '%s' not exist", dstDir)
+		}
+
+		if err1, ok := err.(*sftp.StatusError); ok && err1.Code == uint32(sftp.ErrSshFxPermissionDenied) {
+			return nil, fmt.Errorf("no permission to write to dest dir '%s'", dstDir)
+		}
+
 		return nil, err
 	}
 
