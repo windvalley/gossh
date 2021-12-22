@@ -62,7 +62,10 @@ Execute given commands on remote hosts.`,
 
   # Use sudo as user 'zhangsan' to execute commands on host1.
   # NOTE: this will prompt for a password(login user).
-  $ gossh exec host1 -e "uptime" -s -U zhangsan`,
+  $ gossh exec host1 -e "uptime" -s -U zhangsan
+
+  # Set timeout seconds for executing commands on each remote host.
+  $ gossh script host1 host2 -e "uptime" --timeout.command 10`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)

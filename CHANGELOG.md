@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.2]
+
+### Added
+
+- Subcommand `push` supports timeout for pushing each file/dir to each remote host by flag `--timetout.command`.  
+  This feature solves the problem of the entire `gossh` task stuck if the network of a few remote servers is slow.
+
+- Add more help examples for subcommand `push`, `exec`, `script`.
+
+### Fixed
+
+- Fix the problem that if pushing files/dirs fails, the temporary hidden files are not automatically deleted.
+
 ## [0.8.1]
 
 ### Fixed

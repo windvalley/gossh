@@ -58,7 +58,10 @@ Push local files/dirs to remote hosts`,
   # Push local files and dirs to remote hosts. 
   $ gossh push host1 host2 -f /path/foo.txt -f /path/bar/
     or
-  $ gossh push host1 host2 -f /path/foo.txt,/path/bar/`,
+  $ gossh push host1 host2 -f /path/foo.txt,/path/bar/
+
+  # Set timeout seconds for pushing each file/dir.
+  $ gossh push host1 host2 -f /path/foo.txt,/path/bar/ --timeout.command 10`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)

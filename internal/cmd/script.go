@@ -57,7 +57,10 @@ Execute a local shell script on remote hosts`,
 
   # Use sudo as user 'zhangsan' to execute foo.sh on host1.
   # NOTE: this will prompt for a password(login user).
-  $ gossh script host1 -e foo.sh -s -U zhangsan`,
+  $ gossh script host1 -e foo.sh -s -U zhangsan
+
+  # Set timeout seconds for executing script on each remote host.
+  $ gossh script host1 host2 -e foo.sh --timeout.command 10`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
