@@ -41,12 +41,23 @@ var (
 // scriptCmd represents the script command
 var scriptCmd = &cobra.Command{
 	Use:   "script",
-	Short: "Execute a local script on remote hosts",
+	Short: "Execute a local shell script on remote hosts",
 	Long: `
-Execute a local script on remote hosts`,
+Execute a local shell script on remote hosts`,
 	Example: `
-  # Promt password.
-  $ gossh script host1 -e foo.sh`,
+  # Execute foo.sh on host1.
+  $ gossh script host1 -e foo.sh
+
+  # Remove the remote copied shell script after	execution.
+  $ gossh script host1 -e foo.sh -r
+
+  # Use sudo as root to execute foo.sh on host1.
+  # NOTE: this will prompt for a password(login user).
+  $ gossh script host1 -e foo.sh -s
+
+  # Use sudo as user 'zhangsan' to execute foo.sh on host1.
+  # NOTE: this will prompt for a password(login user).
+  $ gossh script host1 -e foo.sh -s -U zhangsan`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
@@ -71,14 +82,14 @@ func init() {
 	rootCmd.AddCommand(scriptCmd)
 
 	scriptCmd.Flags().StringVarP(&scriptFile, "execute", "e", "",
-		"script to be executed on remote hosts",
+		"a shell script to be executed on remote hosts",
 	)
 	if err := scriptCmd.MarkFlagRequired("execute"); err != nil {
 		util.CheckErr(err)
 	}
 
 	scriptCmd.Flags().StringVarP(&destPath, "dest-path", "d", "/tmp",
-		"path of remote hosts where script will be copied to",
+		"path of remote hosts where the script will be copied to",
 	)
 
 	scriptCmd.Flags().BoolVarP(&remove, "remove", "r", false,

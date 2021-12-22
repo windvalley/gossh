@@ -41,17 +41,28 @@ Execute given commands on remote hosts.`,
   # Promt password.
   $ gossh exec host1 -e "uptime"
 
-  # Given password by -p flag.
+  # Get password by '-p' flag.
   # gossh exec host1 -e "uptime" -p "your-password"
 
-  # Given user:password from a file.
+  # Get 'user:password' from a file.
   # gossh exec host1 host2 -e "uptime" -a auth.txt
 
-  # Use pubkey authentication, if env $SSH_AUTH_SOCK exist, use sshagent auth first.
+  # Use pubkey authentication, if env $SSH_AUTH_SOCK exist, use ssh-agent auth first.
   $ gossh exec -H hosts.txt -e "uptime" -k
 
-  # Hosts can be given from both flag -H and arguments.
-  $ gossh exec host1 host2 -H hosts.txt -e "uptime" -k`,
+  # Specify login user instead of default $USER.
+  $ gossh exec host1 -u zhangsan -e "uptime"
+
+  # Hosts can be given from both arguments and '-H' flag.
+  $ gossh exec host1 host2 -H hosts.txt -e "uptime" -k
+
+  # Use sudo as root to execute commands on host1.
+  # NOTE: this will prompt for a password(login user).
+  $ gossh exec host1 -e "uptime" -s
+
+  # Use sudo as user 'zhangsan' to execute commands on host1.
+  # NOTE: this will prompt for a password(login user).
+  $ gossh exec host1 -e "uptime" -s -U zhangsan`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
