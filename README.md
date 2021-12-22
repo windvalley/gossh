@@ -12,14 +12,14 @@
 
 Gossh is a high-performance and high-concurrency ssh tool.
 This tool can efficiently manage tens of thousands of Linux server clusters.
-It can efficiently execute commands, execute a script file, transfer files, etc.
+It can efficiently execute commands, execute a script file, transfer files and dirs, etc.
 
 ## Features
 
 - Supports three types of ssh tasks.  
   `exec`: Execute commands on remote hosts.  
-  `script`: Execute a local script on remote hosts.  
-  `push`: Push local files to remote hosts.
+  `script`: Execute a local shell script on remote hosts.  
+  `push`: Push local files and dirs to remote hosts.
 
 - Supports using sudo to execute the commands or a script as other user(default is `root`).
 
@@ -66,7 +66,7 @@ $ gossh -h
 
 Gossh is a high-performance and high-concurrency ssh tool.
 This tool can efficiently manage tens of thousands of Linux server clusters.
-It can efficiently execute commands, execute a script file, transfer files, etc.
+It can efficiently execute commands, execute a script file, transfer files and dirs, etc.
 
 Find more information at: https://github.com/windvalley/gossh
 
@@ -78,7 +78,7 @@ Available Commands:
   config      Generate gossh configuration file
   exec        Execute commands on remote hosts
   help        Help about any command
-  push        Push local files to remote hosts
+  push        Push local files/dirs to remote hosts
   script      Execute a local script on remote hosts
   version     Show the gossh version information
 
