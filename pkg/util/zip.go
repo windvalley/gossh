@@ -73,7 +73,7 @@ func Zip(pathToZip, zipName string) error {
 
 		// Change to deflate to gain better compression.
 		// See http://golang.org/pkg/archive/zip/#pkg-constants
-		//fileHeader.Method = zip.Deflate
+		fileHeader.Method = zip.Deflate
 
 		zipFile, err := w.CreateHeader(fileHeader)
 		if err != nil {

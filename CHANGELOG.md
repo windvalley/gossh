@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1]
+
+### Fixed
+
+Fix the problem of compression ratio of zip for improving files/dirs transmission efficiency.
+
 ## [0.8.0]
 
 ### Added
