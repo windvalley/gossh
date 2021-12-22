@@ -24,6 +24,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -40,29 +45,30 @@ var (
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "Push local files to remote hosts",
+	Short: "Push local files/dirs to remote hosts",
 	Long: `
-Push local files to remote hosts`,
+Push local files/dirs to remote hosts`,
 	Example: `
-  # Push a local file to host1:/tmp/.
-  $ gossh push host1 -f ./foo.txt
+  # Push a local file or dir to host1:/tmp/ by default.
+  $ gossh push host1 -f /path/foo
 
-  # Specify dest dir by '-d' flag.
-  $ gossh push host1 -f ./foo.txt -d /home/user
+  # Also you can custom dest dir by '-d' flag.
+  $ gossh push host1 -f /path/foo -d /home/user
 
-  # Push local files to remote hosts. 
-  $ gossh push host1 -f ./foo.txt -f ./bar.txt 
+  # Push local files and dirs to remote hosts. 
+  $ gossh push host1 host2 -f /path/foo.txt -f /path/bar/
     or
-  $ gossh push host1 -f ./foo.txt,./bar.txt`,
+  $ gossh push host1 host2 -f /path/foo.txt,/path/bar/`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
 		}
 
 		if len(files) != 0 {
-			for _, file := range files {
-				if !util.FileExists(file) {
-					util.CheckErr(fmt.Sprintf("file '%s' not found", file))
+			for _, f := range files {
+				_, err := os.Stat(f)
+				if err != nil {
+					util.CheckErr(err)
 				}
 			}
 		}
@@ -70,8 +76,35 @@ Push local files to remote hosts`,
 	Run: func(cmd *cobra.Command, args []string) {
 		task := sshtask.NewTask(sshtask.PushTask, config)
 
+		var zipFiles []string
+
+		workDir, err := os.Getwd()
+		if err != nil {
+			util.CheckErr(err)
+		}
+
+		for _, f := range files {
+			fileName := filepath.Base(f)
+			zipName := "." + fileName + "." + fmt.Sprintf("%d", time.Now().UnixMicro())
+			zipFile := path.Join(workDir, zipName)
+
+			if err := util.Zip(strings.TrimSuffix(f, string(os.PathSeparator)), zipFile); err != nil {
+				util.CheckErr(err)
+			}
+
+			zipFiles = append(zipFiles, zipFile)
+		}
+
+		defer func() {
+			for _, f := range zipFiles {
+				if err := os.Remove(f); err != nil {
+					fmt.Printf("Warning: %v\n", err)
+				}
+			}
+		}()
+
 		task.SetHosts(args)
-		task.SetCopyfiles(files)
+		task.SetCopyfiles(files, zipFiles)
 		task.SetFileOptions(fileDstPath, allowOverwrite)
 
 		task.Start()
@@ -82,14 +115,14 @@ func init() {
 	rootCmd.AddCommand(pushCmd)
 
 	pushCmd.Flags().StringSliceVarP(&files, "files", "f", nil,
-		"files to be copied to remote hosts",
+		"local files/dirs to be copied to remote hosts",
 	)
 	if err := pushCmd.MarkFlagRequired("files"); err != nil {
 		util.CheckErr(err)
 	}
 
 	pushCmd.Flags().StringVarP(&fileDstPath, "dest-path", "d", "/tmp",
-		"path of remote hosts where files will be copied to",
+		"path of remote hosts where files/dirs will be copied to",
 	)
 
 	pushCmd.Flags().BoolVarP(
@@ -97,6 +130,6 @@ func init() {
 		"force",
 		"F",
 		false,
-		"allow overwrite files if they already exist on remote hosts",
+		"allow overwrite files/dirs if they already exist on remote hosts",
 	)
 }

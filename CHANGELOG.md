@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0]
+
 ### Added
 
-- Subcommand 'push' supports copying directory.
+- Subcommand 'push' supports copying directories.  
+  Also supports push files and directories efficiently at the same time. For efficient transmission, gossh adopts the method of first compressing locally and then decompressing files and directories on the remote server, so the `unzip` command is required on the remote server.
 
 ## [0.7.1]
 

@@ -65,6 +65,11 @@ type detailResult struct {
 	output   string
 }
 
+type copyFiles struct {
+	files    []string
+	zipFiles []string
+}
+
 // Task ...
 type Task struct {
 	configFlags *configflags.ConfigFlags
@@ -78,7 +83,7 @@ type Task struct {
 
 	command        string
 	scriptFile     string
-	copyFiles      []string
+	copyFiles      *copyFiles
 	dstDir         string
 	remove         bool
 	allowOverwrite bool
@@ -140,8 +145,11 @@ func (t *Task) SetScriptFile(sciptFile string) {
 }
 
 // SetCopyfiles ...
-func (t *Task) SetCopyfiles(files []string) {
-	t.copyFiles = files
+func (t *Task) SetCopyfiles(files, zipFiles []string) {
+	t.copyFiles = &copyFiles{
+		files:    files,
+		zipFiles: zipFiles,
+	}
 }
 
 // SetScriptOptions ...
@@ -169,7 +177,7 @@ func (t *Task) RunSSH(addr string) (string, error) {
 	case ScriptTask:
 		return t.sshClient.ExecuteScript(addr, t.scriptFile, t.dstDir, lang, runAs, sudo, t.remove, t.allowOverwrite)
 	case PushTask:
-		return t.sshClient.CopyFiles(addr, t.copyFiles, t.dstDir, t.allowOverwrite)
+		return t.sshClient.CopyFiles(addr, t.copyFiles.files, t.copyFiles.zipFiles, t.dstDir, t.allowOverwrite)
 	default:
 		return "", fmt.Errorf("unknown task type: %v", t.taskType)
 	}

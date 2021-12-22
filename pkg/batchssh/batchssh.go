@@ -33,6 +33,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -169,7 +170,12 @@ func (c *Client) ExecuteCmd(addr, command, lang, runAs string, sudo bool) (strin
 }
 
 // CopyFiles to remote host
-func (c *Client) CopyFiles(addr string, srcFiles []string, dstDir string, allowOverwrite bool) (string, error) {
+func (c *Client) CopyFiles(
+	addr string,
+	srcFiles, srcZipFiles []string,
+	dstDir string,
+	allowOverwrite bool,
+) (string, error) {
 	client, err := c.getClient(addr)
 	if err != nil {
 		return "", err
@@ -182,12 +188,39 @@ func (c *Client) CopyFiles(addr string, srcFiles []string, dstDir string, allowO
 	}
 	defer ftpC.Close()
 
-	for _, f := range srcFiles {
-		file, err := c.copyFile(ftpC, f, dstDir, allowOverwrite)
+	reg := regexp.MustCompile(`.[0-9]{16}$`)
+	for _, f := range srcZipFiles {
+		name := filepath.Base(f)
+
+		realName := strings.TrimPrefix(name, ".")
+		realName = reg.ReplaceAllString(realName, "")
+
+		file, err := c.copyZipFile(ftpC, f, realName, dstDir, allowOverwrite)
 		if err != nil {
 			return "", err
 		}
 		file.Close()
+
+		dstZipFile := filepath.Base(f)
+		session, err := client.NewSession()
+		if err != nil {
+			return "", err
+		}
+
+		_, err = c.executeCmd(
+			session,
+			fmt.Sprintf(
+				`which unzip &>/dev/null && { cd %s;unzip -o %s;rm %s;} || 
+				{ echo "need install 'unzip' command";exit 1;}`,
+				dstDir,
+				dstZipFile,
+				dstZipFile,
+			),
+		)
+		if err != nil {
+			return "", err
+		}
+		session.Close()
 	}
 
 	return fmt.Sprintf("'%s' has been copied to '%s'", strings.Join(srcFiles, ","), dstDir), nil
@@ -302,7 +335,11 @@ func (c *Client) executeCmd(session *ssh.Session, command string) (string, error
 	return outputStr, nil
 }
 
-func (c *Client) copyFile(ftpC *sftp.Client, srcFile, dstDir string, allowOverwrite bool) (*sftp.File, error) {
+func (c *Client) copyFile(
+	ftpC *sftp.Client,
+	srcFile, dstDir string,
+	allowOverwrite bool,
+) (*sftp.File, error) {
 	homeDir := os.Getenv("HOME")
 	if strings.HasPrefix(srcFile, "~/") {
 		srcFile = strings.Replace(srcFile, "~", homeDir, 1)
@@ -337,7 +374,7 @@ func (c *Client) copyFile(ftpC *sftp.Client, srcFile, dstDir string, allowOverwr
 			return nil, fmt.Errorf("dest dir '%s' not exist", dstDir)
 		}
 
-		if err1, ok := err.(*sftp.StatusError); ok && err1.Code == uint32(sftp.ErrSshFxPermissionDenied) {
+		if err, ok := err.(*sftp.StatusError); ok && err.Code == uint32(sftp.ErrSshFxPermissionDenied) {
 			return nil, fmt.Errorf("no permission to write to dest dir '%s'", dstDir)
 		}
 
@@ -354,6 +391,57 @@ func (c *Client) copyFile(ftpC *sftp.Client, srcFile, dstDir string, allowOverwr
 	}
 
 	if err := ftpC.Chtimes(dstFile, time.Now(), fileStat.ModTime()); err != nil {
+		return nil, err
+	}
+
+	return file, nil
+}
+
+func (c *Client) copyZipFile(
+	ftpC *sftp.Client,
+	srcFile, realSrcFileName, dstDir string,
+	allowOverwrite bool,
+) (*sftp.File, error) {
+	homeDir := os.Getenv("HOME")
+	if strings.HasPrefix(srcFile, "~/") {
+		srcFile = strings.Replace(srcFile, "~", homeDir, 1)
+	}
+
+	content, err := ioutil.ReadFile(srcFile)
+	if err != nil {
+		return nil, err
+	}
+
+	srcFileBaseName := filepath.Base(srcFile)
+	dstFile := path.Join(dstDir, srcFileBaseName)
+
+	realDstFile := path.Join(dstDir, realSrcFileName)
+
+	if !allowOverwrite {
+		dstFileInfo, _ := ftpC.Stat(realDstFile)
+		if dstFileInfo != nil {
+			return nil, fmt.Errorf(
+				"%s alreay exists, you can add '-F' flag to overwrite it",
+				realDstFile,
+			)
+		}
+	}
+
+	file, err := ftpC.Create(dstFile)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("dest dir '%s' not exist", dstDir)
+		}
+
+		if err, ok := err.(*sftp.StatusError); ok && err.Code == uint32(sftp.ErrSshFxPermissionDenied) {
+			return nil, fmt.Errorf("no permission to write to dest dir '%s'", dstDir)
+		}
+
+		return nil, err
+	}
+
+	_, err = file.Write(content)
+	if err != nil {
 		return nil, err
 	}
 
