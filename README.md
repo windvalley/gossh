@@ -12,7 +12,7 @@
 
 Gossh is a high-performance and high-concurrency ssh tool.
 This tool can efficiently manage tens of thousands of Linux server clusters.
-It can efficiently execute commands, execute a script file, transfer files and dirs, etc.
+It can efficiently execute commands, execute a shell script, transfer files and dirs, etc.
 
 ## Features
 
@@ -21,9 +21,9 @@ It can efficiently execute commands, execute a script file, transfer files and d
   `script`: Execute a local shell script on remote hosts.  
   `push`: Push local files and dirs to remote hosts.
 
-- Supports using sudo to execute the commands or a script as other user(default is `root`).
+- Supports using sudo to execute the commands or a shell script as other user(default is `root`).
 
-- Supports specifying i18n environment variable value while executing commands or a script to help keep the language of the outputs consistent. For example: `zh_CN.UTF-8`, `en_US.UTF-8`.
+- Supports specifying i18n environment variable value while executing commands or a shell script to help keep the language of the outputs consistent. For example: `zh_CN.UTF-8`, `en_US.UTF-8`.
 
 - Supports four authentication methods.  
   Priority: `ssh-agent authentication` -> `pubkey authentication` -> `password from command flag` -> `username:password from a file`.  
@@ -33,7 +33,7 @@ It can efficiently execute commands, execute a script file, transfer files and d
 
 - Supports three kinds of timeout:  
   Timeout for connecting each remote host (default `10` seconds).  
-  Timeout for executing commands or a script on each remote host.  
+  Timeout for executing commands or a shell script on each remote host.  
   Timeout for the current gossh task.
 
 - Supports printing the execution results of `gossh` to a file or screen or a file and screen at the same time. Supports json format output. Supports printing debug information. Supports silent output.
@@ -79,7 +79,7 @@ Available Commands:
   exec        Execute commands on remote hosts
   help        Help about any command
   push        Push local files/dirs to remote hosts
-  script      Execute a local script on remote hosts
+  script      Execute a local shell script on remote hosts
   version     Show the gossh version information
 
 Flags:
