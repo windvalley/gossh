@@ -43,7 +43,7 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "gossh",
-	Short: "A high-performance and high-concurrency ssh tool.",
+	Short: "A high-performance and high-concurrency ssh tool",
 	Long: `
 Gossh is a high-performance and high-concurrency ssh tool.
 This tool can efficiently manage tens of thousands of Linux server clusters.

@@ -43,7 +43,7 @@ var scriptCmd = &cobra.Command{
 	Use:   "script",
 	Short: "Execute a local shell script on remote hosts",
 	Long: `
-Execute a local shell script on remote hosts`,
+Execute a local shell script on remote hosts.`,
 	Example: `
   # Execute foo.sh on host1.
   $ gossh script host1 -e foo.sh

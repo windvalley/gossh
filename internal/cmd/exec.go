@@ -36,7 +36,7 @@ var execCmd = &cobra.Command{
 	Use:   "exec",
 	Short: "Execute commands on remote hosts",
 	Long: `
-Execute given commands on remote hosts.`,
+Execute commands on remote hosts.`,
 	Example: `
   # Promt password.
   $ gossh exec host1 -e "uptime"

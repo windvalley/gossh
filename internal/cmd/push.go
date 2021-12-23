@@ -47,7 +47,7 @@ var pushCmd = &cobra.Command{
 	Use:   "push",
 	Short: "Push local files/dirs to remote hosts",
 	Long: `
-Push local files/dirs to remote hosts`,
+Push local files/dirs to remote hosts.`,
 	Example: `
   # Push a local file or dir to host1:/tmp/ by default.
   $ gossh push host1 -f /path/foo

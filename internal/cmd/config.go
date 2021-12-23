@@ -87,7 +87,8 @@ timeout:
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Generate gossh configuration file",
-	Long:  `Generate gossh configuration file`,
+	Long: `
+Generate gossh configuration file.`,
 	Example: `
   # Generate default configuration content to screen.
   $ gossh config
