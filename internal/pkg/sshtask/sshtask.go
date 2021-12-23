@@ -246,7 +246,7 @@ func (t *Task) HandleOutput() {
 
 	for res := range t.taskOutput {
 		log.Infof(
-			"success count: %d, failed count: %d, elapsed: %2.fs",
+			"success count: %d, failed count: %d, elapsed: %.2fs",
 			res.hostsSuccessCount,
 			res.hostsFailureCount,
 			res.elapsed,

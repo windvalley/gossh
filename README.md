@@ -112,10 +112,10 @@ Use "gossh [command] --help" for more information about a command.
 
 Client server: `4vCPUs` and `8GiB`
 
-Target servers: There are a total of `955` servers distributed in `90` different IDCs across the country.
+Target servers: `hosts.list` contains `936` servers distributed in `86` different IDCs across the country.
 
 ```sh
-$ time gossh exec -H hosts.list -e "uptime" -c 130
+$ time gossh exec -H hosts.list -e "uptime" -c 100
 ```
 
 Output:
@@ -123,11 +123,11 @@ Output:
 ```sh
 ...
 
-level=info msg=success count: 955, failed count: 0, elapsed:  8s time=2021-12-15 22:17:33
+time=2021-12-22 23:06:50 level=info msg=success count: 936, failed count: 0, elapsed: 6.30s
 
-real    0m8.261s
-user    0m12.605s
-sys     0m0.658s
+real    0m6.316s
+user    0m13.529s
+sys     0m0.592s
 ```
 
 ## License
