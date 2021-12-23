@@ -114,13 +114,31 @@ Client server: `4vCPUs` and `8GiB`
 
 Target servers: `hosts.list` contains `936` servers distributed in `86` different IDCs across the country.
 
+**Ansible:**
+
+```sh
+$ time ansible all -i hosts.list -m command -a "uptime" -k -f 100
+```
+
+Output:
+
+```text
+...
+
+real    1m18.858s
+user    3m18.566s
+sys     1m24.263s
+```
+
+**Gossh:**
+
 ```sh
 $ time gossh exec -H hosts.list -e "uptime" -c 100
 ```
 
 Output:
 
-```sh
+```text
 ...
 
 time=2021-12-22 23:06:50 level=info msg=success count: 936, failed count: 0, elapsed: 6.30s
