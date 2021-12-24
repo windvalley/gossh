@@ -7,11 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0]
+
+### Added
+
+- Support expanding host pattern that from commandline arguments or from host list file(specified by `-H` flag) to host list, and deduplicate the host list.  
+  Supported host patterns e.g.:
+
+  ```text
+  10.16.0.[1-10]
+  foo[01-03].bar.com
+  foo[01-03,06,12-16].bar.com
+  foo[01-03,06,12-16].[beijing,wuhan].bar.com
+  foo[01-03,06,12-16].idc[1-3].[beijing,wuhan].bar.com
+  ```
+
+### Changed
+
+Change the identifier of the success or failure of each remote host output result:
+
+`Success` to `SUCCESS` and `Failed` to `FAILED`.
+
+### Fixed
+
+Fix a typo that coz output `elapsed` field not shown in correct way. E.g.:
+
+Fix before:
+
+`level=info msg=success count: 955, failed count: 0, elapsed: 8s time=2021-12-15 22:17:33`
+
+Fix after:
+
+`level=info msg=success count: 936, failed count: 0, elapsed: 5.93s time=2021-12-22 23:17:36`
+
 ## [0.8.2]
 
 ### Added
 
-- Subcommand `push` supports timeout for pushing each file/dir to each remote host by flag `--timetout.command`.  
+- Subcommand `push` supports timeout for pushing each file/dir to each remote host by flag `--timetout.command`.
   This feature solves the problem of the entire `gossh` task stuck if the network of a few remote servers is slow.
 
 - Add more help examples for subcommand `push`, `exec`, `script`.
@@ -30,7 +63,7 @@ Fix the problem of compression ratio of zip for improving files/dirs transmissio
 
 ### Added
 
-- Subcommand 'push' supports copying directories.  
+- Subcommand 'push' supports copying directories.
   Also supports push files and directories efficiently at the same time. For efficient transmission, gossh adopts the method of first compressing locally and then decompressing files and directories on the remote server, so the `unzip` command is required on the remote server.
 
 ## [0.7.1]
@@ -69,22 +102,22 @@ If the dest directory given by flag `-d` does not exist or does not have permiss
 
 ### Added
 
-- Supports three types of ssh tasks.  
-  `exec`: Execute commands in remote hosts;  
-  `script`: Execute a local script in remote hosts;  
+- Supports three types of ssh tasks.
+  `exec`: Execute commands in remote hosts;
+  `script`: Execute a local script in remote hosts;
   `push`: Push a local file to remote hosts.
 
 - Supports using sudo to execute the commands or a script as other user(default is `root`).
 
 - Supports specify i18n environment variable value while executing commands or a script to help keep the language of the outputs consistent. For example: zh_CN.UTF-8, en_US.UTF-8.
 
-- Supports four authentication methods.  
-  Priority: `ssh-agent authentication` -> `pubkey authentication` -> `password from command flag` -> `username:password from a file`.  
+- Supports four authentication methods.
+  Priority: `ssh-agent authentication` -> `pubkey authentication` -> `password from command flag` -> `username:password from a file`.
   If the user is not specified, the system environment variable `$USER` will be used by default.
 
 - Supports two methods to specify target hosts. One is through command line arguments, input one or more target hosts, separated by space. The other is through command line flag or configuration file option to specify the hosts file. Both methods can be used at the same time.
 
-- Supports three kinds of timeout:  
+- Supports three kinds of timeout:
   Timeout for connecting each remote host (default `10` seconds);
   Timeout for executing commands or a script on each remote host;
   Timeout for the current gossh task.
@@ -102,3 +135,7 @@ If the dest directory given by flag `-d` does not exist or does not have permiss
 ### Fixed
 
 ### Security
+
+```
+
+```

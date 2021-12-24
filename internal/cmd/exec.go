@@ -56,6 +56,9 @@ Execute commands on remote hosts.`,
   # Hosts can be given from both arguments and '-H' flag.
   $ gossh exec host1 host2 -H hosts.txt -e "uptime" -k
 
+  # Host pattern is also supported.
+  $ gossh exec host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -e "uptime" -k
+
   # Use sudo as root to execute commands on host1.
   # NOTE: this will prompt for a password(login user).
   $ gossh exec host1 -e "uptime" -s

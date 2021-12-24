@@ -29,7 +29,19 @@ It can efficiently execute commands, execute a shell script, transfer files and 
   Priority: `ssh-agent authentication` -> `pubkey authentication` -> `password from command flag` -> `username:password from a file`.  
   If the login user is not specified, the system environment variable `$USER` will be used by default.
 
-- Supports two methods to specify target hosts. One is through command line arguments, input one or more target hosts, separated by space. The other is through command line flag or configuration file option to specify the hosts file. Both methods can be used at the same time.
+- Supports two ways to specify target hosts. One is through command line arguments, input one or more target hosts, separated by space. The other is through command line flag or configuration file option to specify the hosts file. Both ways can be used at the same time.
+
+- Support expanding host patterns that from commandline arguments or a hosts file to host list,
+  and deduplicate the host list.  
+  Supported host patterns e.g.:
+
+  ```text
+  10.16.0.[1-10]
+  foo[01-03].bar.com
+  foo[01-03,06,12-16].bar.com
+  foo[01-03,06,12-16].[beijing,wuhan].bar.com
+  foo[01-03,06,12-16].idc[1-3].[beijing,wuhan].bar.com
+  ```
 
 - Supports three kinds of timeout:  
   Timeout for connecting each remote host (default `10` seconds).  

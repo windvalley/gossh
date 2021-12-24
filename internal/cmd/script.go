@@ -60,7 +60,10 @@ Execute a local shell script on remote hosts.`,
   $ gossh script host1 -e foo.sh -s -U zhangsan
 
   # Set timeout seconds for executing script on each remote host.
-  $ gossh script host1 host2 -e foo.sh --timeout.command 10`,
+  $ gossh script host1 host2 -e foo.sh --timeout.command 10
+
+  # Provide a list of hosts at the same time in multiple ways.
+  $ gossh script host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -e foo.sh`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)

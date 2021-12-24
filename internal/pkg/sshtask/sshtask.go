@@ -31,6 +31,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-project-pkg/expandhost"
 	"golang.org/x/term"
 
 	"github.com/windvalley/gossh/internal/pkg/configflags"
@@ -258,7 +259,14 @@ func (t *Task) getAllHosts() ([]string, error) {
 	var hosts []string
 
 	if len(t.hosts) != 0 {
-		hosts = t.hosts
+		for _, hostOrPattern := range t.hosts {
+			hostList, err := expandhost.PatternToHosts(hostOrPattern)
+			if err != nil {
+				return nil, fmt.Errorf("invalid host pattern: %s", err)
+			}
+
+			hosts = append(hosts, hostList...)
+		}
 	}
 
 	if t.configFlags.Hosts.File != "" {
@@ -268,14 +276,21 @@ func (t *Task) getAllHosts() ([]string, error) {
 		}
 
 		hostSlice := strings.Split(strings.TrimSuffix(string(content), "\n"), "\n")
-		hosts = append(hosts, hostSlice...)
+		for _, hostOrPattern := range hostSlice {
+			hostList, err := expandhost.PatternToHosts(hostOrPattern)
+			if err != nil {
+				return nil, fmt.Errorf("invalid host pattern: %s", err)
+			}
+
+			hosts = append(hosts, hostList...)
+		}
 	}
 
 	if len(hosts) == 0 {
 		return nil, fmt.Errorf("no hosts provided")
 	}
 
-	return hosts, nil
+	return util.RemoveDuplStr(hosts), nil
 }
 
 func (t *Task) buildSSHClient() {
