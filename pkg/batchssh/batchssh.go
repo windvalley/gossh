@@ -45,7 +45,12 @@ import (
 	"github.com/windvalley/gossh/pkg/log"
 )
 
-const exportLangPattern = "export LANG=%s;export LC_ALL=%s;export LANGUAGE=%s;"
+const (
+	exportLangPattern = "export LANG=%s;export LC_ALL=%s;export LANGUAGE=%s;"
+
+	SuccessIdentifier = "SUCCESS"
+	FailedIdentifier  = "FAILED"
+)
 
 // Task execute command or copy file or execute script
 type Task interface {
@@ -122,9 +127,9 @@ func (c *Client) BatchRun(
 				var result *Result
 				output, err := sshTask.RunSSH(addr)
 				if err != nil {
-					result = &Result{addr, "Failed", err.Error()}
+					result = &Result{addr, FailedIdentifier, err.Error()}
 				} else {
-					result = &Result{addr, "Success", output}
+					result = &Result{addr, SuccessIdentifier, output}
 				}
 				resCh <- result
 			}

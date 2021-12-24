@@ -197,7 +197,7 @@ func (t *Task) BatchRun() {
 	result := t.sshClient.BatchRun(allHosts, t)
 	successCount, failedCount := 0, 0
 	for v := range result {
-		if v.Status == "Success" {
+		if v.Status == batchssh.SuccessIdentifier {
 			successCount++
 		} else {
 			failedCount++
