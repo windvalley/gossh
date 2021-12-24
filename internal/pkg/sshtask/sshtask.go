@@ -260,6 +260,12 @@ func (t *Task) getAllHosts() ([]string, error) {
 
 	if len(t.hosts) != 0 {
 		for _, hostOrPattern := range t.hosts {
+			hostOrPattern = strings.TrimSpace(hostOrPattern)
+
+			if hostOrPattern == "" {
+				continue
+			}
+
 			hostList, err := expandhost.PatternToHosts(hostOrPattern)
 			if err != nil {
 				return nil, fmt.Errorf("invalid host pattern: %s", err)
@@ -277,6 +283,12 @@ func (t *Task) getAllHosts() ([]string, error) {
 
 		hostSlice := strings.Split(strings.TrimSuffix(string(content), "\n"), "\n")
 		for _, hostOrPattern := range hostSlice {
+			hostOrPattern = strings.TrimSpace(hostOrPattern)
+
+			if hostOrPattern == "" {
+				continue
+			}
+
 			hostList, err := expandhost.PatternToHosts(hostOrPattern)
 			if err != nil {
 				return nil, fmt.Errorf("invalid host pattern: %s", err)
