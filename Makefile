@@ -35,7 +35,7 @@ include scripts/makefiles/tools.makefile
 
 ##  dev: Make lint, cover, build and install for development stage.
 .PHONY: dev
-dev: lint cover build install
+dev: tidy lint cover build install
 
 ##  build: Compile packages and dependencies to generate binary file for current platform.
 .PHONY: build
@@ -51,6 +51,11 @@ build.multiarch:
 .PHONY: install
 install:
 	@${MAKE} go.install
+
+##  tidy: Run go mod tidy.
+.PHONY: tidy
+tidy:
+	@${MAKE} go.tidy
 
 ##  lint: Check syntax and style of Go source code.
 .PHONY: lint
