@@ -26,12 +26,16 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/ScaleFT/sshkeys"
 	"github.com/go-project-pkg/expandhost"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/agent"
 	"golang.org/x/term"
 
 	"github.com/windvalley/gossh/internal/pkg/configflags"
@@ -78,6 +82,7 @@ type Task struct {
 	id        string
 	taskType  TaskType
 	sshClient *batchssh.Client
+	sshAgent  net.Conn
 
 	// hostnames or ips from command line arguments.
 	hosts []string
@@ -106,6 +111,10 @@ func NewTask(taskType TaskType, configFlags *configflags.ConfigFlags) *Task {
 
 // Start task.
 func (t *Task) Start() {
+	if t.sshAgent != nil {
+		defer t.sshAgent.Close()
+	}
+
 	go func() {
 		defer close(t.taskOutput)
 		defer close(t.detailOutput)
@@ -113,7 +122,6 @@ func (t *Task) Start() {
 	}()
 
 	taskTimeout := t.configFlags.Timeout.Task
-
 	if taskTimeout > 0 {
 		go func() {
 			time.Sleep(time.Duration(taskTimeout) * time.Second)
@@ -306,22 +314,22 @@ func (t *Task) getAllHosts() ([]string, error) {
 }
 
 func (t *Task) buildSSHClient() {
-	user, password, sshAuthSock, keys, err := t.getAuthInfo()
+	user, password, err := t.getUserAndPassword()
 	if err != nil {
 		util.CheckErr(err)
 	}
 
+	auths := t.getSSHAuthMethods(&password)
+
 	sshClient, err := batchssh.NewClient(
 		user,
 		password,
-		sshAuthSock,
-		keys,
+		auths,
 		batchssh.WithConnTimeout(time.Duration(t.configFlags.Timeout.Conn)*time.Second),
 		batchssh.WithCommandTimeout(time.Duration(t.configFlags.Timeout.Command)*time.Second),
 		batchssh.WithConcurrency(t.configFlags.Run.Concurrency),
 		batchssh.WithPort(t.configFlags.Hosts.Port),
 	)
-
 	if err != nil {
 		util.CheckErr(err)
 	}
@@ -329,29 +337,74 @@ func (t *Task) buildSSHClient() {
 	t.sshClient = sshClient
 }
 
-func (t *Task) getAuthInfo() (user, password, sshAuthSock string, keys []string, err error) {
-	user = t.configFlags.Auth.User
+func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
+	var (
+		auths    []ssh.AuthMethod
+		sshAgent net.Conn
+		err      error
+	)
 
-	sshAuthSock = os.Getenv("SSH_AUTH_SOCK")
+	if *password != "" {
+		log.Debugf("Auth: received password of the login user")
 
-	if t.configFlags.Auth.Pubkey {
-		homeDir := os.Getenv("HOME")
-		for _, file := range t.configFlags.Auth.IdentityFiles {
-			if strings.HasPrefix(file, "~/") {
-				file = strings.Replace(file, "~", homeDir, 1)
-			}
+		auths = append(auths, ssh.Password(*password))
+	} else {
+		log.Debugf("Auth: password of the login user not provided")
+	}
 
-			keys = append(keys, file)
+	keyfiles := t.getItentityFiles()
+	if len(keyfiles) != 0 {
+		sshSigners, err1 := getSigners(keyfiles, "")
+		if err1 != nil {
+			log.Debugf("Auth: parse identity files failed: %s", err1)
+		} else {
+			auths = append(auths, ssh.PublicKeys(sshSigners...))
 		}
 	}
 
+	sshAuthSock := os.Getenv("SSH_AUTH_SOCK")
+	if sshAuthSock != "" {
+		sshAgent, err = net.Dial("unix", sshAuthSock)
+		if err != nil {
+			log.Debugf("Auth: connect ssh-agent failed: %s", err)
+		} else {
+			log.Debugf("Auth: connected to SSH_AUTH_SOCK: %s", sshAuthSock)
+
+			auths = append(auths, ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers))
+		}
+
+		t.sshAgent = sshAgent
+	}
+
+	if len(auths) == 0 {
+		log.Debugf("Auth: no valid authentication method is detected. Prompt for password of the login user")
+
+		*password = getPasswordFromPrompt()
+		auths = append(auths, ssh.Password(*password))
+
+		return auths
+	}
+
+	if *password == "" && t.configFlags.Run.Sudo {
+		log.Debugf("Auth: using sudo as other user needs password. Prompt for password of the login user")
+
+		*password = getPasswordFromPrompt()
+		auths = append(auths, ssh.Password(*password))
+	}
+
+	return auths
+}
+
+func (t *Task) getUserAndPassword() (user string, password string, err error) {
+	user = t.configFlags.Auth.User
 	authFile := t.configFlags.Auth.File
+
 	if authFile != "" {
 		var authContent []byte
+
 		authContent, err = ioutil.ReadFile(authFile)
 		if err != nil {
 			err = fmt.Errorf("read auth file failed: %w", err)
-			return
 		}
 
 		contentTrim := strings.TrimSpace(string(authContent))
@@ -359,33 +412,87 @@ func (t *Task) getAuthInfo() (user, password, sshAuthSock string, keys []string,
 
 		if len(auths) != 2 {
 			err = errors.New("invalid auth file format")
-			return
 		}
 
 		user = auths[0]
 		password = auths[1]
 	}
 
-	passwordFlag := t.configFlags.Auth.Password
-
-	if passwordFlag != "" {
-		password = passwordFlag
+	passwordFromFlag := t.configFlags.Auth.Password
+	if passwordFromFlag != "" {
+		password = passwordFromFlag
 	}
 
-	if (password == "" && !t.configFlags.Auth.Pubkey) || (t.configFlags.Run.Sudo && password == "") {
-		fmt.Fprintf(os.Stderr, "Password: ")
+	return
+}
 
-		var passwordByte []byte
-		passwordByte, err = term.ReadPassword(0)
-		if err != nil {
-			err = fmt.Errorf("get password from terminal failed: %w", err)
-			return
+func (t *Task) getItentityFiles() (keyFiles []string) {
+	homeDir := os.Getenv("HOME")
+	for _, file := range t.configFlags.Auth.IdentityFiles {
+		if strings.HasPrefix(file, "~/") {
+			file = strings.Replace(file, "~", homeDir, 1)
 		}
 
-		password = string(passwordByte)
-		fmt.Println("")
+		keyFiles = append(keyFiles, file)
 	}
 
-	//nolint:nakedret
 	return
+}
+
+func getSigners(keyfiles []string, passphrase string) ([]ssh.Signer, error) {
+	var signers []ssh.Signer
+	for _, f := range keyfiles {
+		signer, err := getSigner(f, passphrase)
+		if err != nil {
+			log.Debugf("Auth: parse identity file '%s' failed: %s", f, err)
+			continue
+		}
+
+		log.Debugf("Auth: parsed identity file '%s'", f)
+		signers = append(signers, signer)
+	}
+
+	if len(signers) == 0 {
+		return nil, errors.New("no valid identity files")
+	}
+
+	return signers, nil
+}
+
+func getSigner(keyfile, passphrase string) (ssh.Signer, error) {
+	var (
+		pubkey ssh.Signer
+		err    error
+	)
+
+	buf, err := ioutil.ReadFile(keyfile)
+	if err != nil {
+		return nil, err
+	}
+
+	if passphrase != "" {
+		pubkey, err = sshkeys.ParseEncryptedPrivateKey(buf, []byte(passphrase))
+	} else {
+		pubkey, err = ssh.ParsePrivateKey(buf)
+	}
+
+	return pubkey, err
+}
+
+func getPasswordFromPrompt() string {
+	fmt.Fprintf(os.Stderr, "Password: ")
+
+	var passwordByte []byte
+	passwordByte, err := term.ReadPassword(0)
+	if err != nil {
+		util.CheckErr(fmt.Sprintf("get password from terminal failed: %s", err))
+	}
+
+	password := string(passwordByte)
+
+	log.Debugf("Auth: read password of the login user from terminal prompt")
+
+	fmt.Println("")
+
+	return password
 }

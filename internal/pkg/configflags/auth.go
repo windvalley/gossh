@@ -35,7 +35,6 @@ const (
 	flagAuthUser          = "auth.user"
 	flagAuthPassword      = "auth.password"
 	flagAuthFile          = "auth.file"
-	flagAuthPubkey        = "auth.pubkey"
 	flagAuthIdentityFiles = "auth.identity-files"
 )
 
@@ -44,7 +43,6 @@ type Auth struct {
 	User          string   `json:"user" mapstructure:"user"`
 	Password      string   `json:"password" mapstructure:"password"`
 	File          string   `json:"file" mapstructure:"file"`
-	Pubkey        bool     `json:"pubkey" mapstructure:"pubkey"`
 	IdentityFiles []string `json:"identity-files" mapstructure:"identity-files"`
 }
 
@@ -54,7 +52,6 @@ func NewAuth() *Auth {
 		User:          "",
 		Password:      "",
 		File:          "",
-		Pubkey:        false,
 		IdentityFiles: []string{},
 	}
 }
@@ -65,7 +62,6 @@ func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.StringVarP(&a.Password, flagAuthPassword, "p", a.Password, "password of the login user")
 	fs.StringVarP(&a.File, flagAuthFile, "a", a.File,
 		`file containing the credentials (format: "username:password")`)
-	fs.BoolVarP(&a.Pubkey, flagAuthPubkey, "k", a.Pubkey, "use pubkey authentication")
 	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "i", nil,
 		"identity files (default is $HOME/.ssh/{id_rsa,id_dsa})")
 }

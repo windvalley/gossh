@@ -26,7 +26,8 @@ It can efficiently execute commands, execute a shell script, transfer files and 
 - Supports specifying i18n environment variable value while executing commands or a shell script to help keep the language of the outputs consistent. For example: `zh_CN.UTF-8`, `en_US.UTF-8`.
 
 - Supports four authentication methods.  
-  Priority: `ssh-agent authentication` -> `pubkey authentication` -> `password from command flag` -> `username:password from a file`.  
+  Priority: `ssh-agent authentication` -> `pubkey authentication` -> `password from flag/config` -> `username:password from a file`.  
+  It will auto detected the supported authentication methods, and if no legal authentication method is detected, you will be prompted to enter password.  
   If the login user is not specified, the system environment variable `$USER` will be used by default.
 
 - Supports two ways to specify target hosts. One is through command line arguments, input one or more target hosts, separated by space. The other is through command line flag or configuration file option to specify the hosts file. Both ways can be used at the same time.

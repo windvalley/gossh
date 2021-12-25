@@ -36,7 +36,6 @@ const configTemplate = `auth:
   # file that contains 'username:password'.
   file: %q
   # use pubkey authentication.
-  pubkey: %v
   # identity files.
   # default:
   #   - $HOME/.ssh/id_rsa
@@ -101,7 +100,7 @@ Generate gossh configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf(
 			configTemplate,
-			config.Auth.User, config.Auth.Password, config.Auth.File, config.Auth.Pubkey,
+			config.Auth.User, config.Auth.Password, config.Auth.File,
 			config.Hosts.File, config.Hosts.Port,
 			config.Run.Sudo, config.Run.AsUser, config.Run.Lang, config.Run.Concurrency,
 			config.Output.File, config.Output.JSON, config.Output.Verbose, config.Output.Quiet,

@@ -3,6 +3,7 @@ module github.com/windvalley/gossh
 go 1.17
 
 require (
+	github.com/ScaleFT/sshkeys v0.0.0-20200327173127-6142f742bca5
 	github.com/fatih/color v1.13.0
 	github.com/go-project-pkg/expandhost v0.1.1
 	github.com/go-project-pkg/version v0.0.0-20211203112436-8252efa62491
@@ -15,6 +16,7 @@ require (
 )
 
 require (
+	github.com/dchest/bcrypt_pbkdf v0.0.0-20150205184540-83f37f9c154a // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

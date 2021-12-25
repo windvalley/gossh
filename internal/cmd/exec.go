@@ -38,17 +38,14 @@ var execCmd = &cobra.Command{
 	Long: `
 Execute commands on remote hosts.`,
 	Example: `
-  # Promt password.
-  $ gossh exec host1 -e "uptime"
-
   # Get password by '-p' flag.
   # gossh exec host1 -e "uptime" -p "your-password"
 
   # Get 'user:password' from a file.
   # gossh exec host1 host2 -e "uptime" -a auth.txt
 
-  # Use pubkey authentication, if env $SSH_AUTH_SOCK exist, use ssh-agent auth first.
-  $ gossh exec -H hosts.txt -e "uptime" -k
+  # Promt password.
+  $ gossh exec host1 -e "uptime"
 
   # Specify login user instead of default $USER.
   $ gossh exec host1 -u zhangsan -e "uptime"

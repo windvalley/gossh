@@ -23,12 +23,10 @@ THE SOFTWARE.
 package batchssh
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net"
 	"os"
 	"path"
@@ -40,7 +38,6 @@ import (
 
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/agent"
 
 	"github.com/windvalley/gossh/pkg/log"
 )
@@ -48,8 +45,10 @@ import (
 const (
 	exportLangPattern = "export LANG=%s;export LC_ALL=%s;export LANGUAGE=%s;"
 
+	// SuccessIdentifier ...
 	SuccessIdentifier = "SUCCESS"
-	FailedIdentifier  = "FAILED"
+	// FailedIdentifier ...
+	FailedIdentifier = "FAILED"
 )
 
 // Task execute command or copy file or execute script
@@ -68,7 +67,7 @@ type Result struct {
 type Client struct {
 	User           string
 	Password       string
-	Auth           []ssh.AuthMethod
+	Auths          []ssh.AuthMethod
 	Port           int
 	ConnTimeout    time.Duration
 	CommandTimeout time.Duration
@@ -77,24 +76,19 @@ type Client struct {
 
 // NewClient session
 func NewClient(
-	user, password, sshAuthSock string,
-	keys []string,
+	user, password string,
+	auths []ssh.AuthMethod,
 	options ...func(*Client),
 ) (*Client, error) {
 	log.Debugf("Login user: %s", user)
 
-	authMethods, err := buildAuthMethods(password, sshAuthSock, keys)
-	if err != nil {
-		return nil, err
-	}
-
 	client := Client{
 		User:           user,
 		Password:       password,
-		Auth:           authMethods,
+		Auths:          auths,
 		Port:           22,
 		ConnTimeout:    10 * time.Second,
-		CommandTimeout: 0, // default no timeout
+		CommandTimeout: 0,
 		Concurrency:    100,
 	}
 
@@ -497,14 +491,14 @@ func (c *Client) copyZipFile(
 func (c *Client) getClient(addr string) (*ssh.Client, error) {
 	sshConfig := &ssh.ClientConfig{
 		User: c.User,
-		Auth: c.Auth,
+		Auth: c.Auths,
 	}
 
 	//nolint:gosec
 	sshConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
 	sshConfig.Timeout = c.ConnTimeout
 
-	client, err := ssh.Dial("tcp", addr+":"+strconv.Itoa(c.Port), sshConfig)
+	client, err := ssh.Dial("tcp", net.JoinHostPort(addr, strconv.Itoa(c.Port)), sshConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -566,136 +560,4 @@ func WithConcurrency(count int) func(*Client) {
 	return func(s *Client) {
 		s.Concurrency = count
 	}
-}
-
-func buildAuthMethods(password, sshAuthSock string, keys []string) ([]ssh.AuthMethod, error) {
-	var auth []ssh.AuthMethod
-
-	if len(keys) != 0 {
-		if sshAuthSock != "" {
-			log.Debugf("Auth method: use SSH_AUTH_SOCK=%s", sshAuthSock)
-
-			var (
-				err           error
-				agentUnixSock net.Conn
-			)
-
-			for {
-				agentUnixSock, err = net.Dial("unix", sshAuthSock)
-				if err != nil {
-					netErr := err.(net.Error)
-					if netErr.Temporary() {
-						//nolint:gosec,gomnd
-						time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
-						continue
-					}
-
-					return nil, fmt.Errorf("cannot open connection to SSH Agent: %v ", netErr)
-				}
-
-				auth = []ssh.AuthMethod{ssh.PublicKeysCallback(agent.NewClient(agentUnixSock).Signers)}
-
-				break
-			}
-
-			return auth, nil
-		}
-
-		log.Debugf("Auth method: use identity file '%s'", strings.Join(keys, ","))
-
-		signers := makeSigners(keys)
-		if len(signers) == 0 {
-			return nil, fmt.Errorf("no valid pubkeys")
-		}
-
-		auth = []ssh.AuthMethod{ssh.PublicKeys(signers...)}
-
-		return auth, nil
-	}
-
-	log.Debugf("Auth method: use password")
-
-	auth = []ssh.AuthMethod{ssh.Password(password)}
-
-	return auth, nil
-}
-
-func makeSigners(keys []string) []ssh.Signer {
-	signers := []ssh.Signer{}
-
-	for _, keyname := range keys {
-		signer, err := makeSigner(keyname)
-		if err == nil {
-			signers = append(signers, signer)
-		}
-	}
-
-	return signers
-}
-
-func makeSigner(keyname string) (signer ssh.Signer, err error) {
-	fp, err := os.Open(keyname)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			log.Warnf("could not parse %s: %v", keyname, err)
-		}
-		return
-	}
-	defer fp.Close()
-
-	buf, err := ioutil.ReadAll(fp)
-	if err != nil {
-		log.Warnf("could not read %s: %v", keyname, err)
-		return
-	}
-
-	if bytes.Contains(buf, []byte("ENCRYPTED")) {
-		var (
-			tmpfp *os.File
-		)
-
-		tmpfp, err = ioutil.TempFile("", "key")
-		if err != nil {
-			log.Warnf("could not create temporary file: %v", err)
-			return
-		}
-
-		tmpName := tmpfp.Name()
-
-		defer func() { tmpfp.Close(); os.Remove(tmpName) }()
-
-		_, err = tmpfp.Write(buf)
-		if err != nil {
-			log.Warnf("could not write encrypted key contents to temporary file: %v", err)
-			return
-		}
-
-		err = tmpfp.Close()
-		if err != nil {
-			log.Warnf("could not close temporary file: %v", err)
-			return
-		}
-
-		tmpfp, err = os.Open(tmpName)
-		if err != nil {
-			return
-		}
-
-		buf, err = ioutil.ReadAll(tmpfp)
-		if err != nil {
-			return
-		}
-
-		tmpfp.Close()
-		os.Remove(tmpName)
-	}
-
-	signer, err = ssh.ParsePrivateKey(buf)
-	if err != nil {
-		log.Warnf("could not parse %s: %v", keyname, err)
-		return
-	}
-
-	//nolint:nakedret
-	return
 }
