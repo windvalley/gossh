@@ -32,8 +32,10 @@ import (
 )
 
 const (
-	flagAuthUser          = "auth.user"
-	flagAuthPassword      = "auth.password"
+	flagAuthUser     = "auth.user"
+	flagAuthPassword = "auth.password"
+	//nolint:gosec
+	flagAuthAskPass       = "auth.ask-pass"
 	flagAuthFile          = "auth.file"
 	flagAuthIdentityFiles = "auth.identity-files"
 )
@@ -42,6 +44,7 @@ const (
 type Auth struct {
 	User          string   `json:"user" mapstructure:"user"`
 	Password      string   `json:"password" mapstructure:"password"`
+	AskPass       bool     `json:"ask-pass" mapstructure:"ask-pass"`
 	File          string   `json:"file" mapstructure:"file"`
 	IdentityFiles []string `json:"identity-files" mapstructure:"identity-files"`
 }
@@ -51,15 +54,16 @@ func NewAuth() *Auth {
 	return &Auth{
 		User:          "",
 		Password:      "",
+		AskPass:       false,
 		File:          "",
-		IdentityFiles: []string{},
-	}
+		IdentityFiles: []string{}}
 }
 
 // AddFlagsTo pflagSet.
 func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.StringVarP(&a.User, flagAuthUser, "u", "", "login user (default is $USER)")
 	fs.StringVarP(&a.Password, flagAuthPassword, "p", a.Password, "password of the login user")
+	fs.BoolVarP(&a.AskPass, flagAuthAskPass, "k", a.AskPass, "ask for password of login user")
 	fs.StringVarP(&a.File, flagAuthFile, "a", a.File,
 		`file containing the credentials (format: "username:password")`)
 	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "i", nil,

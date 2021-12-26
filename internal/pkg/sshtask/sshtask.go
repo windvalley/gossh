@@ -423,6 +423,12 @@ func (t *Task) getUserAndPassword() (user string, password string, err error) {
 		password = passwordFromFlag
 	}
 
+	if t.configFlags.Auth.AskPass {
+		log.Debugf("Auth: ask for password of login user by flag '-k/--auth.ask-pass'")
+		password = getPasswordFromPrompt()
+	}
+
+	//nolint:nakedret
 	return
 }
 
