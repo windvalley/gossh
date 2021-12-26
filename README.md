@@ -100,6 +100,7 @@ Flags:
   -k, --auth.ask-pass                 ask for password of login user
   -a, --auth.file string              file containing the credentials (format: "username:password")
   -i, --auth.identity-files strings   identity files (default is $HOME/.ssh/{id_rsa,id_dsa})
+  -K, --auth.passphrase string        passphrase of the identity files
   -p, --auth.password string          password of the login user
   -u, --auth.user string              login user (default is $USER)
       --config string                 config file (default is $HOME/.gossh.yaml)

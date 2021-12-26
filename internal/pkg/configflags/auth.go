@@ -38,6 +38,7 @@ const (
 	flagAuthAskPass       = "auth.ask-pass"
 	flagAuthFile          = "auth.file"
 	flagAuthIdentityFiles = "auth.identity-files"
+	flagAuthPassphrase    = "auth.passphrase"
 )
 
 // Auth config.
@@ -47,6 +48,7 @@ type Auth struct {
 	AskPass       bool     `json:"ask-pass" mapstructure:"ask-pass"`
 	File          string   `json:"file" mapstructure:"file"`
 	IdentityFiles []string `json:"identity-files" mapstructure:"identity-files"`
+	Passphrase    string   `json:"passphrase" mapstructure:"passphrase"`
 }
 
 // NewAuth ...
@@ -56,7 +58,9 @@ func NewAuth() *Auth {
 		Password:      "",
 		AskPass:       false,
 		File:          "",
-		IdentityFiles: []string{}}
+		IdentityFiles: []string{},
+		Passphrase:    "",
+	}
 }
 
 // AddFlagsTo pflagSet.
@@ -68,6 +72,8 @@ func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 		`file containing the credentials (format: "username:password")`)
 	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "i", nil,
 		"identity files (default is $HOME/.ssh/{id_rsa,id_dsa})")
+	fs.StringVarP(&a.Passphrase, flagAuthPassphrase, "K", a.Passphrase,
+		"passphrase of the identity files")
 }
 
 // Complete some flags value.

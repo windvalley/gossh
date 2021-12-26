@@ -354,9 +354,9 @@ func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
 
 	keyfiles := t.getItentityFiles()
 	if len(keyfiles) != 0 {
-		sshSigners, err1 := getSigners(keyfiles, "")
-		if err1 != nil {
-			log.Debugf("Auth: parse identity files failed: %s", err1)
+		sshSigners := getSigners(keyfiles, t.configFlags.Auth.Passphrase)
+		if len(sshSigners) == 0 {
+			log.Debugf("Auth: no valid identity files")
 		} else {
 			auths = append(auths, ssh.PublicKeys(sshSigners...))
 		}
@@ -377,7 +377,7 @@ func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
 	}
 
 	if len(auths) == 0 {
-		log.Debugf("Auth: no valid authentication method is detected. Prompt for password of the login user")
+		log.Debugf("Auth: no valid authentication method detected. Prompt for password of the login user")
 
 		*password = getPasswordFromPrompt()
 		auths = append(auths, ssh.Password(*password))
@@ -445,44 +445,47 @@ func (t *Task) getItentityFiles() (keyFiles []string) {
 	return
 }
 
-func getSigners(keyfiles []string, passphrase string) ([]ssh.Signer, error) {
+func getSigners(keyfiles []string, passphrase string) []ssh.Signer {
 	var signers []ssh.Signer
+
 	for _, f := range keyfiles {
-		signer, err := getSigner(f, passphrase)
-		if err != nil {
-			log.Debugf("Auth: parse identity file '%s' failed: %s", f, err)
-			continue
+		signer := getSigner(f, passphrase)
+		if signer != nil {
+			signers = append(signers, signer)
 		}
-
-		log.Debugf("Auth: parsed identity file '%s'", f)
-		signers = append(signers, signer)
 	}
 
-	if len(signers) == 0 {
-		return nil, errors.New("no valid identity files")
-	}
-
-	return signers, nil
+	return signers
 }
 
-func getSigner(keyfile, passphrase string) (ssh.Signer, error) {
-	var (
-		pubkey ssh.Signer
-		err    error
-	)
-
+func getSigner(keyfile, passphrase string) ssh.Signer {
 	buf, err := ioutil.ReadFile(keyfile)
 	if err != nil {
-		return nil, err
+		log.Debugf("Auth: read identity file '%s' failed: %s", keyfile, err)
+		return nil
 	}
 
-	if passphrase != "" {
-		pubkey, err = sshkeys.ParseEncryptedPrivateKey(buf, []byte(passphrase))
-	} else {
-		pubkey, err = ssh.ParsePrivateKey(buf)
+	pubkey, err := ssh.ParsePrivateKey(buf)
+	if err != nil {
+		_, ok := err.(*ssh.PassphraseMissingError)
+		if ok {
+			pubkeyWithPassphrase, err1 := sshkeys.ParseEncryptedPrivateKey(buf, []byte(passphrase))
+			if err1 != nil {
+				log.Debugf("Auth: parse identity file '%s' with passphrase failed: %s", keyfile, err1)
+				return nil
+			}
+
+			log.Debugf("Auth: parsed identity file '%s' with passphrase", keyfile)
+			return pubkeyWithPassphrase
+		}
+
+		log.Debugf("Auth: parse identity file '%s' failed: %s", keyfile, err)
+		return nil
 	}
 
-	return pubkey, err
+	log.Debugf("Auth: parsed identity file '%s'", keyfile)
+
+	return pubkey
 }
 
 func getPasswordFromPrompt() string {
