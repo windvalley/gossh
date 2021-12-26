@@ -38,16 +38,22 @@ var execCmd = &cobra.Command{
 	Long: `
 Execute commands on remote hosts.`,
 	Example: `
-  # Get password by '-p' flag.
-  # gossh exec host1 -e "uptime" -p "your-password"
+  # Ask for password.
+  $ gossh exec host1 -e "uptime" -k
 
-  # Get 'user:password' from a file.
-  # gossh exec host1 host2 -e "uptime" -a auth.txt
+  # Give password by '-p' flag.
+  $ gossh exec host1 -e "uptime" -p "your-password"
 
-  # Promt password.
-  $ gossh exec host1 -e "uptime"
+  # Give 'user:password' from a file.
+  $ gossh exec host1 host2 -e "uptime" -a auth.txt
+
+  # Pubkey authentication with specified private-key-file(with passphrase).
+  $ gossh exec host1 -e "uptime" -i /path/id_rsa -K "passphrase"
 
   # Specify login user instead of default $USER.
+  # NOTE: 
+  # If ssh-agent($SSH_AUTH_SOCK) exists, it will use ssh-agent auth first,
+  # and if no valid authentication method detected, it will ask for password.
   $ gossh exec host1 -u zhangsan -e "uptime"
 
   # Hosts can be given from both arguments and '-H' flag.
@@ -57,11 +63,11 @@ Execute commands on remote hosts.`,
   $ gossh exec host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -e "uptime" -k
 
   # Use sudo as root to execute commands on host1.
-  # NOTE: this will prompt for a password(login user).
+  # NOTE: This will prompt for a password(login user).
   $ gossh exec host1 -e "uptime" -s
 
   # Use sudo as user 'zhangsan' to execute commands on host1.
-  # NOTE: this will prompt for a password(login user).
+  # NOTE: This will prompt for a password(login user).
   $ gossh exec host1 -e "uptime" -s -U zhangsan
 
   # Set timeout seconds for executing commands on each remote host.

@@ -52,11 +52,11 @@ Execute a local shell script on remote hosts.`,
   $ gossh script host1 -e foo.sh -r
 
   # Use sudo as root to execute foo.sh on host1.
-  # NOTE: this will prompt for a password(login user).
+  # NOTE: This will prompt for a password(login user).
   $ gossh script host1 -e foo.sh -s
 
   # Use sudo as user 'zhangsan' to execute foo.sh on host1.
-  # NOTE: this will prompt for a password(login user).
+  # NOTE: This will prompt for a password(login user).
   $ gossh script host1 -e foo.sh -s -U zhangsan
 
   # Set timeout seconds for executing script on each remote host.
