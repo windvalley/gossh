@@ -21,14 +21,16 @@ It can efficiently execute commands, execute a shell script, transfer files and 
   `script`: Execute a local shell script on remote hosts.  
   `push`: Push local files and dirs to remote hosts.
 
-- Supports using sudo to execute the commands or a shell script as other user(default is `root`).
+- Supports using `sudo` to execute the commands or a shell script as other user(default is `root`).
 
 - Supports specifying i18n environment variable value while executing commands or a shell script to help keep the language of the outputs consistent. For example: `zh_CN.UTF-8`, `en_US.UTF-8`.
 
 - Supports four authentication methods.  
-  Priority: `ssh-agent authentication` -> `pubkey authentication` -> `password from flag/config` -> `username:password from a file`.  
-  It will auto detected the supported authentication methods, and if no legal authentication method is detected, you will be prompted to enter password.  
-  If the login user is not specified, the system environment variable `$USER` will be used by default.
+  `SSH-Agent Authentication`: through the system environment variable `$SSH_AUTH_SOCK`.  
+  `Pubkey Authentication`: by identity files(Default `$HOME/.ssh/{id_rsa,id_dsa}`), also support that with passphrase.  
+  `Password`: from command line flag `-k/--auth.ask-pass` or `-p/--auth.password`, or from configuration file.  
+  `Password File`: file that containing `username:password`, and it has low priority than auth method `Password`.  
+  `Gossh` will auto detected the supported authentication methods, and if no legal authentication methods detected, it will prompt user to enter password of login user(Default `$USER`).
 
 - Supports two ways to specify target hosts. One is through command line arguments, input one or more target hosts, separated by space. The other is through command line flag or configuration file option to specify the hosts file. Both ways can be used at the same time.
 
