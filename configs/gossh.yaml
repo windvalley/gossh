@@ -1,56 +1,109 @@
 auth:
-  # login user (default is $USER).
+  # Login user.
+  # Default: $USER
   user: ""
-  # password of the login user.
+
+  # Password of the login user.
+  # Default: ""
   password: ""
-  # ask for password of login user.
+
+  # Ask for password of login user.
+  # Default: false
   ask-pass: false
-  # file that contains 'username:password'.
+
+  # File that contains 'username:password'.
+  # Default: ""
   file: ""
-  # use pubkey authentication.
-  # identity files.
-  # default:
+
+  # Identity files of pubkey authentication.
+  # Default:
   #   - $HOME/.ssh/id_rsa
   #   - $HOME/.ssh/id_dsa
   identity-files:
     -
-  # passphrase of the identity files.
+
+  # Passphrase of the identity files.
+  # Default: ""
   passphrase: ""
 
 hosts:
-  # file containing target hosts (format: one host per line).
+  # File containing target hosts (format: one host per line).
+  # Default: ""
   file: ""
-  # port of target hosts.
-  # default: 22
+
+  # Port of target hosts.
+  # Default: 22
   port: 22
 
 run:
-  # use sudo to execute the command.
+  # Use sudo to execute the command.
+  # Default: false
   sudo: false
-  # run via sudo as this user.
-  # default: root
+
+  # Run via sudo as this user.
+  # Default: root
   as-user: root
-  # specify i18n envs when execute command/script.
+
+  # Specify i18n envs when execute command/script.
+  # Default: origin i18n value on remote hosts
   lang: ""
-  # number of concurrent connections.
-  # default: 1
+
+  # Number of concurrent connections.
+  # Default: 1
   concurrency: 1
 
 output:
-  # file to which messages are output.
+  # File to which messages are output.
+  # Default: ""
   file: ""
-  # output messages in json format
+
+  # Output messages in json format.
+  # Default: false
   json: false
-  # show debug messages.
+
+  # Show debug messages.
+  # Default: false
   verbose: false
-  # do not output messages to screen (except error messages).
+
+  # Do not output messages to screen (except error messages).
+  # Default: false
   quite: false
 
 timeout:
-  # timeout for connecting each remote host.
-  # default: 10 (seconds)
+  # Timeout seconds for connecting each remote host.
+  # Default: 10 (seconds)
   conn: 10
-  # timeout for executing commands/script on each remote host.
+
+  # Timeout seconds for executing commands/script on each remote host.
+  # Default: 0
   command: 0
-  # timeout for the current gossh task.
+
+  # Timeout seconds for running the current gossh task.
+  # Default: 0
   task: 0
+
+proxy:
+  # Proxy server address, and it will enable proxy if it not null.
+  # Default: ""
+  server: ""
+
+  # Proxy server port.
+  # Default: 22
+  port: 22
+
+  # Login user for proxy.
+  # Default: value of 'auth.user'
+  user: ""
+
+  # Password for proxy.
+  # Default: value of 'auth.password'
+  password: ""
+
+  # Identity files for proxy.
+  # Default: value of 'auth.identity-files'
+  identity-files:
+    -
+
+  # Passphrase of the identity files for proxy.
+  # Default: value of 'auth.passphrase'
+  passphrase: ""

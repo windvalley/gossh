@@ -45,25 +45,25 @@ import (
 const (
 	exportLangPattern = "export LANG=%s;export LC_ALL=%s;export LANGUAGE=%s;"
 
-	// SuccessIdentifier ...
+	// SuccessIdentifier for result output.
 	SuccessIdentifier = "SUCCESS"
-	// FailedIdentifier ...
+	// FailedIdentifier for result output.
 	FailedIdentifier = "FAILED"
 )
 
-// Task execute command or copy file or execute script
+// Task execute command or copy file or execute script.
 type Task interface {
 	RunSSH(addr string) (string, error)
 }
 
-// Result of ssh command
+// Result of ssh command.
 type Result struct {
 	Addr    string `json:"addr"`
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
 
-// Client for ssh
+// Client for ssh.
 type Client struct {
 	User           string
 	Password       string
@@ -72,9 +72,16 @@ type Client struct {
 	ConnTimeout    time.Duration
 	CommandTimeout time.Duration
 	Concurrency    int
+	Proxy          *Proxy
 }
 
-// NewClient session
+// Proxy server.
+type Proxy struct {
+	SSHClient *ssh.Client
+	Err       error
+}
+
+// NewClient session.
 func NewClient(
 	user, password string,
 	auths []ssh.AuthMethod,
@@ -90,6 +97,7 @@ func NewClient(
 		ConnTimeout:    10 * time.Second,
 		CommandTimeout: 0,
 		Concurrency:    100,
+		Proxy:          &Proxy{},
 	}
 
 	for _, option := range options {
@@ -99,7 +107,7 @@ func NewClient(
 	return &client, nil
 }
 
-// BatchRun command on remote servers
+// BatchRun command on remote servers.
 func (c *Client) BatchRun(
 	addrs []string,
 	sshTask Task,
@@ -140,7 +148,7 @@ func (c *Client) BatchRun(
 	return resCh
 }
 
-// ExecuteCmd on remote host
+// ExecuteCmd on remote host.
 func (c *Client) ExecuteCmd(addr, command, lang, runAs string, sudo bool) (string, error) {
 	client, err := c.getClient(addr)
 	if err != nil {
@@ -167,7 +175,7 @@ func (c *Client) ExecuteCmd(addr, command, lang, runAs string, sudo bool) (strin
 	return c.executeCmd(session, command)
 }
 
-// CopyFiles to remote host
+// CopyFiles to remote host.
 func (c *Client) CopyFiles(
 	addr string,
 	srcFiles, srcZipFiles []string,
@@ -266,7 +274,7 @@ func (c *Client) CopyFiles(
 	return fmt.Sprintf("'%s' %s been copied to '%s'", strings.Join(srcFiles, ","), hasOrHave, dstDir), nil
 }
 
-// ExecuteScript on remote host
+// ExecuteScript on remote host.
 func (c *Client) ExecuteScript(
 	addr, srcFile, dstDir, lang, runAs string,
 	sudo, remove, allowOverwrite bool,
@@ -489,18 +497,38 @@ func (c *Client) copyZipFile(
 }
 
 func (c *Client) getClient(addr string) (*ssh.Client, error) {
-	sshConfig := &ssh.ClientConfig{
-		User: c.User,
-		Auth: c.Auths,
-	}
+	var (
+		client *ssh.Client
+		err    error
+	)
 
+	sshConfig := &ssh.ClientConfig{
+		User:    c.User,
+		Auth:    c.Auths,
+		Timeout: c.ConnTimeout,
+	}
 	//nolint:gosec
 	sshConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-	sshConfig.Timeout = c.ConnTimeout
 
-	client, err := ssh.Dial("tcp", net.JoinHostPort(addr, strconv.Itoa(c.Port)), sshConfig)
-	if err != nil {
-		return nil, err
+	remoteHost := net.JoinHostPort(addr, strconv.Itoa(c.Port))
+
+	if c.Proxy.SSHClient != nil {
+		conn, err2 := c.Proxy.SSHClient.Dial("tcp", remoteHost)
+		if err2 != nil {
+			return nil, err2
+		}
+
+		ncc, chans, reqs, err3 := ssh.NewClientConn(conn, remoteHost, sshConfig)
+		if err3 != nil {
+			return nil, err3
+		}
+
+		client = ssh.NewClient(ncc, chans, reqs)
+	} else {
+		client, err = ssh.Dial("tcp", remoteHost, sshConfig)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return client, nil
@@ -534,30 +562,56 @@ func (c *Client) handleOutput(w io.Writer, r io.Reader) <-chan []byte {
 	return out
 }
 
-// WithConnTimeout ssh connection timeout option
+// WithConnTimeout ssh connection timeout option.
 func WithConnTimeout(timeout time.Duration) func(*Client) {
-	return func(s *Client) {
-		s.ConnTimeout = timeout
+	return func(c *Client) {
+		c.ConnTimeout = timeout
 	}
 }
 
-// WithCommandTimeout task connection timeout option
+// WithCommandTimeout task connection timeout option.
 func WithCommandTimeout(timeout time.Duration) func(*Client) {
-	return func(s *Client) {
-		s.CommandTimeout = timeout
+	return func(c *Client) {
+		c.CommandTimeout = timeout
 	}
 }
 
-// WithPort port option
+// WithPort port option.
 func WithPort(port int) func(*Client) {
-	return func(s *Client) {
-		s.Port = port
+	return func(c *Client) {
+		c.Port = port
 	}
 }
 
-// WithConcurrency concurrency tasks number option
+// WithConcurrency concurrency tasks number option.
 func WithConcurrency(count int) func(*Client) {
-	return func(s *Client) {
-		s.Concurrency = count
+	return func(c *Client) {
+		c.Concurrency = count
+	}
+}
+
+// WithProxyServer connect remote hosts by proxy server.
+func WithProxyServer(proxyServer, user string, port int, auths []ssh.AuthMethod) func(*Client) {
+	return func(c *Client) {
+		log.Debugf("Proxy server login user: %s", user)
+
+		proxySSHConfig := &ssh.ClientConfig{
+			User:    user,
+			Auth:    auths,
+			Timeout: c.ConnTimeout,
+		}
+		//nolint:gosec
+		proxySSHConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
+
+		proxyClient, err1 := ssh.Dial(
+			"tcp",
+			net.JoinHostPort(proxyServer, strconv.Itoa(port)),
+			proxySSHConfig,
+		)
+		if err1 != nil {
+			c.Proxy.Err = fmt.Errorf("connet to proxy server %s:%d failed: %s", proxyServer, port, err1)
+		}
+
+		c.Proxy.SSHClient = proxyClient
 	}
 }

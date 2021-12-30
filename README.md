@@ -59,6 +59,8 @@ It can efficiently execute commands, execute a shell script, transfer files and 
 
 - Provide the subcommand `config` to help users generate configuration file in easy way.
 
+- Supports SSH Proxy, you can connect to the target hosts by specifying the ssh proxy server.
+
 ## Installation
 
 Prebuilt binaries for macOS and Linux can be downloaded from the [GitHub releases page](https://github.com/windvalley/gossh/releases).
@@ -99,28 +101,34 @@ Available Commands:
   version     Show the gossh version information
 
 Flags:
-  -k, --auth.ask-pass                 ask for password of login user
-  -a, --auth.file string              file containing the credentials (format: "username:password")
-  -i, --auth.identity-files strings   identity files (default is $HOME/.ssh/{id_rsa,id_dsa})
-  -K, --auth.passphrase string        passphrase of the identity files
-  -p, --auth.password string          password of the login user
-  -u, --auth.user string              login user (default is $USER)
-      --config string                 config file (default is $HOME/.gossh.yaml)
-  -h, --help                          help for gossh
-  -H, --hosts.file string             file containing target hosts (format: one host per line)
-  -P, --hosts.port int                port of target hosts (default 22)
-  -o, --output.file string            file to which messages are output
-  -j, --output.json                   output messages in json format
-  -q, --output.quiet                  do not output messages to screen (except error messages)
-  -v, --output.verbose                show debug messages
-  -U, --run.as-user string            run via sudo as this user (default "root")
-  -c, --run.concurrency int           number of concurrent connections (default 1)
-  -l, --run.lang string               specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
-  -s, --run.sudo                      use sudo to execute commands/script
-      --timeout.command int           timeout seconds for executing commands/script on each remote host or
-                                      pushing each file/dir to each remote host
-      --timeout.conn int              timeout seconds for connecting each remote host (default 10)
-      --timeout.task int              timeout seconds for the current gossh task
+  -k, --auth.ask-pass                  ask for password of login user
+  -a, --auth.file string               file containing the credentials (format: "username:password")
+  -i, --auth.identity-files strings    identity files (default is $HOME/.ssh/{id_rsa,id_dsa})
+  -K, --auth.passphrase string         passphrase of the identity files
+  -p, --auth.password string           password of the login user
+  -u, --auth.user string               login user (default is $USER)
+      --config string                  config file (default is $HOME/.gossh.yaml)
+  -h, --help                           help for gossh
+  -H, --hosts.file string              file containing target hosts (format: one host per line)
+  -P, --hosts.port int                 port of target hosts (default 22)
+  -o, --output.file string             file to which messages are output
+  -j, --output.json                    output messages in json format
+  -q, --output.quiet                   do not output messages to screen (except error messages)
+  -v, --output.verbose                 show debug messages
+      --proxy.identity-files strings   identity files for proxy(default same as 'auth.identity-files')
+      --proxy.passphrase string        passphrase of the identity files for proxy(default same as 'auth.passphrase')
+      --proxy.password string          password for proxy(default same as 'auth.password')
+      --proxy.port int                 proxy server port (default 22)
+  -X, --proxy.server string            proxy server address
+      --proxy.user string              login user for proxy(default same as 'auth.user')
+  -U, --run.as-user string             run via sudo as this user (default "root")
+  -c, --run.concurrency int            number of concurrent connections (default 1)
+  -l, --run.lang string                specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
+  -s, --run.sudo                       use sudo to execute commands/script
+      --timeout.command int            timeout seconds for executing commands/script on each remote host or
+                                       pushing each file/dir to each remote host
+      --timeout.conn int               timeout seconds for connecting each remote host (default 10)
+      --timeout.task int               timeout seconds for the current gossh task
 
 Use "gossh [command] --help" for more information about a command.
 ```

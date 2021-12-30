@@ -29,61 +29,114 @@ import (
 )
 
 const configTemplate = `auth:
-  # login user (default is $USER).
+  # Login user.
+  # Default: $USER
   user: %q
-  # password of the login user.
+
+  # Password of the login user.
+  # Default: ""
   password: %q
-  # ask for password of login user.
+
+  # Ask for password of login user.
+  # Default: false
   ask-pass: %v
-  # file that contains 'username:password'.
+
+  # File that contains 'username:password'.
+  # Default: ""
   file: %q
-  # use pubkey authentication.
-  # identity files.
-  # default:
+
+  # Identity files of pubkey authentication.
+  # Default:
   #   - $HOME/.ssh/id_rsa
   #   - $HOME/.ssh/id_dsa
   identity-files:
     -
-  # passphrase of the identity files.
+
+  # Passphrase of the identity files.
+  # Default: ""
   passphrase: %q
 
 hosts:
-  # file containing target hosts (format: one host per line).
+  # File containing target hosts (format: one host per line).
+  # Default: ""
   file: %q
-  # port of target hosts.
-  # default: 22
+
+  # Port of target hosts.
+  # Default: 22
   port: %d
 
 run:
-  # use sudo to execute the command.
+  # Use sudo to execute the command.
+  # Default: false
   sudo: %v
-  # run via sudo as this user.
-  # default: root
+
+  # Run via sudo as this user.
+  # Default: root
   as-user: %s
-  # specify i18n envs when execute command/script.
+
+  # Specify i18n envs when execute command/script.
+  # Default: origin i18n value on remote hosts
   lang: %q
-  # number of concurrent connections.
-  # default: 1
+
+  # Number of concurrent connections.
+  # Default: 1
   concurrency: %d
 
 output:
-  # file to which messages are output.
+  # File to which messages are output.
+  # Default: ""
   file: %q
-  # output messages in json format
+
+  # Output messages in json format.
+  # Default: false
   json: %v
-  # show debug messages.
+
+  # Show debug messages.
+  # Default: false
   verbose: %v
-  # do not output messages to screen (except error messages).
+
+  # Do not output messages to screen (except error messages).
+  # Default: false
   quite: %v
 
 timeout:
-  # timeout for connecting each remote host.
-  # default: 10 (seconds)
+  # Timeout seconds for connecting each remote host.
+  # Default: 10 (seconds)
   conn: %d
-  # timeout for executing commands/script on each remote host.
+
+  # Timeout seconds for executing commands/script on each remote host.
+  # Default: 0
   command: %d
-  # timeout for the current gossh task.
+
+  # Timeout seconds for running the current gossh task.
+  # Default: 0
   task: %d
+
+proxy:
+  # Proxy server address, and it will enable proxy if it not null.
+  # Default: ""
+  server: %q
+
+  # Proxy server port.
+  # Default: 22
+  port: %d
+
+  # Login user for proxy.
+  # Default: value of 'auth.user'
+  user: %q
+
+  # Password for proxy.
+  # Default: value of 'auth.password'
+  password: %q
+
+  # Identity files for proxy.
+  # Default: value of 'auth.identity-files'
+  identity-files:
+    -
+
+  # Passphrase of the identity files for proxy.
+  # Default: value of 'auth.passphrase'
+  passphrase: %q
 `
 
 // configCmd represents the config command
@@ -109,6 +162,7 @@ Generate gossh configuration file.`,
 			config.Run.Sudo, config.Run.AsUser, config.Run.Lang, config.Run.Concurrency,
 			config.Output.File, config.Output.JSON, config.Output.Verbose, config.Output.Quiet,
 			config.Timeout.Conn, config.Timeout.Command, config.Timeout.Task,
+			config.Proxy.Server, config.Proxy.Port, config.Proxy.User, config.Proxy.Password, config.Proxy.Passphrase,
 		)
 	},
 }

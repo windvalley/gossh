@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Supports SSH Proxy, you can connect to the target hosts by specifying the ssh proxy server.
+  Add flags:
+
+  ```text
+  -X, --proxy.server string        proxy server address
+  --proxy.identity-files strings   identity files for proxy(default the same as 'auth.identity-files')
+  --proxy.passphrase string        passphrase of the identity files for proxy(default the same as 'auth.passphrase')
+  --proxy.password string          password for proxy(default the same as 'auth.password')
+  --proxy.port int                 proxy server port (default 22)
+  --proxy.user string              login user for proxy(default the same as 'auth.user')
+  ```
+
+- Support parsing identity-files(private keys) with passphrase.  
+  Add flag `-K/--auth.passphrase` for parsing identity files with passphrase.
+
+- Add flag `-k/--auth.ask-pass` for asking password of login user.
+
+### Changed
+
+- Auto detected supported authentication methods: `ssh-agent authentication` -> `pubkey authentication` -> `password from flag/config` -> `username:password from a file`.
+  If no legal authentication method is detected, you will be prompted to enter password.
+
+- Add more detailed authentication debug messages(print by flag `-v/--verbose`).
+
+- Subcommand `config` add items: `auth.ask-pass`, `auth.passphrase`, and flags about new feature `proxy`.
+
+- Optimized help examples of subcommand `exec`, `script`.
+
+- Demo config file `configs/gossh.yaml` updated.
+
+### Removed
+
+- Delete flag `-k/--auth.pubkey`.  
+  If the identity files specified by flag `-i/--auth.identity-files` are valid,
+  the pubkey authentication method will be used automatically.
+
+### Fixed
+
+- Item `auth.identity-file` of subcommand `config` fixed as `auth.identity-files`.
+
+## [0.9.1]
+
+### Fixed
+
+- Fix the bug that while the host contains blank characters at the beginning and end of the host,
+  it will cause the host to fail to resolve.
+
+- Fix the bug that if there is a blank line in the host list file,
+  it will cause the client host to be regarded as the target host.
+
 ## [0.9.0]
 
 ### Added
@@ -135,7 +187,3 @@ If the dest directory given by flag `-d` does not exist or does not have permiss
 ### Fixed
 
 ### Security
-
-```
-
-```

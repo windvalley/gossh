@@ -78,23 +78,17 @@ func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 
 // Complete some flags value.
 func (a *Auth) Complete() error {
+	var err error
+
 	if a.User == "" {
 		a.User = os.Getenv("USER")
 	}
 
 	if len(a.IdentityFiles) == 0 {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return err
-		}
-
-		a.IdentityFiles = []string{
-			fmt.Sprintf("%s/.ssh/id_rsa", home),
-			fmt.Sprintf("%s/.ssh/id_dsa", home),
-		}
+		a.IdentityFiles, err = getDefaultIdentityFiles()
 	}
 
-	return nil
+	return err
 }
 
 // Validate flags.
@@ -104,4 +98,18 @@ func (a *Auth) Validate() (errs []error) {
 	}
 
 	return
+}
+
+func getDefaultIdentityFiles() ([]string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+
+	identityFiles := []string{
+		fmt.Sprintf("%s/.ssh/id_rsa", home),
+		fmt.Sprintf("%s/.ssh/id_dsa", home),
+	}
+
+	return identityFiles, nil
 }

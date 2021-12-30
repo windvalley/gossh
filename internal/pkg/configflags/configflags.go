@@ -35,6 +35,7 @@ type ConfigFlags struct {
 	Run     *Run     `json:"run" mapstructure:"run"`
 	Output  *Output  `json:"output" mapstructure:"output"`
 	Timeout *Timeout `json:"timeout" mapstructure:"timeout"`
+	Proxy   *Proxy   `json:"proxy" mapstructure:"proxy"`
 }
 
 // New config flags.
@@ -45,6 +46,7 @@ func New() *ConfigFlags {
 		Run:     NewRun(),
 		Output:  NewOutput(),
 		Timeout: NewTimeout(),
+		Proxy:   NewProxy(),
 	}
 }
 
@@ -55,6 +57,7 @@ func (c *ConfigFlags) AddFlagsTo(flags *pflag.FlagSet) {
 	c.Run.AddFlagsTo(flags)
 	c.Output.AddFlagsTo(flags)
 	c.Timeout.AddFlagsTo(flags)
+	c.Proxy.AddFlagsTo(flags)
 }
 
 // String ...
@@ -70,6 +73,10 @@ func (c *ConfigFlags) Complete() error {
 		return err
 	}
 
+	if err := c.Proxy.Complete(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -80,6 +87,7 @@ func (c *ConfigFlags) Validate() (errs []error) {
 	errs = append(errs, c.Run.Validate()...)
 	errs = append(errs, c.Output.Validate()...)
 	errs = append(errs, c.Timeout.Validate()...)
+	errs = append(errs, c.Proxy.Validate()...)
 
 	return
 }

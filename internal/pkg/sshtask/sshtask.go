@@ -314,6 +314,11 @@ func (t *Task) getAllHosts() ([]string, error) {
 }
 
 func (t *Task) buildSSHClient() {
+	var (
+		sshClient *batchssh.Client
+		err       error
+	)
+
 	user, password, err := t.getUserAndPassword()
 	if err != nil {
 		util.CheckErr(err)
@@ -321,15 +326,36 @@ func (t *Task) buildSSHClient() {
 
 	auths := t.getSSHAuthMethods(&password)
 
-	sshClient, err := batchssh.NewClient(
-		user,
-		password,
-		auths,
-		batchssh.WithConnTimeout(time.Duration(t.configFlags.Timeout.Conn)*time.Second),
-		batchssh.WithCommandTimeout(time.Duration(t.configFlags.Timeout.Command)*time.Second),
-		batchssh.WithConcurrency(t.configFlags.Run.Concurrency),
-		batchssh.WithPort(t.configFlags.Hosts.Port),
-	)
+	if t.configFlags.Proxy.Server != "" {
+		proxyAuths := t.getProxySSHAuthMethods(&password)
+
+		sshClient, err = batchssh.NewClient(
+			user,
+			password,
+			auths,
+			batchssh.WithConnTimeout(time.Duration(t.configFlags.Timeout.Conn)*time.Second),
+			batchssh.WithCommandTimeout(time.Duration(t.configFlags.Timeout.Command)*time.Second),
+			batchssh.WithConcurrency(t.configFlags.Run.Concurrency),
+			batchssh.WithPort(t.configFlags.Hosts.Port),
+			batchssh.WithProxyServer(
+				t.configFlags.Proxy.Server,
+				t.configFlags.Proxy.User,
+				t.configFlags.Proxy.Port,
+				proxyAuths,
+			),
+		)
+	} else {
+		sshClient, err = batchssh.NewClient(
+			user,
+			password,
+			auths,
+			batchssh.WithConnTimeout(time.Duration(t.configFlags.Timeout.Conn)*time.Second),
+			batchssh.WithCommandTimeout(time.Duration(t.configFlags.Timeout.Command)*time.Second),
+			batchssh.WithConcurrency(t.configFlags.Run.Concurrency),
+			batchssh.WithPort(t.configFlags.Hosts.Port),
+		)
+	}
+
 	if err != nil {
 		util.CheckErr(err)
 	}
@@ -354,7 +380,7 @@ func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
 
 	keyfiles := t.getItentityFiles()
 	if len(keyfiles) != 0 {
-		sshSigners := getSigners(keyfiles, t.configFlags.Auth.Passphrase)
+		sshSigners := getSigners(keyfiles, t.configFlags.Auth.Passphrase, false)
 		if len(sshSigners) == 0 {
 			log.Debugf("Auth: no valid identity files")
 		} else {
@@ -393,6 +419,51 @@ func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
 	}
 
 	return auths
+}
+
+func (t *Task) getProxySSHAuthMethods(password *string) []ssh.AuthMethod {
+	var (
+		proxyAuths []ssh.AuthMethod
+		sshAgent   net.Conn
+		err        error
+	)
+
+	if t.configFlags.Proxy.Password != "" {
+		log.Debugf("Proxy Auth: received password of the proxy user")
+
+		proxyAuths = append(proxyAuths, ssh.Password(t.configFlags.Proxy.Password))
+	} else {
+		log.Debugf("Proxy Auth: received password of the proxy user")
+
+		proxyAuths = append(proxyAuths, ssh.Password(*password))
+	}
+
+	proxyKeyfiles := t.getProxyItentityFiles()
+	if len(proxyKeyfiles) != 0 {
+		sshSigners := getSigners(proxyKeyfiles, t.configFlags.Proxy.Passphrase, true)
+		if len(sshSigners) == 0 {
+			log.Debugf("Proxy Auth: no valid identity files for proxy")
+		} else {
+			proxyAuths = append(proxyAuths, ssh.PublicKeys(sshSigners...))
+		}
+	}
+
+	sshAuthSock := os.Getenv("SSH_AUTH_SOCK")
+	if sshAuthSock != "" {
+		sshAgent, err = net.Dial("unix", sshAuthSock)
+		if err != nil {
+			log.Debugf("Proxy Auth: connect ssh-agent failed: %s", err)
+		} else {
+			log.Debugf("Proxy Auth: connected to SSH_AUTH_SOCK: %s", sshAuthSock)
+
+			agentSigners := ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers)
+			proxyAuths = append(proxyAuths, agentSigners)
+		}
+
+		t.sshAgent = sshAgent
+	}
+
+	return proxyAuths
 }
 
 func (t *Task) getUserAndPassword() (user string, password string, err error) {
@@ -445,11 +516,36 @@ func (t *Task) getItentityFiles() (keyFiles []string) {
 	return
 }
 
-func getSigners(keyfiles []string, passphrase string) []ssh.Signer {
-	var signers []ssh.Signer
+func (t *Task) getProxyItentityFiles() (proxyKeyfiles []string) {
+	homeDir := os.Getenv("HOME")
+	for _, file := range t.configFlags.Proxy.IdentityFiles {
+		if strings.HasPrefix(file, "~/") {
+			file = strings.Replace(file, "~", homeDir, 1)
+		}
+
+		proxyKeyfiles = append(proxyKeyfiles, file)
+	}
+
+	return
+}
+
+func getSigners(keyfiles []string, passphrase string, isForProxy bool) []ssh.Signer {
+	var (
+		signers []ssh.Signer
+		msgHead string
+	)
+
+	if isForProxy {
+		msgHead = "Proxy Auth: "
+	} else {
+		msgHead = "Auth: "
+	}
 
 	for _, f := range keyfiles {
-		signer := getSigner(f, passphrase)
+		signer, msg := getSigner(f, passphrase)
+
+		log.Debugf("%s%s", msgHead, msg)
+
 		if signer != nil {
 			signers = append(signers, signer)
 		}
@@ -458,11 +554,10 @@ func getSigners(keyfiles []string, passphrase string) []ssh.Signer {
 	return signers
 }
 
-func getSigner(keyfile, passphrase string) ssh.Signer {
+func getSigner(keyfile, passphrase string) (ssh.Signer, string) {
 	buf, err := ioutil.ReadFile(keyfile)
 	if err != nil {
-		log.Debugf("Auth: read identity file '%s' failed: %s", keyfile, err)
-		return nil
+		return nil, fmt.Sprintf("read identity file '%s' failed: %s", keyfile, err)
 	}
 
 	pubkey, err := ssh.ParsePrivateKey(buf)
@@ -471,21 +566,16 @@ func getSigner(keyfile, passphrase string) ssh.Signer {
 		if ok {
 			pubkeyWithPassphrase, err1 := sshkeys.ParseEncryptedPrivateKey(buf, []byte(passphrase))
 			if err1 != nil {
-				log.Debugf("Auth: parse identity file '%s' with passphrase failed: %s", keyfile, err1)
-				return nil
+				return nil, fmt.Sprintf("parse identity file '%s' with passphrase failed: %s", keyfile, err1)
 			}
 
-			log.Debugf("Auth: parsed identity file '%s' with passphrase", keyfile)
-			return pubkeyWithPassphrase
+			return pubkeyWithPassphrase, fmt.Sprintf("parsed identity file '%s' with passphrase", keyfile)
 		}
 
-		log.Debugf("Auth: parse identity file '%s' failed: %s", keyfile, err)
-		return nil
+		return nil, fmt.Sprintf("parse identity file '%s' failed: %s", keyfile, err)
 	}
 
-	log.Debugf("Auth: parsed identity file '%s'", keyfile)
-
-	return pubkey
+	return pubkey, fmt.Sprintf("parsed identity file '%s'", keyfile)
 }
 
 func getPasswordFromPrompt() string {
