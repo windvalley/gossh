@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0]
+
 ### Added
 
-- Supports SSH Proxy, you can connect to the target hosts by specifying the ssh proxy server.
+- Supports SSH Proxy, it can connect to the target hosts by specifying the ssh proxy server.
   Add flags:
 
   ```text
@@ -28,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Auto detected supported authentication methods: `ssh-agent authentication` -> `pubkey authentication` -> `password from flag/config` -> `username:password from a file`.
+- Auto detected supported authentication methods:  
+  `ssh-agent authentication` -> `pubkey authentication` -> `password from flag/config` -> `username:password from a file`.  
   If no legal authentication method is detected, you will be prompted to enter password.
 
 - Add more detailed authentication debug messages(print by flag `-v/--verbose`).
@@ -42,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Delete flag `-k/--auth.pubkey`.  
-  If the identity files specified by flag `-i/--auth.identity-files` are valid,
+  Changed to: If the identity files specified by flag `-i/--auth.identity-files` are valid,
   the pubkey authentication method will be used automatically.
 
 ### Fixed

@@ -29,7 +29,7 @@ It can efficiently execute commands, execute a shell script, transfer files and 
   `SSH-Agent Authentication`: through the system environment variable `$SSH_AUTH_SOCK`.  
   `Pubkey Authentication`: by identity files(Default `$HOME/.ssh/{id_rsa,id_dsa}`), also support that with passphrase.  
   `Password`: from command line flag `-k/--auth.ask-pass` or `-p/--auth.password`, or from configuration file.  
-  `Password File`: file that containing `username:password`, and it has low priority than auth method `Password`.  
+  `Password File`: file that containing `username:password`, and it has lower priority than auth method `Password`.  
   `Gossh` will auto detected the supported authentication methods, and if no legal authentication methods detected, it will prompt user to enter password of login user(Default `$USER`).
 
 - Supports two ways to specify target hosts. One is through command line arguments, input one or more target hosts, separated by space. The other is through command line flag or configuration file option to specify the hosts file. Both ways can be used at the same time.
@@ -59,7 +59,7 @@ It can efficiently execute commands, execute a shell script, transfer files and 
 
 - Provide the subcommand `config` to help users generate configuration file in easy way.
 
-- Supports SSH Proxy, you can connect to the target hosts by specifying the ssh proxy server.
+- Supports SSH Proxy, it can connect to the target hosts by specifying the ssh proxy server.
 
 ## Installation
 
