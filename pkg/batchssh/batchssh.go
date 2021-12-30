@@ -512,7 +512,11 @@ func (c *Client) getClient(addr string) (*ssh.Client, error) {
 
 	remoteHost := net.JoinHostPort(addr, strconv.Itoa(c.Port))
 
-	if c.Proxy.SSHClient != nil {
+	if c.Proxy.SSHClient != nil || c.Proxy.Err != nil {
+		if c.Proxy.Err != nil {
+			return nil, c.Proxy.Err
+		}
+
 		conn, err2 := c.Proxy.SSHClient.Dial("tcp", remoteHost)
 		if err2 != nil {
 			return nil, err2
@@ -593,7 +597,7 @@ func WithConcurrency(count int) func(*Client) {
 // WithProxyServer connect remote hosts by proxy server.
 func WithProxyServer(proxyServer, user string, port int, auths []ssh.AuthMethod) func(*Client) {
 	return func(c *Client) {
-		log.Debugf("Proxy server login user: %s", user)
+		log.Debugf("Proxy login user: %s", user)
 
 		proxySSHConfig := &ssh.ClientConfig{
 			User:    user,
@@ -609,7 +613,9 @@ func WithProxyServer(proxyServer, user string, port int, auths []ssh.AuthMethod)
 			proxySSHConfig,
 		)
 		if err1 != nil {
-			c.Proxy.Err = fmt.Errorf("connet to proxy server %s:%d failed: %s", proxyServer, port, err1)
+			c.Proxy.Err = fmt.Errorf("connet to proxy %s:%d failed: %s", proxyServer, port, err1)
+
+			return
 		}
 
 		c.Proxy.SSHClient = proxyClient
