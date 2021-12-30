@@ -3,16 +3,19 @@ auth:
   user: ""
   # password of the login user.
   password: ""
+  # ask for password of login user.
+  ask-pass: false
   # file that contains 'username:password'.
   file: ""
   # use pubkey authentication.
-  pubkey: false
   # identity files.
   # default:
   #   - $HOME/.ssh/id_rsa
   #   - $HOME/.ssh/id_dsa
-  identity-file:
+  identity-files:
     -
+  # passphrase of the identity files.
+  passphrase: ""
 
 hosts:
   # file containing target hosts (format: one host per line).

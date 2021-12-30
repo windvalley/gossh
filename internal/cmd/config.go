@@ -59,7 +59,7 @@ run:
   sudo: %v
   # run via sudo as this user.
   # default: root
-  as-user: %q
+  as-user: %s
   # specify i18n envs when execute command/script.
   lang: %q
   # number of concurrent connections.
