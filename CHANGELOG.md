@@ -11,13 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix a bug about default config(#8).
+- Subcommand `config`: fix issue(#8).
 
 - Fix an issue that sudo command will stuck on remote server when wrong password was provided(#6).
 
 ### Changed
 
 - Optimized help information.
+
+- `configs/gossh.yaml`: fixed about issue #8.
 
 ## [1.0.1]
 
