@@ -65,13 +65,14 @@ func (p *Proxy) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.StringVarP(&p.Server, flagProxyServer, "X", p.Server, "proxy server address")
 	fs.IntVarP(&p.Port, flagProxyPort, "", p.Port, "proxy server port")
 	fs.StringVarP(&p.User, flagProxyUser, "", p.User,
-		"login user for proxy(default same as 'auth.user')")
+		"login user for proxy (default same as 'auth.user')")
 	fs.StringVarP(&p.Password, flagProxyPassword, "", p.Password,
-		"password for proxy(default same as 'auth.password')")
+		"password for proxy (default same as 'auth.password')")
 	fs.StringSliceVarP(&p.IdentityFiles, flagProxyIdentityFiles, "", p.IdentityFiles,
-		"identity files for proxy(default same as 'auth.identity-files')")
+		"identity files for proxy (default same as 'auth.identity-files')")
 	fs.StringVarP(&p.Passphrase, flagProxyPassphrase, "", p.Passphrase,
-		"passphrase of the identity files for proxy(default same as 'auth.passphrase')")
+		`passphrase of the identity files for proxy
+(default same as 'auth.passphrase')`)
 }
 
 // Complete some flags value.
