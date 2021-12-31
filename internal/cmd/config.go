@@ -49,8 +49,7 @@ const configTemplate = `auth:
   # Default:
   #   - $HOME/.ssh/id_rsa
   #   - $HOME/.ssh/id_dsa
-  identity-files:
-    -
+  identity-files: []
 
   # Passphrase of the identity files.
   # Default: ""
@@ -131,8 +130,7 @@ proxy:
 
   # Identity files for proxy.
   # Default: value of 'auth.identity-files'
-  identity-files:
-    -
+  identity-files: []
 
   # Passphrase of the identity files for proxy.
   # Default: value of 'auth.passphrase'
