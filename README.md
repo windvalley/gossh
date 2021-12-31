@@ -34,7 +34,7 @@ It can efficiently execute commands, execute a shell script, transfer files and 
 
 - Supports two ways to specify target hosts. One is through command line arguments, input one or more target hosts, separated by space. The other is through command line flag or configuration file option to specify the hosts file. Both ways can be used at the same time.
 
-- Support expanding host patterns that from commandline arguments or a hosts file to host list,
+- Supports expanding host patterns that from commandline arguments or a hosts file to host list,
   and deduplicate the host list.  
   Supported host patterns e.g.:
 
@@ -115,12 +115,13 @@ Flags:
   -j, --output.json                    output messages in json format
   -q, --output.quiet                   do not output messages to screen (except error messages)
   -v, --output.verbose                 show debug messages
-      --proxy.identity-files strings   identity files for proxy(default same as 'auth.identity-files')
-      --proxy.passphrase string        passphrase of the identity files for proxy(default same as 'auth.passphrase')
-      --proxy.password string          password for proxy(default same as 'auth.password')
+      --proxy.identity-files strings   identity files for proxy (default same as 'auth.identity-files')
+      --proxy.passphrase string        passphrase of the identity files for proxy
+                                       (default same as 'auth.passphrase')
+      --proxy.password string          password for proxy (default same as 'auth.password')
       --proxy.port int                 proxy server port (default 22)
   -X, --proxy.server string            proxy server address
-      --proxy.user string              login user for proxy(default same as 'auth.user')
+      --proxy.user string              login user for proxy (default same as 'auth.user')
   -U, --run.as-user string             run via sudo as this user (default "root")
   -c, --run.concurrency int            number of concurrent connections (default 1)
   -l, --run.lang string                specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)

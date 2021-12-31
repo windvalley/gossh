@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2]
+
+### Fixed
+
+- Fix a bug about default config(#8).
+
+- Fix an issue that sudo command will stuck on remote server when wrong password was provided(#6).
+
+### Changed
+
+- Optimized help information.
+
 ## [1.0.1]
 
 ### Fixed
