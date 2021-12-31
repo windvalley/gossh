@@ -352,30 +352,42 @@ func (c *Client) executeCmd(session *ssh.Session, command string) (string, error
 		return "", err
 	}
 
-	out := c.handleOutput(w, r)
+	out, isWrongPass := c.handleOutput(w, r)
 
-	done := make(chan struct{})
 	go func() {
-		defer close(done)
 		err = session.Run(command)
 	}()
 
+	var output []byte
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for v := range out {
+			output = append(output, v...)
+		}
+	}()
+
+	var commandTimeout string
 	if c.CommandTimeout > 0 {
 		select {
 		case <-done:
 		case <-time.After(c.CommandTimeout):
-			return "", errors.New("command timeout")
+			commandTimeout = "command timeout"
 		}
 	} else {
 		<-done
 	}
 
-	var output []byte
-	for v := range out {
-		output = append(output, v...)
+	outputStr := string(output)
+
+	if commandTimeout != "" {
+		return "", fmt.Errorf("%s: %s", commandTimeout, outputStr)
 	}
 
-	outputStr := string(output)
+	if <-isWrongPass {
+		return "", errors.New("wrong sudo password")
+	}
+
 	if err != nil {
 		return "", errors.New(outputStr)
 	}
@@ -539,21 +551,34 @@ func (c *Client) getClient(addr string) (*ssh.Client, error) {
 }
 
 // handle output stream, and give sudo password if necessary.
-func (c *Client) handleOutput(w io.Writer, r io.Reader) <-chan []byte {
+func (c *Client) handleOutput(w io.Writer, r io.Reader) (<-chan []byte, <-chan bool) {
 	out := make(chan []byte, 1)
+	isWrongPass := make(chan bool, 1)
 
 	go func() {
+		sudoTimes := 0
+
 		for {
 			//nolint:gomnd
 			buf := make([]byte, 2048)
 			n, err := r.Read(buf)
 			if err != nil {
+				isWrongPass <- false
 				close(out)
 				return
 			}
 
 			if s := string(buf); strings.Contains(s, "[sudo]") {
-				if _, err := w.Write([]byte(c.Password + "\n")); err != nil {
+				sudoTimes++
+
+				if sudoTimes == 1 {
+					if _, err := w.Write([]byte(c.Password + "\n")); err != nil {
+						isWrongPass <- false
+						close(out)
+						return
+					}
+				} else {
+					isWrongPass <- true
 					close(out)
 					return
 				}
@@ -563,7 +588,7 @@ func (c *Client) handleOutput(w io.Writer, r io.Reader) <-chan []byte {
 		}
 	}()
 
-	return out
+	return out, isWrongPass
 }
 
 // WithConnTimeout ssh connection timeout option.
