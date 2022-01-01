@@ -7,19 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3]
+
+### Fixed
+
+- Fix flag `--timeout.command` does not work in some case. For details at ([#7](https://github.com/windvalley/gossh/issues/7)).
+
+### Changed
+
+- Flag `--timeout.command` for subcommand `push` changed to `pushing files/dirs to each remote host` from `pushing each file/dir to each remote host`.
+
 ## [1.0.2]
 
 ### Fixed
 
-- Subcommand `config`: fix issue(#8).
+- Subcommand `config`: fix issue [#8](https://github.com/windvalley/gossh/issues/8).
 
-- Fix an issue that sudo command will stuck on remote server when wrong password was provided(#6).
+- Fix an issue that sudo command will stuck on remote server when wrong password was provided([#6](https://github.com/windvalley/gossh/issues/6)).
 
 ### Changed
 
 - Optimized help information.
 
-- `configs/gossh.yaml`: fixed about issue #8.
+- `configs/gossh.yaml`: fixed about issue [#8](https://github.com/windvalley/gossh/issues/8).
 
 ## [1.0.1]
 
