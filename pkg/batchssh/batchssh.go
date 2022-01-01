@@ -127,12 +127,36 @@ func (c *Client) BatchRun(
 		go func(wg *sync.WaitGroup) {
 			for addr := range addrCh {
 				var result *Result
-				output, err := sshTask.RunSSH(addr)
-				if err != nil {
-					result = &Result{addr, FailedIdentifier, err.Error()}
+
+				done := make(chan struct{})
+				go func() {
+					defer close(done)
+
+					output, err := sshTask.RunSSH(addr)
+					if err != nil {
+						result = &Result{addr, FailedIdentifier, err.Error()}
+					} else {
+						result = &Result{addr, SuccessIdentifier, output}
+					}
+				}()
+
+				if c.CommandTimeout > 0 {
+					select {
+					case <-done:
+					case <-time.After(c.CommandTimeout):
+						result = &Result{
+							addr,
+							FailedIdentifier,
+							fmt.Sprintf(
+								"command timeout, timeout value: %d seconds",
+								c.CommandTimeout/time.Second,
+							),
+						}
+					}
 				} else {
-					result = &Result{addr, SuccessIdentifier, output}
+					<-done
 				}
+
 				resCh <- result
 			}
 
@@ -213,31 +237,7 @@ func (c *Client) CopyFiles(
 			}
 		}()
 
-		if c.CommandTimeout > 0 {
-			select {
-			case <-done:
-			case <-time.After(c.CommandTimeout):
-				session, err1 := client.NewSession()
-				if err1 != nil {
-					return "", err
-				}
-				if _, err2 := c.executeCmd(
-					session,
-					fmt.Sprintf(
-						"cd %s;rm %s;",
-						dstDir,
-						dstZipFile,
-					),
-				); err2 != nil {
-					return "", err2
-				}
-				session.Close()
-
-				return "", fmt.Errorf("push '%s' timeout", srcFile)
-			}
-		} else {
-			<-done
-		}
+		<-done
 
 		if err != nil {
 			return "", err
@@ -367,22 +367,9 @@ func (c *Client) executeCmd(session *ssh.Session, command string) (string, error
 		}
 	}()
 
-	var commandTimeout string
-	if c.CommandTimeout > 0 {
-		select {
-		case <-done:
-		case <-time.After(c.CommandTimeout):
-			commandTimeout = "command timeout"
-		}
-	} else {
-		<-done
-	}
+	<-done
 
 	outputStr := string(output)
-
-	if commandTimeout != "" {
-		return "", fmt.Errorf("%s: %s", commandTimeout, outputStr)
-	}
 
 	if <-isWrongPass {
 		return "", errors.New("wrong sudo password")
