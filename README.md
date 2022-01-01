@@ -126,8 +126,8 @@ Flags:
   -c, --run.concurrency int            number of concurrent connections (default 1)
   -l, --run.lang string                specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
   -s, --run.sudo                       use sudo to execute commands/script
-      --timeout.command int            timeout seconds for executing commands/script on each remote host or
-                                       pushing each file/dir to each remote host
+      --timeout.command int            timeout seconds for executing commands/script on each remote host
+                                       or pushing files/dirs to each remote host
       --timeout.conn int               timeout seconds for connecting each remote host (default 10)
       --timeout.task int               timeout seconds for the current gossh task
 
