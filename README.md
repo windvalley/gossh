@@ -17,7 +17,7 @@ It can efficiently execute commands, execute a shell script, transfer files and 
 ## Features
 
 - Supports three types of ssh tasks.  
-  `exec`: Execute commands on remote hosts.  
+  `command`: Execute commands on remote hosts.  
   `script`: Execute a local shell script on remote hosts.  
   `push`: Push local files and dirs to remote hosts.
 
@@ -92,9 +92,9 @@ Usage:
   gossh [command]
 
 Available Commands:
+  command     Execute commands on remote hosts
   completion  generate the autocompletion script for the specified shell
   config      Generate gossh configuration file
-  exec        Execute commands on remote hosts
   help        Help about any command
   push        Push local files/dirs to remote hosts
   script      Execute a local shell script on remote hosts
@@ -159,7 +159,7 @@ sys     1m24.263s
 **Gossh:**
 
 ```sh
-$ time gossh exec -H hosts.list -e "uptime" -c 100
+$ time gossh command -H hosts.list -e "uptime" -c 100
 ```
 
 Output:
@@ -173,6 +173,10 @@ real    0m6.316s
 user    0m13.529s
 sys     0m0.592s
 ```
+
+## Changelog
+
+[CHANGELOG](CHANGELOG.md)
 
 ## License
 

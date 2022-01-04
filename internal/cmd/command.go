@@ -33,45 +33,48 @@ var shellCommand string
 
 // execCmd represents the exec command
 var execCmd = &cobra.Command{
-	Use:   "exec",
+	Use:   "command",
 	Short: "Execute commands on remote hosts",
 	Long: `
 Execute commands on remote hosts.`,
 	Example: `
   # Ask for password.
-  $ gossh exec host1 -e "uptime" -k
+  $ gossh command host1 -e "uptime" -k
 
-  # Give password by '-p' flag.
-  $ gossh exec host1 -e "uptime" -p "your-password"
+  # Get password by '-p' flag.
+  $ gossh command host1 -e "uptime" -p "your-password"
 
-  # Give 'user:password' from a file.
-  $ gossh exec host1 host2 -e "uptime" -a auth.txt
+  # Get 'user:password' from a file.
+  $ gossh command host1 host2 -e "uptime" -a auth.txt
 
   # Pubkey authentication with specified private-key-file(with passphrase).
-  $ gossh exec host1 -e "uptime" -i /path/id_rsa -K "passphrase"
+  $ gossh command host1 -e "uptime" -i /path/id_rsa -K "passphrase"
 
   # Specify login user instead of default $USER.
   # NOTE: 
   # If ssh-agent($SSH_AUTH_SOCK) exists, it will use ssh-agent auth first,
-  # and if no valid authentication method detected, it will ask for password.
-  $ gossh exec host1 -u zhangsan -e "uptime"
+  # and if no valid authentication methods detected, it will ask for password.
+  $ gossh command host1 -u zhangsan -e "uptime"
 
-  # Hosts can be given from both arguments and '-H' flag.
-  $ gossh exec host1 host2 -H hosts.txt -e "uptime" -k
+  # Get target hosts from both arguments and '-H' flag.
+  $ gossh command host1 host2 -H hosts.txt -e "uptime" -k
 
   # Host pattern is also supported.
-  $ gossh exec host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -e "uptime" -k
+  $ gossh command host1 foo[01-03].[beijing,wuhan].bar.com -e "uptime" -k
 
   # Use sudo as root to execute commands on host1.
   # NOTE: This will prompt for a password(login user).
-  $ gossh exec host1 -e "uptime" -s
+  $ gossh command host1 -e "uptime" -s
 
   # Use sudo as user 'zhangsan' to execute commands on host1.
   # NOTE: This will prompt for a password(login user).
-  $ gossh exec host1 -e "uptime" -s -U zhangsan
+  $ gossh command host1 -e "uptime" -s -U zhangsan
 
   # Set timeout seconds for executing commands on each remote host.
-  $ gossh script host1 host2 -e "uptime" --timeout.command 10`,
+  $ gossh command host1 host2 -e "uptime" --timeout.command 10
+
+  # Connect target hosts by proxy server 10.16.0.1.
+  $ gossh command host1 host2 -e "uptime" -X 10.16.0.1`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)

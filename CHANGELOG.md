@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0]
+
+### Changed
+
+- For ease of understanding, the subcommand `exec` has been renamed to `command`.
+
+- Optimized help examples of subcommand `command`.
+
 ## [1.0.3]
 
 ### Fixed
