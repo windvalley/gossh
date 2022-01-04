@@ -64,7 +64,7 @@ func init() {
 
 	persistentFlags := rootCmd.PersistentFlags()
 
-	persistentFlags.StringVarP(&cfgFile, cfgFileFlag, "", "", "config file (default is $HOME/.gossh.yaml)")
+	persistentFlags.StringVarP(&cfgFile, cfgFileFlag, "", "", "config file (default {$PWD,$HOME}/.gossh.yaml)")
 
 	configFlags := configflags.New()
 	configFlags.AddFlagsTo(persistentFlags)
@@ -80,7 +80,8 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		util.CheckErr(err)
 
-		// Search config in home directory with name ".gossh" (without extension).
+		// Search the default configuration file.
+		viper.AddConfigPath(".")
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".gossh")

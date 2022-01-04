@@ -142,7 +142,9 @@ var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Generate gossh configuration file",
 	Long: `
-Generate gossh configuration file.`,
+Generate gossh configuration file.
+
+$PWD/.gossh.yaml has higher priority than $HOME/.gossh.yaml`,
 	Example: `
   # Generate default configuration content to screen.
   $ gossh config
@@ -151,7 +153,7 @@ Generate gossh configuration file.`,
   $ gossh config > ~/.gossh.yaml
 
   # Generate configuration file with customized field values by specifying some global flags.
-  $ gossh config -u zhangsan -c 100 -j --timeout.command 20 > ~/.gossh.yaml`,
+  $ gossh config -u zhangsan -c 100 -j --timeout.command 20 > ./.gossh.yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf(
 			configTemplate,
