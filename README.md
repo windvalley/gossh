@@ -55,9 +55,10 @@ It can efficiently execute commands, execute a shell script, transfer files and 
 
 - High-performance and high-concurrency. You can specify number of concurrent connections (default `1`).
 
-- For ease of use, it supports config file. You can write flags that are not frequently modified into the config file, so you don't need to laboriously specify these flags on the command line. If the flag in both command line and config file, flag that from command line takes precedence over the other. The default config file is: `~/.gossh.yaml`.
+- For ease of use, it supports config file. You can write flags that are not frequently modified into the config file, so you don't need to laboriously specify these flags on the command line. If the flag in both command line and config file, flag that from command line takes precedence over the other.  
+  The default configuration file is `$PWD/.gossh.yaml` or `$HOME/.gossh.yaml`, and `$PWD/.gossh.yaml` has a higher priority.
 
-- Provide the subcommand `config` to help users generate configuration file in easy way.
+- Provides the subcommand `config` to help users generate configuration file in easy way.
 
 - Supports SSH Proxy, it can connect to the target hosts by specifying the ssh proxy server.
 
@@ -98,18 +99,19 @@ Available Commands:
   help        Help about any command
   push        Push local files/dirs to remote hosts
   script      Execute a local shell script on remote hosts
-  version     Show the gossh version information
+  version     Show gossh version information
 
 Flags:
   -k, --auth.ask-pass                  ask for password of login user
   -a, --auth.file string               file containing the credentials (format: "username:password")
-  -i, --auth.identity-files strings    identity files (default is $HOME/.ssh/{id_rsa,id_dsa})
+  -i, --auth.identity-files strings    identity files (default $HOME/.ssh/{id_rsa,id_dsa})
   -K, --auth.passphrase string         passphrase of the identity files
   -p, --auth.password string           password of the login user
-  -u, --auth.user string               login user (default is $USER)
-      --config string                  config file (default is $HOME/.gossh.yaml)
+  -u, --auth.user string               login user (default $USER)
+      --config string                  config file (default {$PWD,$HOME}/.gossh.yaml)
   -h, --help                           help for gossh
-  -H, --hosts.file string              file containing target hosts (format: one host per line)
+  -H, --hosts.file string              file containing target hosts (format: one host/pattern per line)
+  -L, --hosts.list                     outputs a list of target hosts, and does not do anything else
   -P, --hosts.port int                 port of target hosts (default 22)
   -o, --output.file string             file to which messages are output
   -j, --output.json                    output messages in json format

@@ -63,7 +63,10 @@ Execute a local shell script on remote hosts.`,
   $ gossh script host1 host2 -e foo.sh --timeout.command 10
 
   # Provide a list of hosts at the same time in multiple ways.
-  $ gossh script host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -e foo.sh`,
+  $ gossh script host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -e foo.sh
+
+  # Just output a list of target hosts, and does not execute anything else.
+  $ gossh script host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -L`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
@@ -90,9 +93,6 @@ func init() {
 	scriptCmd.Flags().StringVarP(&scriptFile, "execute", "e", "",
 		"a shell script to be executed on remote hosts",
 	)
-	if err := scriptCmd.MarkFlagRequired("execute"); err != nil {
-		util.CheckErr(err)
-	}
 
 	scriptCmd.Flags().StringVarP(&destPath, "dest-path", "d", "/tmp",
 		"path of remote hosts where the script will be copied to",

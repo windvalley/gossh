@@ -33,9 +33,9 @@ import (
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Show the gossh version information",
+	Short: "Show gossh version information",
 	Long: `
-Show the gossh version information.`,
+Show gossh version information.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(version.Get())
 	},

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0]
+
+### Added
+
+- Add `$PWD/.gossh.yaml` as the default configuration file with higher priority than `$HOME/.gossh.yaml`.
+
+- Add `-L/--hosts.list` for subcommand `command`,`script`,`push`. Just outputs a list of target hosts, and does not do anything else.
+
+### Changed
+
+- Optimized help information.
+
 ## [1.1.0]
 
 ### Changed

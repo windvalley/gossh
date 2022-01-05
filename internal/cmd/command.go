@@ -99,7 +99,4 @@ func init() {
 		"",
 		"commands to be executed on remote hosts",
 	)
-	if err := execCmd.MarkFlagRequired("execute"); err != nil {
-		util.CheckErr(err)
-	}
 }

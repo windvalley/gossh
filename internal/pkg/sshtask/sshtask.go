@@ -201,6 +201,28 @@ func (t *Task) BatchRun() {
 		util.CheckErr(err)
 	}
 
+	if t.configFlags.Hosts.List {
+		hostsCount := len(allHosts)
+		fmt.Printf("%s\n", strings.Join(allHosts, "\n"))
+		fmt.Fprintf(os.Stderr, "\nhosts (%d)\n", hostsCount)
+		return
+	}
+
+	switch t.taskType {
+	case CommandTask:
+		if t.command == "" {
+			util.CheckErr(errors.New("need flag '-e/--execute' or '-L/--hosts.list'"))
+		}
+	case ScriptTask:
+		if t.scriptFile == "" {
+			util.CheckErr(errors.New("need flag '-e/--execute' or '-L/--hosts.list'"))
+		}
+	case PushTask:
+		if t.copyFiles == nil || len(t.copyFiles.files) == 0 {
+			util.CheckErr(errors.New("need flag '-f/--files' or '-L/--hosts.list'"))
+		}
+	}
+
 	t.buildSSHClient()
 
 	result := t.sshClient.BatchRun(allHosts, t)
@@ -307,7 +329,7 @@ func (t *Task) getAllHosts() ([]string, error) {
 	}
 
 	if len(hosts) == 0 {
-		return nil, fmt.Errorf("no hosts provided")
+		return nil, fmt.Errorf("no target hosts provided")
 	}
 
 	return util.RemoveDuplStr(hosts), nil

@@ -33,12 +33,14 @@ import (
 const (
 	flagHostsFile = "hosts.file"
 	flagHostsPort = "hosts.port"
+	flagHostsList = "hosts.list"
 )
 
 // Hosts ...
 type Hosts struct {
 	File string `json:"file" mapstructure:"file"`
 	Port int    `json:"port" mapstructure:"port"`
+	List bool   `json:"list" mapstructure:"list"`
 }
 
 // NewHosts ...
@@ -46,13 +48,33 @@ func NewHosts() *Hosts {
 	return &Hosts{
 		File: "",
 		Port: 22,
+		List: false,
 	}
 }
 
 // AddFlagsTo pflagSet.
 func (h *Hosts) AddFlagsTo(fs *pflag.FlagSet) {
-	fs.StringVarP(&h.File, flagHostsFile, "H", h.File, "file containing target hosts (format: one host/pattern per line)")
-	fs.IntVarP(&h.Port, flagHostsPort, "P", h.Port, "port of target hosts")
+	fs.StringVarP(
+		&h.File,
+		flagHostsFile,
+		"H",
+		h.File,
+		"file containing target hosts (format: one host/pattern per line)",
+	)
+	fs.IntVarP(
+		&h.Port,
+		flagHostsPort,
+		"P",
+		h.Port,
+		"port of target hosts",
+	)
+	fs.BoolVarP(
+		&h.List,
+		flagHostsList,
+		"L",
+		h.List,
+		"outputs a list of target hosts, and does not do anything else",
+	)
 }
 
 // Complete ...

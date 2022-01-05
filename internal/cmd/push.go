@@ -60,11 +60,11 @@ Push local files/dirs to remote hosts.`,
     or
   $ gossh push host1 host2 -f /path/foo.txt,/path/bar/
 
-  # Set timeout seconds for pushing each file/dir.
+  # Set timeout seconds for pushing files/dirs.
   $ gossh push host1 host2 -f /path/foo.txt,/path/bar/ --timeout.command 10
 
   # Provide a list of hosts at the same time in multiple ways.
-  $ gossh push host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -e foo.sh`,
+  $ gossh push host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -f /path/foo.txt`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
@@ -123,9 +123,6 @@ func init() {
 	pushCmd.Flags().StringSliceVarP(&files, "files", "f", nil,
 		"local files/dirs to be copied to remote hosts",
 	)
-	if err := pushCmd.MarkFlagRequired("files"); err != nil {
-		util.CheckErr(err)
-	}
 
 	pushCmd.Flags().StringVarP(&fileDstPath, "dest-path", "d", "/tmp",
 		"path of remote hosts where files/dirs will be copied to",
