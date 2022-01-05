@@ -268,7 +268,7 @@ func (t *Task) HandleOutput() {
 			"output":   output,
 		})
 
-		if res.status == "Success" {
+		if res.status == batchssh.SuccessIdentifier {
 			contextLogger.Infof("success")
 		} else {
 			contextLogger.Errorf("failed")

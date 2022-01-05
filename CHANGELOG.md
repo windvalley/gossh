@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1]
+
+### Fixed
+
+- Fix bug that output in json format by flag '-j/--output.json' not correct [#12](https://github.com/windvalley/gossh/issues/12)
+
 ## [1.2.0]
 
 ### Added
