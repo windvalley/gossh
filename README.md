@@ -51,7 +51,8 @@ It can efficiently execute commands, execute a shell script, transfer files and 
   Timeout for executing commands or a shell script on each remote host or pushing files/dirs to each remote host.  
   Timeout for the current `gossh` task.
 
-- Supports printing the execution results of `gossh` to a file or screen or a file and screen at the same time. Supports json format output. Supports printing debug information. Supports silent output.
+- Supports printing output to a file or screen or a file and screen at the same time.  
+  Supports json format output, colorful output, verbose(debug) output, and silent output.
 
 - High-performance and high-concurrency. You can specify number of concurrent connections (default `1`).
 
@@ -113,6 +114,7 @@ Flags:
   -H, --hosts.file string              file containing target hosts (format: one host/pattern per line)
   -L, --hosts.list                     outputs a list of target hosts, and does not do anything else
   -P, --hosts.port int                 port of target hosts (default 22)
+  -C, --output.condense                condense output and disable color
   -o, --output.file string             file to which messages are output
   -j, --output.json                    output messages in json format
   -q, --output.quiet                   do not output messages to screen (except error messages)
@@ -169,7 +171,7 @@ Output:
 ```text
 ...
 
-time=2021-12-22 23:06:50 level=info msg=success count: 936, failed count: 0, elapsed: 6.30s
+level=INFO time=2021-12-22 23:06:50 msg=success count: 936, failed count: 0, elapsed: 6.30s
 
 real    0m6.316s
 user    0m13.529s

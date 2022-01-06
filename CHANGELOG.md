@@ -7,11 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0]
+
+### Added
+
+- Supports colorful output(that not in json format). For details at [#13](https://github.com/windvalley/gossh/issues/13).
+
+- Add flag `-C/--output.condense` for condensing output and disable colorful.
+  It is generally suitable for output to a file to avoid recording color characters(like `^[[35m`).
+
+### Changed
+
+- The log fields order is changed from random to the following order: `level`, `time`, `msg`.
+
 ## [1.2.1]
 
 ### Fixed
 
-- Fix bug that output in json format by flag '-j/--output.json' not correct [#12](https://github.com/windvalley/gossh/issues/12)
+- Fix bug that output in json format by flag `-j/--output.json` not correct [#12](https://github.com/windvalley/gossh/issues/12)
 
 ## [1.2.0]
 
@@ -19,7 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `$PWD/.gossh.yaml` as the default configuration file with higher priority than `$HOME/.gossh.yaml`.
 
-- Add `-L/--hosts.list` for subcommand `command`,`script`,`push`. Just outputs a list of target hosts, and does not do anything else.
+- Add `-L/--hosts.list` for subcommand `command`,`script`,`push`.
+  Just outputs a list of target hosts, and does not do anything else.
 
 ### Changed
 

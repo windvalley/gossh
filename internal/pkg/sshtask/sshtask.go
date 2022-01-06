@@ -606,14 +606,15 @@ func getPasswordFromPrompt() string {
 	var passwordByte []byte
 	passwordByte, err := term.ReadPassword(0)
 	if err != nil {
-		util.CheckErr(fmt.Sprintf("get password from terminal failed: %s", err))
+		err = fmt.Errorf("get password from terminal failed: %s", err)
 	}
+	util.CheckErr(err)
 
 	password := string(passwordByte)
 
-	log.Debugf("Auth: read password of the login user from terminal prompt")
-
 	fmt.Println("")
+
+	log.Debugf("Auth: read password of the login user from terminal prompt")
 
 	return password
 }

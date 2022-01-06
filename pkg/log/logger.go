@@ -37,6 +37,7 @@ type Logger struct {
 	Out        io.Writer
 	Verbose    bool
 	JSONFormat bool
+	Condense   bool
 	ExitFunc   exitFunc
 }
 
@@ -46,6 +47,7 @@ func New() *Logger {
 		Out:        os.Stdout,
 		Verbose:    false,
 		JSONFormat: false,
+		Condense:   false,
 		ExitFunc:   os.Exit,
 	}
 }

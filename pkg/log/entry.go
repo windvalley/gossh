@@ -26,9 +26,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 const timeFormat = "2006-01-02 15:04:05"
+
+type colorType int
+
+const (
+	green colorType = iota
+	yellow
+	red
+	magenta
+)
 
 // entry ...
 type entry struct {
@@ -43,7 +54,7 @@ func newEntry(logger *Logger) *entry {
 	}
 }
 
-func (e *entry) print() {
+func (e *entry) print(colorName colorType) {
 	e.Data["time"] = time.Now().Format(timeFormat)
 
 	entry := ""
@@ -52,16 +63,41 @@ func (e *entry) print() {
 		entry = string(entryByte)
 	} else {
 		if len(e.Data) <= 3 {
-			for k, v := range e.Data {
-				entry += fmt.Sprintf("%v=%v ", k, v)
-			}
-		} else {
-			entry = fmt.Sprintf("%q,%q,%q,\"%s\"",
-				e.Data["hostname"],
-				e.Data["status"],
+			entry = fmt.Sprintf(
+				"level=%s time=%s msg=%s",
+				e.Data["level"],
 				e.Data["time"],
-				e.Data["output"],
+				e.Data["msg"],
 			)
+		} else {
+			if e.Logger.Condense {
+				entry = fmt.Sprintf("%q,%q,%q,\"%s\"",
+					e.Data["hostname"],
+					e.Data["status"],
+					e.Data["time"],
+					e.Data["output"],
+				)
+			} else {
+				entry = fmt.Sprintf("%s | %s | %s >>\n%s\n",
+					e.Data["hostname"],
+					e.Data["time"],
+					e.Data["status"],
+					e.Data["output"],
+				)
+			}
+		}
+
+		if !e.Logger.Condense {
+			switch colorName {
+			case green:
+				entry = color.GreenString(entry)
+			case red:
+				entry = color.RedString(entry)
+			case yellow:
+				entry = color.YellowString(entry)
+			case magenta:
+				entry = color.MagentaString(entry)
+			}
 		}
 	}
 
@@ -74,40 +110,40 @@ func (e *entry) Debugf(format string, args ...interface{}) {
 		return
 	}
 
-	e.Data["level"] = "debug"
+	e.Data["level"] = "DEBUG"
 
 	msg := fmt.Sprintf(format, args...)
 	e.Data["msg"] = msg
 
-	e.print()
+	e.print(magenta)
 }
 
 // Infof ...
 func (e *entry) Infof(format string, args ...interface{}) {
-	e.Data["level"] = "info"
+	e.Data["level"] = "INFO"
 
 	msg := fmt.Sprintf(format, args...)
 	e.Data["msg"] = msg
 
-	e.print()
+	e.print(green)
 }
 
 // Warnf ...
 func (e *entry) Warnf(format string, args ...interface{}) {
-	e.Data["level"] = "warn"
+	e.Data["level"] = "WARN"
 
 	msg := fmt.Sprintf(format, args...)
 	e.Data["msg"] = msg
 
-	e.print()
+	e.print(yellow)
 }
 
 // Errorf ...
 func (e *entry) Errorf(format string, args ...interface{}) {
-	e.Data["level"] = "error"
+	e.Data["level"] = "ERROR"
 
 	msg := fmt.Sprintf(format, args...)
 	e.Data["msg"] = msg
 
-	e.print()
+	e.print(red)
 }

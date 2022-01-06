@@ -111,6 +111,7 @@ func initLogger() {
 		config.Output.JSON,
 		config.Output.Verbose,
 		config.Output.Quiet,
+		config.Output.Condense,
 	)
 }
 

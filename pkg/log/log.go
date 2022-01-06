@@ -42,13 +42,17 @@ var (
 var std = New()
 
 // Init log
-func Init(logfile string, json, verbose, quiet bool) {
+func Init(logfile string, json, verbose, quiet, condense bool) {
 	if verbose {
 		std.Verbose = true
 	}
 
 	if json {
 		std.JSONFormat = true
+	}
+
+	if condense {
+		std.Condense = true
 	}
 
 	if logfile != "" {
