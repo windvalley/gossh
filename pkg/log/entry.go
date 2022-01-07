@@ -30,7 +30,7 @@ import (
 	"github.com/fatih/color"
 )
 
-const timeFormat = "2006-01-02 15:04:05"
+const timeFormat = "2006-01-02 15:04:05.000000"
 
 type colorType int
 
@@ -64,7 +64,7 @@ func (e *entry) print(colorName colorType) {
 	} else {
 		if len(e.Data) <= 3 {
 			entry = fmt.Sprintf(
-				"level=%s time=%s msg=%s",
+				"[%s] %s %s",
 				e.Data["level"],
 				e.Data["time"],
 				e.Data["msg"],
