@@ -354,20 +354,16 @@ func (c *Client) executeCmd(session *ssh.Session, command string) (string, error
 
 	out, isWrongPass := c.handleOutput(w, r)
 
+	done := make(chan struct{})
 	go func() {
+		defer close(done)
 		err = session.Run(command)
 	}()
 
 	var output []byte
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		for v := range out {
-			output = append(output, v...)
-		}
-	}()
-
-	<-done
+	for v := range out {
+		output = append(output, v...)
+	}
 
 	outputStr := string(output)
 
@@ -375,7 +371,10 @@ func (c *Client) executeCmd(session *ssh.Session, command string) (string, error
 		return "", errors.New("wrong sudo password")
 	}
 
+	<-done
+
 	if err != nil {
+		log.Debugf("'%s' executed failed: %s", command, err)
 		return "", errors.New(outputStr)
 	}
 
