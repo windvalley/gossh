@@ -44,6 +44,15 @@ import (
 	"github.com/windvalley/gossh/pkg/util"
 )
 
+var (
+	linuxUserRegex  = "[a-zA-Z0-9_.-]+[$]?"
+	sudoPromptRegex = fmt.Sprintf(
+		`(?s).*\[sudo\] password for %s: \n|(?s).*\[sudo\] %s 的密码：\n`,
+		linuxUserRegex,
+		linuxUserRegex,
+	)
+)
+
 // TaskType ...
 type TaskType int
 
@@ -255,12 +264,22 @@ func (t *Task) BatchRun() {
 // HandleOutput ...
 func (t *Task) HandleOutput() {
 	for res := range t.detailOutput {
-		// delete ^M
-		outputNoR := strings.ReplaceAll(res.output, "\r\n", "\n")
-		outputNoSpace := strings.TrimSpace(outputNoR)
-		re, _ := regexp.Compile(`^\[sudo\] password for [a-zA-Z0-9]+: \n|^\[sudo\] [a-zA-Z0-9]+ 的密码：\n`)
+		output := ""
 
-		output := re.ReplaceAllString(outputNoSpace, "")
+		// Fix the problem of special characters ^M appearing at the end of
+		// the line break when writing files in text format.
+		outputNoR := strings.ReplaceAll(res.output, "\r\n", "\n")
+
+		// Trim leading and trailing blank characters.
+		outputNoSpace := strings.TrimSpace(outputNoR)
+
+		// Trim sudo password prompt messages.
+		re, err := regexp.Compile(sudoPromptRegex)
+		if err != nil {
+			log.Debugf("re compile '%s' failed: %s", sudoPromptRegex, err)
+		} else {
+			output = re.ReplaceAllString(outputNoSpace, "")
+		}
 
 		contextLogger := log.WithFields(log.Fields{
 			"hostname": res.hostname,
