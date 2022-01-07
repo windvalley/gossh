@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1]
+
+### Fixed
+
+- Fix sudo password prompt output not be trimmed as expected ([#15](https://github.com/windvalley/gossh/issues/15)).
+
+- Fix the outputs that were originally `FAILED` are marked as `SUCCESS` ([#16](https://github.com/windvalley/gossh/issues/16)).
+
+### Changed
+
+- Optimize log format. For details at [#17](https://github.com/windvalley/gossh/issues/17).
+
 ## [1.3.0]
 
 ### Added
