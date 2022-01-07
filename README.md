@@ -10,9 +10,12 @@
 [![Traffic Clones Uniques](https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.sre.im%2Fv1%2Fgithub%2Ftraffic%2Fclones%2Ftotal%3Fgit_user%3Dwindvalley%26git_repo%3Dgossh%26type%3Duniques%26label%3Dclones-uniques)](https://github.com/windvalley/traffic-clones-api)
 [![Release Download Total](https://img.shields.io/github/downloads/windvalley/gossh/total)](https://github.com/windvalley/gossh/releases)
 
-Gossh is a high-performance and high-concurrency ssh tool.
-This tool can efficiently manage tens of thousands of Linux server clusters.
-It can efficiently execute commands, execute a shell script, transfer files and dirs, etc.
+Gossh is a high-performance and high-concurrency ssh tool written in Go.
+It can efficiently manage tens of thousands of Linux server clusters.
+It is 10 times faster than `Ansible`.
+If you need much more performance and better ease of use, you will love `gossh`.
+
+Feel free to open a new issue if you have any issues, questions or suggestions about this project.
 
 ## Features
 
