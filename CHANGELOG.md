@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0]
+
+### Added
+
+- Add subcommand `fetch` for copying files or dirs from target hosts to local. For details at [#18](https://github.com/windvalley/gossh/issues/18).
+
+### Changed
+
+- Optimize help information. E.g. `remote host(s)` -> `target host(s)`.
+
 ## [1.3.1]
 
 ### Fixed
