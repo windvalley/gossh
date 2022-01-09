@@ -45,17 +45,17 @@ var (
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "Push local files/dirs to remote hosts",
+	Short: "Copy local files/dirs to target hosts",
 	Long: `
-Push local files/dirs to remote hosts.`,
+Copy local files/dirs to target hosts.`,
 	Example: `
-  # Push a local file or dir to host1:/tmp/ by default.
+  # Copy a local file or dir to host1:/tmp/ by default.
   $ gossh push host1 -f /path/foo
 
   # Also you can custom dest dir by '-d' flag.
   $ gossh push host1 -f /path/foo -d /home/user
 
-  # Push local files and dirs to remote hosts. 
+  # Copy local files and dirs to target hosts. 
   $ gossh push host1 host2 -f /path/foo.txt -f /path/bar/
     or
   $ gossh push host1 host2 -f /path/foo.txt,/path/bar/
@@ -110,7 +110,7 @@ Push local files/dirs to remote hosts.`,
 		}()
 
 		task.SetHosts(args)
-		task.SetCopyfiles(files, zipFiles)
+		task.SetPushfiles(files, zipFiles)
 		task.SetFileOptions(fileDstPath, allowOverwrite)
 
 		task.Start()
@@ -121,11 +121,11 @@ func init() {
 	rootCmd.AddCommand(pushCmd)
 
 	pushCmd.Flags().StringSliceVarP(&files, "files", "f", nil,
-		"local files/dirs to be copied to remote hosts",
+		"local files/dirs to be copied to target hosts",
 	)
 
 	pushCmd.Flags().StringVarP(&fileDstPath, "dest-path", "d", "/tmp",
-		"path of remote hosts where files/dirs will be copied to",
+		"path of target hosts where files/dirs will be copied to",
 	)
 
 	pushCmd.Flags().BoolVarP(
@@ -133,6 +133,6 @@ func init() {
 		"force",
 		"F",
 		false,
-		"allow overwrite files/dirs if they already exist on remote hosts",
+		"allow overwrite files/dirs if they already exist on target hosts",
 	)
 }

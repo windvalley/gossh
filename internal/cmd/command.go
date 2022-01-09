@@ -34,9 +34,9 @@ var shellCommand string
 // execCmd represents the exec command
 var execCmd = &cobra.Command{
 	Use:   "command",
-	Short: "Execute commands on remote hosts",
+	Short: "Execute commands on target hosts",
 	Long: `
-Execute commands on remote hosts.`,
+Execute commands on target hosts.`,
 	Example: `
   # Ask for password.
   $ gossh command host1 -e "uptime" -k
@@ -70,7 +70,7 @@ Execute commands on remote hosts.`,
   # NOTE: This will prompt for a password(login user).
   $ gossh command host1 -e "uptime" -s -U zhangsan
 
-  # Set timeout seconds for executing commands on each remote host.
+  # Set timeout seconds for executing commands on each target host.
   $ gossh command host1 host2 -e "uptime" --timeout.command 10
 
   # Connect target hosts by proxy server 10.16.0.1.
@@ -97,6 +97,6 @@ func init() {
 		"execute",
 		"e",
 		"",
-		"commands to be executed on remote hosts",
+		"commands to be executed on target hosts",
 	)
 }

@@ -61,6 +61,7 @@ const (
 	CommandTask TaskType = iota
 	ScriptTask
 	PushTask
+	FetchTask
 )
 
 // taskResult ...
@@ -79,7 +80,7 @@ type detailResult struct {
 	output   string
 }
 
-type copyFiles struct {
+type pushFiles struct {
 	files    []string
 	zipFiles []string
 }
@@ -98,7 +99,8 @@ type Task struct {
 
 	command        string
 	scriptFile     string
-	copyFiles      *copyFiles
+	pushFiles      *pushFiles
+	fetchFiles     []string
 	dstDir         string
 	remove         bool
 	allowOverwrite bool
@@ -162,12 +164,17 @@ func (t *Task) SetScriptFile(sciptFile string) {
 	t.scriptFile = sciptFile
 }
 
-// SetCopyfiles ...
-func (t *Task) SetCopyfiles(files, zipFiles []string) {
-	t.copyFiles = &copyFiles{
+// SetPushfiles ...
+func (t *Task) SetPushfiles(files, zipFiles []string) {
+	t.pushFiles = &pushFiles{
 		files:    files,
 		zipFiles: zipFiles,
 	}
+}
+
+// SetFetchFiles ...
+func (t *Task) SetFetchFiles(files []string) {
+	t.fetchFiles = files
 }
 
 // SetScriptOptions ...
@@ -195,12 +202,15 @@ func (t *Task) RunSSH(addr string) (string, error) {
 	case ScriptTask:
 		return t.sshClient.ExecuteScript(addr, t.scriptFile, t.dstDir, lang, runAs, sudo, t.remove, t.allowOverwrite)
 	case PushTask:
-		return t.sshClient.CopyFiles(addr, t.copyFiles.files, t.copyFiles.zipFiles, t.dstDir, t.allowOverwrite)
+		return t.sshClient.PushFiles(addr, t.pushFiles.files, t.pushFiles.zipFiles, t.dstDir, t.allowOverwrite)
+	case FetchTask:
+		return t.sshClient.FetchFiles(addr, t.fetchFiles, t.dstDir)
 	default:
 		return "", fmt.Errorf("unknown task type: %v", t.taskType)
 	}
 }
 
+//nolint:gocyclo
 // BatchRun ...
 func (t *Task) BatchRun() {
 	timeNow := time.Now()
@@ -227,8 +237,21 @@ func (t *Task) BatchRun() {
 			util.CheckErr(errors.New("need flag '-e/--execute' or '-L/--hosts.list'"))
 		}
 	case PushTask:
-		if t.copyFiles == nil || len(t.copyFiles.files) == 0 {
+		if t.pushFiles == nil || len(t.pushFiles.files) == 0 {
 			util.CheckErr(errors.New("need flag '-f/--files' or '-L/--hosts.list'"))
+		}
+	case FetchTask:
+		if len(t.fetchFiles) == 0 {
+			util.CheckErr(errors.New("need flag '-f/--files' or '-L/--hosts.list'"))
+		}
+
+		if len(t.dstDir) == 0 {
+			util.CheckErr(errors.New("need flag '-d/--dest-path' or '-L/--hosts.list'"))
+		}
+
+		if !util.DirExists(t.dstDir) {
+			err := os.MkdirAll(t.dstDir, os.ModePerm)
+			util.CheckErr(err)
 		}
 	}
 

@@ -74,7 +74,7 @@ run:
   as-user: %s
 
   # Specify i18n envs when execute command/script.
-  # Default: origin i18n value on remote hosts
+  # Default: origin i18n value on target hosts
   lang: %q
 
   # Number of concurrent connections.
@@ -99,11 +99,11 @@ output:
   quite: %v
 
 timeout:
-  # Timeout seconds for connecting each remote host.
+  # Timeout seconds for connecting each target host.
   # Default: 10 (seconds)
   conn: %d
 
-  # Timeout seconds for executing commands/script on each remote host.
+  # Timeout seconds for executing commands/script on each target host.
   # Default: 0
   command: %d
 

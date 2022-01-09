@@ -41,14 +41,14 @@ var (
 // scriptCmd represents the script command
 var scriptCmd = &cobra.Command{
 	Use:   "script",
-	Short: "Execute a local shell script on remote hosts",
+	Short: "Execute a local shell script on target hosts",
 	Long: `
-Execute a local shell script on remote hosts.`,
+Execute a local shell script on target hosts.`,
 	Example: `
   # Execute foo.sh on host1.
   $ gossh script host1 -e foo.sh
 
-  # Remove the remote copied shell script after	execution.
+  # Remove the target copied shell script after	execution.
   $ gossh script host1 -e foo.sh -r
 
   # Use sudo as root to execute foo.sh on host1.
@@ -59,7 +59,7 @@ Execute a local shell script on remote hosts.`,
   # NOTE: This will prompt for a password(login user).
   $ gossh script host1 -e foo.sh -s -U zhangsan
 
-  # Set timeout seconds for executing script on each remote host.
+  # Set timeout seconds for executing script on each target host.
   $ gossh script host1 host2 -e foo.sh --timeout.command 10
 
   # Provide a list of hosts at the same time in multiple ways.
@@ -91,11 +91,11 @@ func init() {
 	rootCmd.AddCommand(scriptCmd)
 
 	scriptCmd.Flags().StringVarP(&scriptFile, "execute", "e", "",
-		"a shell script to be executed on remote hosts",
+		"a shell script to be executed on target hosts",
 	)
 
 	scriptCmd.Flags().StringVarP(&destPath, "dest-path", "d", "/tmp",
-		"path of remote hosts where the script will be copied to",
+		"path of target hosts where the script will be copied to",
 	)
 
 	scriptCmd.Flags().BoolVarP(&remove, "remove", "r", false,
@@ -103,6 +103,6 @@ func init() {
 	)
 
 	scriptCmd.Flags().BoolVarP(&force, "force", "F", false,
-		"allow overwrite script file if it already exists on remote hosts",
+		"allow overwrite script file if it already exists on target hosts",
 	)
 }

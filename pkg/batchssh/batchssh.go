@@ -40,6 +40,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/windvalley/gossh/pkg/log"
+	"github.com/windvalley/gossh/pkg/util"
 )
 
 const (
@@ -199,8 +200,8 @@ func (c *Client) ExecuteCmd(addr, command, lang, runAs string, sudo bool) (strin
 	return c.executeCmd(session, command)
 }
 
-// CopyFiles to remote host.
-func (c *Client) CopyFiles(
+// PushFiles to remote host.
+func (c *Client) PushFiles(
 	addr string,
 	srcFiles, srcZipFiles []string,
 	dstDir string,
@@ -231,7 +232,7 @@ func (c *Client) CopyFiles(
 		go func() {
 			defer close(done)
 
-			file, err = c.copyZipFile(ftpC, f, filepath.Base(srcFile), dstDir, allowOverwrite)
+			file, err = c.pushZipFile(ftpC, f, filepath.Base(srcFile), dstDir, allowOverwrite)
 			if err == nil {
 				file.Close()
 			}
@@ -247,6 +248,7 @@ func (c *Client) CopyFiles(
 		if err != nil {
 			return "", err
 		}
+		defer session.Close()
 
 		_, err = c.executeCmd(
 			session,
@@ -263,7 +265,6 @@ func (c *Client) CopyFiles(
 		if err != nil {
 			return "", err
 		}
-		session.Close()
 	}
 
 	hasOrHave := "has"
@@ -272,6 +273,162 @@ func (c *Client) CopyFiles(
 	}
 
 	return fmt.Sprintf("'%s' %s been copied to '%s'", strings.Join(srcFiles, ","), hasOrHave, dstDir), nil
+}
+
+//nolint:funlen,gocyclo
+// FetchFiles from remote host.
+func (c *Client) FetchFiles(
+	addr string,
+	srcFiles []string,
+	dstDir string,
+) (string, error) {
+	client, err := c.getClient(addr)
+	if err != nil {
+		return "", err
+	}
+	defer client.Close()
+
+	ftpC, err := sftp.NewClient(client)
+	if err != nil {
+		return "", err
+	}
+	defer ftpC.Close()
+
+	var (
+		validSrcFiles    []string
+		notExistSrcFiles []string
+		noPermSrcFiles   []string
+	)
+	for _, f := range srcFiles {
+		if _, err1 := ftpC.Stat(f); err1 != nil {
+			if errors.Is(err1, os.ErrNotExist) {
+				notExistSrcFiles = append(notExistSrcFiles, f)
+				continue
+			}
+
+			if err, ok := err1.(*sftp.StatusError); ok && err.Code == uint32(sftp.ErrSshFxPermissionDenied) {
+				noPermSrcFiles = append(noPermSrcFiles, f)
+				continue
+			}
+		}
+
+		validSrcFiles = append(validSrcFiles, f)
+	}
+
+	if len(validSrcFiles) == 0 {
+		var err2 error
+		if len(notExistSrcFiles) != 0 && len(noPermSrcFiles) != 0 {
+			err2 = fmt.Errorf("'%s' not exist; '%s' no permission",
+				strings.Join(notExistSrcFiles, ","),
+				strings.Join(noPermSrcFiles, ","),
+			)
+		} else if len(notExistSrcFiles) != 0 {
+			err2 = fmt.Errorf("'%s' not exist", strings.Join(notExistSrcFiles, ","))
+		} else if len(noPermSrcFiles) != 0 {
+			err2 = fmt.Errorf("'%s' no permission", strings.Join(noPermSrcFiles, ","))
+		}
+
+		return "", err2
+	}
+
+	session, err := client.NewSession()
+	if err != nil {
+		return "", err
+	}
+	defer session.Close()
+
+	zippedFileTmpDir := fmt.Sprintf("/tmp/gossh-%s", addr)
+	tmpZipFile := fmt.Sprintf("%s.%d", addr, time.Now().UnixMicro())
+	zippedFileFullpath := path.Join(zippedFileTmpDir, tmpZipFile)
+	_, err = c.executeCmd(
+		session,
+		fmt.Sprintf(
+			`which zip &>/dev/null && { mkdir -p %s;zip -r %s %s;} ||
+	{ echo "need install 'zip' command";exit 1;}`,
+			zippedFileTmpDir,
+			zippedFileFullpath,
+			strings.Join(validSrcFiles, " "),
+		),
+	)
+	if err != nil {
+		log.Debugf("zip %s of %s failed: %s", strings.Join(validSrcFiles, ","), addr, err)
+		return "", err
+	}
+
+	file, err := c.fetchZipFile(ftpC, zippedFileFullpath, dstDir)
+	if err == nil {
+		file.Close()
+	}
+	if err != nil {
+		log.Debugf("fetch zip file '%s' from %s failed: %s", zippedFileFullpath, addr, err)
+		return "", err
+	}
+
+	session2, err := client.NewSession()
+	if err != nil {
+		return "", err
+	}
+	defer session2.Close()
+
+	_, err = c.executeCmd(
+		session2,
+		fmt.Sprintf("rm -f %s", zippedFileFullpath),
+	)
+	if err != nil {
+		log.Debugf("remove '%s:%s' failed: %s", addr, zippedFileFullpath, err)
+		return "", err
+	}
+
+	finalDstDir := path.Join(dstDir, addr)
+	localZippedFileFullpath := path.Join(dstDir, tmpZipFile)
+	defer func() {
+		if err := os.Remove(localZippedFileFullpath); err != nil {
+			log.Debugf("remove '%s' failed: %s", localZippedFileFullpath, err)
+		}
+	}()
+	if err := util.Unzip(localZippedFileFullpath, finalDstDir); err != nil {
+		log.Debugf("unzip '%s' to '%s' failed: %s", localZippedFileFullpath, finalDstDir, err)
+		return "", err
+	}
+
+	hasOrHave := "has"
+	if len(validSrcFiles) > 1 {
+		hasOrHave = "have"
+	}
+
+	ret := ""
+	if len(notExistSrcFiles) != 0 && len(noPermSrcFiles) != 0 {
+		ret = fmt.Sprintf("'%s' %s been copied to '%s'; '%s' not exist; '%s' no permission",
+			strings.Join(validSrcFiles, ","),
+			hasOrHave,
+			dstDir,
+			strings.Join(notExistSrcFiles, ","),
+			strings.Join(noPermSrcFiles, ","),
+		)
+	} else if len(notExistSrcFiles) != 0 {
+		ret = fmt.Sprintf("'%s' %s been copied to '%s'; '%s' not exist",
+			strings.Join(validSrcFiles, ","),
+			hasOrHave,
+			dstDir,
+			strings.Join(notExistSrcFiles, ","),
+		)
+	} else if len(noPermSrcFiles) != 0 {
+		ret = fmt.Sprintf("'%s' %s been copied to '%s'; '%s' no permission",
+			strings.Join(validSrcFiles, ","),
+			hasOrHave,
+			dstDir,
+			strings.Join(noPermSrcFiles, ","),
+		)
+	} else {
+		ret = fmt.Sprintf(
+			"'%s' %s been copied to '%s'",
+			strings.Join(validSrcFiles, ","),
+			hasOrHave,
+			dstDir,
+		)
+	}
+
+	return ret, nil
 }
 
 // ExecuteScript on remote host.
@@ -291,7 +448,7 @@ func (c *Client) ExecuteScript(
 	}
 	defer ftpC.Close()
 
-	file, err := c.copyFile(ftpC, srcFile, dstDir, allowOverwrite)
+	file, err := c.pushFile(ftpC, srcFile, dstDir, allowOverwrite)
 	if err != nil {
 		return "", err
 	}
@@ -381,7 +538,7 @@ func (c *Client) executeCmd(session *ssh.Session, command string) (string, error
 	return outputStr, nil
 }
 
-func (c *Client) copyFile(
+func (c *Client) pushFile(
 	ftpC *sftp.Client,
 	srcFile, dstDir string,
 	allowOverwrite bool,
@@ -443,7 +600,7 @@ func (c *Client) copyFile(
 	return file, nil
 }
 
-func (c *Client) copyZipFile(
+func (c *Client) pushZipFile(
 	ftpC *sftp.Client,
 	srcZipFile, srcFileName, dstDir string,
 	allowOverwrite bool,
@@ -487,6 +644,44 @@ func (c *Client) copyZipFile(
 	}
 
 	_, err = file.Write(content)
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
+}
+
+func (c *Client) fetchZipFile(
+	ftpC *sftp.Client,
+	srcZipFile, dstDir string,
+) (*sftp.File, error) {
+	homeDir := os.Getenv("HOME")
+	if strings.HasPrefix(dstDir, "~/") {
+		srcZipFile = strings.Replace(dstDir, "~", homeDir, 1)
+	}
+
+	srcZipFileName := filepath.Base(srcZipFile)
+	dstZipFile := path.Join(dstDir, srcZipFileName)
+
+	file, err := ftpC.Open(srcZipFile)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("'%s' not exist", srcZipFile)
+		}
+
+		if err, ok := err.(*sftp.StatusError); ok && err.Code == uint32(sftp.ErrSshFxPermissionDenied) {
+			return nil, fmt.Errorf("no permission to open '%s'", srcZipFile)
+		}
+
+		return nil, err
+	}
+
+	zipFile, err := os.Create(dstZipFile)
+	if err != nil {
+		return nil, fmt.Errorf("open local '%s' failed: %w", dstZipFile, err)
+	}
+
+	_, err = file.WriteTo(zipFile)
 	if err != nil {
 		return nil, err
 	}
