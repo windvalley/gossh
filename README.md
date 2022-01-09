@@ -19,10 +19,11 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
 
 ## Features
 
-- Supports three types of ssh tasks.  
-  `command`: Execute commands on remote hosts.  
-  `script`: Execute a local shell script on remote hosts.  
-  `push`: Push local files and dirs to remote hosts.
+- Supports four types of ssh tasks.  
+  `command`: Execute commands on target hosts.  
+  `script`: Execute a local shell script on target hosts.  
+  `push`: Copy local files and dirs to target hosts.  
+  `fetch`: Copy files and dirs from target hosts to local.
 
 - Supports using `sudo` to execute the commands or a shell script as other user(default is `root`).
 
@@ -50,8 +51,10 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
   ```
 
 - Supports three kinds of timeout:  
-  Timeout for connecting each remote host (default `10` seconds).  
-  Timeout for executing commands or a shell script on each remote host or pushing files/dirs to each remote host.  
+  Timeout for connecting each target host (default `10` seconds).  
+  Timeout for executing commands or a shell script on each target host,
+  or pushing local files/dirs to each target host,
+  or fetching files/dirs from each target host to local.  
   Timeout for the current `gossh` task.
 
 - Supports printing output to a file or screen or a file and screen at the same time.  
@@ -88,8 +91,8 @@ $ gossh -h
 
 Gossh is a high-performance and high-concurrency ssh tool.
 This tool can efficiently manage tens of thousands of Linux server clusters.
-It can efficiently execute commands or a local script on remote servers,
-and transfer files and dirs to remote servers.
+It can efficiently execute commands or a local script on target hosts,
+push files and dirs to target hosts, and fetch files and dirs from target hosts to local.
 
 Find more information at: https://github.com/windvalley/gossh
 
@@ -97,12 +100,13 @@ Usage:
   gossh [command]
 
 Available Commands:
-  command     Execute commands on remote hosts
+  command     Execute commands on target hosts
   completion  generate the autocompletion script for the specified shell
   config      Generate gossh configuration file
+  fetch       Copy files/dirs from target hosts to local
   help        Help about any command
-  push        Push local files/dirs to remote hosts
-  script      Execute a local shell script on remote hosts
+  push        Copy local files/dirs to target hosts
+  script      Execute a local shell script on target hosts
   version     Show gossh version information
 
 Flags:
@@ -133,9 +137,10 @@ Flags:
   -c, --run.concurrency int            number of concurrent connections (default 1)
   -l, --run.lang string                specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
   -s, --run.sudo                       use sudo to execute commands/script
-      --timeout.command int            timeout seconds for executing commands/script on each remote host
-                                       or pushing files/dirs to each remote host
-      --timeout.conn int               timeout seconds for connecting each remote host (default 10)
+      --timeout.command int            timeout seconds for executing commands/script on each target host
+                                       or copying local files and dirs to each target host
+                                       or copying files and dirs from each target host to local
+      --timeout.conn int               timeout seconds for connecting each target host (default 10)
       --timeout.task int               timeout seconds for the current gossh task
 
 Use "gossh [command] --help" for more information about a command.
