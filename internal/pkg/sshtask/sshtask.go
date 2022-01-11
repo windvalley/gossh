@@ -97,11 +97,13 @@ type Task struct {
 	// hostnames or ips from command line arguments.
 	hosts []string
 
-	command        string
-	scriptFile     string
+	command    string
+	scriptFile string
+
 	pushFiles      *pushFiles
 	fetchFiles     []string
 	dstDir         string
+	tmpDir         string
 	remove         bool
 	allowOverwrite bool
 
@@ -184,10 +186,16 @@ func (t *Task) SetScriptOptions(destPath string, remove, allowOverwrite bool) {
 	t.allowOverwrite = allowOverwrite
 }
 
-// SetFileOptions ...
-func (t *Task) SetFileOptions(destPath string, allowOverwrite bool) {
+// SetPushOptions ...
+func (t *Task) SetPushOptions(destPath string, allowOverwrite bool) {
 	t.dstDir = destPath
 	t.allowOverwrite = allowOverwrite
+}
+
+// SetFetchOptions ...
+func (t *Task) SetFetchOptions(destPath, tmpDir string) {
+	t.dstDir = destPath
+	t.tmpDir = tmpDir
 }
 
 // RunSSH implements batchssh.Task
@@ -204,7 +212,7 @@ func (t *Task) RunSSH(addr string) (string, error) {
 	case PushTask:
 		return t.sshClient.PushFiles(addr, t.pushFiles.files, t.pushFiles.zipFiles, t.dstDir, t.allowOverwrite)
 	case FetchTask:
-		return t.sshClient.FetchFiles(addr, t.fetchFiles, t.dstDir)
+		return t.sshClient.FetchFiles(addr, t.fetchFiles, t.dstDir, t.tmpDir)
 	default:
 		return "", fmt.Errorf("unknown task type: %v", t.taskType)
 	}

@@ -32,6 +32,7 @@ import (
 var (
 	srcFiles    []string
 	localDstDir string
+	tmpDir      string
 )
 
 // fetchCmd represents the fetch command
@@ -53,7 +54,11 @@ Copy files/dirs from target hosts to local.`,
   #
   $ gossh fetch host1 host2 -f /path1/foo.txt -f /path2/bar/ -d /tmp/backup
     or
-  $ gossh fetch host1 host2 -f /path1/foo.txt,/path2/bar/ -d /tmp/backup`,
+  $ gossh fetch host1 host2 -f /path1/foo.txt,/path2/bar/ -d /tmp/backup
+
+  # Specify tmp dir on target host instead of default /tmp by flag '-t'.
+  # NOTE: If the tmp dir not exist, it will auto create it.
+  $ gossh fetch host1 -f /path/foo.txt -d ./backup/ -t /home/user/tmp/`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
@@ -64,7 +69,7 @@ Copy files/dirs from target hosts to local.`,
 
 		task.SetHosts(args)
 		task.SetFetchFiles(srcFiles)
-		task.SetFileOptions(localDstDir, true)
+		task.SetFetchOptions(localDstDir, tmpDir)
 
 		task.Start()
 	},
@@ -79,5 +84,9 @@ func init() {
 
 	fetchCmd.Flags().StringVarP(&localDstDir, "dest-path", "d", "",
 		"local directory that files/dirs from target hosts will be copied to",
+	)
+
+	fetchCmd.Flags().StringVarP(&tmpDir, "tmp-dir", "t", "/tmp",
+		"directory of target hosts for storing temporary zip file",
 	)
 }

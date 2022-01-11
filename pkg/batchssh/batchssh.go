@@ -280,7 +280,7 @@ func (c *Client) PushFiles(
 func (c *Client) FetchFiles(
 	addr string,
 	srcFiles []string,
-	dstDir string,
+	dstDir, tmpDir string,
 ) (string, error) {
 	client, err := c.getClient(addr)
 	if err != nil {
@@ -337,7 +337,7 @@ func (c *Client) FetchFiles(
 	}
 	defer session.Close()
 
-	zippedFileTmpDir := fmt.Sprintf("/tmp/gossh-%s", addr)
+	zippedFileTmpDir := path.Join(tmpDir, "gossh-"+addr)
 	tmpZipFile := fmt.Sprintf("%s.%d", addr, time.Now().UnixMicro())
 	zippedFileFullpath := path.Join(zippedFileTmpDir, tmpZipFile)
 	_, err = c.executeCmd(

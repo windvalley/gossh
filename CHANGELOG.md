@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1]
+
+### Added
+
+- Add flag `-t/--tmp-dir` for subcommand `fetch`. For details at [#19](https://github.com/windvalley/gossh/issues/19).
+
 ## [1.4.0]
 
 ### Added
