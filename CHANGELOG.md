@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.2]
+
+### Added
+
+- Subcommand `fetch` supports using flag `-s/--run.sudo` to copy files and directories to which the user does not have access permission ([#20](https://github.com/windvalley/gossh/issues/20)).
+
+- Add more examples for subcommand `fetch`.
+
+### Changed
+
+- Update help description for flag `-s/--run.sudo`.
+
+- Update `configs/gossh.yaml`.
+
 ## [1.4.1]
 
 ### Added
