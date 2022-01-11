@@ -25,10 +25,6 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
   `push`: Copy local files and dirs to target hosts.  
   `fetch`: Copy files and dirs from target hosts to local.
 
-- Supports using `sudo` to execute the commands or a shell script as other user(default is `root`).
-
-- Supports specifying i18n environment variable value while executing commands or a shell script to help keep the language of the outputs consistent. For example: `zh_CN.UTF-8`, `en_US.UTF-8`.
-
 - Supports four authentication methods.  
   `SSH-Agent Authentication`: through the system environment variable `$SSH_AUTH_SOCK`.  
   `Pubkey Authentication`: by identity files(Default `$HOME/.ssh/{id_rsa,id_dsa}`), also support that with passphrase.  
@@ -49,6 +45,10 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
   foo[01-03,06,12-16].[beijing,wuhan].bar.com
   foo[01-03,06,12-16].idc[1-3].[beijing,wuhan].bar.com
   ```
+
+- Supports using `sudo` to execute the commands/shell-script or fetch files/dirs as other user(default is `root`).
+
+- Supports specifying i18n environment variable value while executing commands or a shell script to help keep the language of the outputs consistent. For example: `zh_CN.UTF-8`, `en_US.UTF-8`.
 
 - Supports three kinds of timeout:  
   Timeout for connecting each target host (default `10` seconds).  
@@ -136,7 +136,7 @@ Flags:
   -U, --run.as-user string             run via sudo as this user (default "root")
   -c, --run.concurrency int            number of concurrent connections (default 1)
   -l, --run.lang string                specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
-  -s, --run.sudo                       use sudo to execute commands/script
+  -s, --run.sudo                       use sudo to execute commands/script or fetch files/dirs
       --timeout.command int            timeout seconds for executing commands/script on each target host
                                        or copying local files and dirs to each target host
                                        or copying files and dirs from each target host to local
