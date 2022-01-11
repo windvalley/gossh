@@ -212,7 +212,7 @@ func (t *Task) RunSSH(addr string) (string, error) {
 	case PushTask:
 		return t.sshClient.PushFiles(addr, t.pushFiles.files, t.pushFiles.zipFiles, t.dstDir, t.allowOverwrite)
 	case FetchTask:
-		return t.sshClient.FetchFiles(addr, t.fetchFiles, t.dstDir, t.tmpDir)
+		return t.sshClient.FetchFiles(addr, t.fetchFiles, t.dstDir, t.tmpDir, sudo, runAs)
 	default:
 		return "", fmt.Errorf("unknown task type: %v", t.taskType)
 	}

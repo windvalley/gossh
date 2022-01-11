@@ -58,7 +58,13 @@ Copy files/dirs from target hosts to local.`,
 
   # Specify tmp dir on target host instead of default /tmp by flag '-t'.
   # NOTE: If the tmp dir not exist, it will auto create it.
-  $ gossh fetch host1 -f /path/foo.txt -d ./backup/ -t /home/user/tmp/`,
+  $ gossh fetch host1 -f /path/foo.txt -d ./backup/ -t /home/user/tmp/
+
+  # Use sudo as root to copy no permission files.
+  $ gossh fetch host1 -f /root/foo.txt -d ./backup/ -s
+
+  # Use sudo as 'zhangsan' to copy no permission files.
+  $ gossh fetch host1 -f /home/zhangsan/foo.txt -d ./backup -s -U zhangsan`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)

@@ -65,7 +65,7 @@ hosts:
   port: %d
 
 run:
-  # Use sudo to execute the command.
+  # Use sudo to execute command/script or fetch files/dirs.
   # Default: false
   sudo: %v
 

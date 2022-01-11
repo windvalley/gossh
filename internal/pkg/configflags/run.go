@@ -54,7 +54,7 @@ func NewRun() *Run {
 
 // AddFlagsTo ...
 func (r *Run) AddFlagsTo(flags *pflag.FlagSet) {
-	flags.BoolVarP(&r.Sudo, flagRunSudo, "s", r.Sudo, "use sudo to execute commands/script")
+	flags.BoolVarP(&r.Sudo, flagRunSudo, "s", r.Sudo, "use sudo to execute commands/script or fetch files/dirs")
 	flags.StringVarP(&r.AsUser, flagRunAsUser, "U", r.AsUser, "run via sudo as this user")
 	flags.StringVarP(
 		&r.Lang,

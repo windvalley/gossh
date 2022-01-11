@@ -200,6 +200,62 @@ func (c *Client) ExecuteCmd(addr, command, lang, runAs string, sudo bool) (strin
 	return c.executeCmd(session, command)
 }
 
+// ExecuteScript on remote host.
+func (c *Client) ExecuteScript(
+	addr, srcFile, dstDir, lang, runAs string,
+	sudo, remove, allowOverwrite bool,
+) (string, error) {
+	client, err := c.getClient(addr)
+	if err != nil {
+		return "", err
+	}
+	defer client.Close()
+
+	ftpC, err := sftp.NewClient(client)
+	if err != nil {
+		return "", err
+	}
+	defer ftpC.Close()
+
+	file, err := c.pushFile(ftpC, srcFile, dstDir, allowOverwrite)
+	if err != nil {
+		return "", err
+	}
+
+	//nolint:gomnd,govet
+	if err := file.Chmod(0755); err != nil {
+		return "", err
+	}
+
+	script := file.Name()
+	file.Close()
+
+	session, err := client.NewSession()
+	if err != nil {
+		return "", err
+	}
+	defer session.Close()
+
+	exportLang := ""
+	if lang != "" {
+		exportLang = fmt.Sprintf(exportLangPattern, lang, lang, lang)
+	}
+
+	command := ""
+	switch {
+	case sudo && remove:
+		command = fmt.Sprintf("%ssudo -u %s -H bash -c '%s;rm -f %s'", exportLang, runAs, script, script)
+	case sudo && !remove:
+		command = fmt.Sprintf("%ssudo -u %s -H bash -c '%s'", exportLang, runAs, script)
+	case !sudo && remove:
+		command = fmt.Sprintf("%s%s;rm -f %s", exportLang, script, script)
+	case !sudo && !remove:
+		command = exportLang + script
+	}
+
+	return c.executeCmd(session, command)
+}
+
 // PushFiles to remote host.
 func (c *Client) PushFiles(
 	addr string,
@@ -281,6 +337,8 @@ func (c *Client) FetchFiles(
 	addr string,
 	srcFiles []string,
 	dstDir, tmpDir string,
+	sudo bool,
+	runAs string,
 ) (string, error) {
 	client, err := c.getClient(addr)
 	if err != nil {
@@ -306,9 +364,11 @@ func (c *Client) FetchFiles(
 				continue
 			}
 
-			if err, ok := err1.(*sftp.StatusError); ok && err.Code == uint32(sftp.ErrSshFxPermissionDenied) {
-				noPermSrcFiles = append(noPermSrcFiles, f)
-				continue
+			if !sudo {
+				if err, ok := err1.(*sftp.StatusError); ok && err.Code == uint32(sftp.ErrSshFxPermissionDenied) {
+					noPermSrcFiles = append(noPermSrcFiles, f)
+					continue
+				}
 			}
 		}
 
@@ -343,8 +403,15 @@ func (c *Client) FetchFiles(
 	_, err = c.executeCmd(
 		session,
 		fmt.Sprintf(
-			`which zip &>/dev/null && { mkdir -p %s;zip -r %s %s;} ||
-	{ echo "need install 'zip' command";exit 1;}`,
+			`if which zip &>/dev/null;then 
+    sudo -u %s -H bash -c '[[ ! -d %s ]] && { mkdir -p %s;chmod 777 %s;};zip -r %s %s'
+else
+	echo "need install 'zip' command"
+	exit 1
+fi`,
+			runAs,
+			zippedFileTmpDir,
+			zippedFileTmpDir,
 			zippedFileTmpDir,
 			zippedFileFullpath,
 			strings.Join(validSrcFiles, " "),
@@ -372,7 +439,7 @@ func (c *Client) FetchFiles(
 
 	_, err = c.executeCmd(
 		session2,
-		fmt.Sprintf("rm -f %s", zippedFileFullpath),
+		fmt.Sprintf("sudo -u %s -H bash -c 'rm -f %s'", runAs, zippedFileFullpath),
 	)
 	if err != nil {
 		log.Debugf("remove '%s:%s' failed: %s", addr, zippedFileFullpath, err)
@@ -429,62 +496,6 @@ func (c *Client) FetchFiles(
 	}
 
 	return ret, nil
-}
-
-// ExecuteScript on remote host.
-func (c *Client) ExecuteScript(
-	addr, srcFile, dstDir, lang, runAs string,
-	sudo, remove, allowOverwrite bool,
-) (string, error) {
-	client, err := c.getClient(addr)
-	if err != nil {
-		return "", err
-	}
-	defer client.Close()
-
-	ftpC, err := sftp.NewClient(client)
-	if err != nil {
-		return "", err
-	}
-	defer ftpC.Close()
-
-	file, err := c.pushFile(ftpC, srcFile, dstDir, allowOverwrite)
-	if err != nil {
-		return "", err
-	}
-
-	//nolint:gomnd,govet
-	if err := file.Chmod(0755); err != nil {
-		return "", err
-	}
-
-	script := file.Name()
-	file.Close()
-
-	session, err := client.NewSession()
-	if err != nil {
-		return "", err
-	}
-	defer session.Close()
-
-	exportLang := ""
-	if lang != "" {
-		exportLang = fmt.Sprintf(exportLangPattern, lang, lang, lang)
-	}
-
-	command := ""
-	switch {
-	case sudo && remove:
-		command = fmt.Sprintf("%ssudo -u %s -H bash -c '%s;rm -f %s'", exportLang, runAs, script, script)
-	case sudo && !remove:
-		command = fmt.Sprintf("%ssudo -u %s -H bash -c '%s'", exportLang, runAs, script)
-	case !sudo && remove:
-		command = fmt.Sprintf("%s%s;rm -f %s", exportLang, script, script)
-	case !sudo && !remove:
-		command = exportLang + script
-	}
-
-	return c.executeCmd(session, command)
 }
 
 func (c *Client) executeCmd(session *ssh.Session, command string) (string, error) {
