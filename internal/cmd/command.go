@@ -83,7 +83,7 @@ Execute commands on target hosts.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		task := sshtask.NewTask(sshtask.CommandTask, config)
 
-		task.SetHosts(args)
+		task.SetTargetHosts(args)
 		task.SetCommand(shellCommand)
 		task.Start()
 	},

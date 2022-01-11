@@ -41,7 +41,7 @@ const configTemplate = `auth:
   # Default: false
   ask-pass: %v
 
-  # File that contains 'username:password'.
+  # File that contains the password of login user.
   # Default: ""
   file: %q
 
@@ -157,7 +157,7 @@ $PWD/.gossh.yaml has higher priority than $HOME/.gossh.yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf(
 			configTemplate,
-			config.Auth.User, config.Auth.Password, config.Auth.AskPass, config.Auth.File, config.Auth.Passphrase,
+			config.Auth.User, config.Auth.Password, config.Auth.AskPass, config.Auth.PassFile, config.Auth.Passphrase,
 			config.Hosts.File, config.Hosts.Port,
 			config.Run.Sudo, config.Run.AsUser, config.Run.Lang, config.Run.Concurrency,
 			config.Output.File, config.Output.JSON, config.Output.Verbose, config.Output.Quiet,

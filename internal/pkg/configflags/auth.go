@@ -31,12 +31,12 @@ import (
 	"github.com/windvalley/gossh/pkg/util"
 )
 
+//nolint:gosec
 const (
-	flagAuthUser     = "auth.user"
-	flagAuthPassword = "auth.password"
-	//nolint:gosec
+	flagAuthUser          = "auth.user"
+	flagAuthPassword      = "auth.password"
 	flagAuthAskPass       = "auth.ask-pass"
-	flagAuthFile          = "auth.file"
+	flagAuthPassFile      = "auth.pass-file"
 	flagAuthIdentityFiles = "auth.identity-files"
 	flagAuthPassphrase    = "auth.passphrase"
 )
@@ -46,7 +46,7 @@ type Auth struct {
 	User          string   `json:"user" mapstructure:"user"`
 	Password      string   `json:"password" mapstructure:"password"`
 	AskPass       bool     `json:"ask-pass" mapstructure:"ask-pass"`
-	File          string   `json:"file" mapstructure:"file"`
+	PassFile      string   `json:"pass-file" mapstructure:"pass-file"`
 	IdentityFiles []string `json:"identity-files" mapstructure:"identity-files"`
 	Passphrase    string   `json:"passphrase" mapstructure:"passphrase"`
 }
@@ -57,7 +57,7 @@ func NewAuth() *Auth {
 		User:          "",
 		Password:      "",
 		AskPass:       false,
-		File:          "",
+		PassFile:      "",
 		IdentityFiles: []string{},
 		Passphrase:    "",
 	}
@@ -66,10 +66,10 @@ func NewAuth() *Auth {
 // AddFlagsTo pflagSet.
 func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.StringVarP(&a.User, flagAuthUser, "u", "", "login user (default $USER)")
-	fs.StringVarP(&a.Password, flagAuthPassword, "p", a.Password, "password of the login user")
+	fs.StringVarP(&a.Password, flagAuthPassword, "p", a.Password, "password of login user")
 	fs.BoolVarP(&a.AskPass, flagAuthAskPass, "k", a.AskPass, "ask for password of login user")
-	fs.StringVarP(&a.File, flagAuthFile, "a", a.File,
-		`file containing the credentials (format: "username:password")`)
+	fs.StringVarP(&a.PassFile, flagAuthPassFile, "a", a.PassFile,
+		`file containing the password of login user`)
 	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "i", nil,
 		"identity files (default $HOME/.ssh/{id_rsa,id_dsa})")
 	fs.StringVarP(&a.Passphrase, flagAuthPassphrase, "K", a.Passphrase,
@@ -93,8 +93,8 @@ func (a *Auth) Complete() error {
 
 // Validate flags.
 func (a *Auth) Validate() (errs []error) {
-	if a.File != "" && !util.FileExists(a.File) {
-		errs = append(errs, fmt.Errorf("invalid %s: %s not found", flagAuthFile, a.File))
+	if a.PassFile != "" && !util.FileExists(a.PassFile) {
+		errs = append(errs, fmt.Errorf("invalid %s: %s not found", flagAuthPassFile, a.PassFile))
 	}
 
 	return

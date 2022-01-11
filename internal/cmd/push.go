@@ -109,7 +109,7 @@ Copy local files/dirs to target hosts.`,
 			}
 		}()
 
-		task.SetHosts(args)
+		task.SetTargetHosts(args)
 		task.SetPushfiles(files, zipFiles)
 		task.SetPushOptions(fileDstPath, allowOverwrite)
 

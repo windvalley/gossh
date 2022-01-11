@@ -151,8 +151,8 @@ func (t *Task) Start() {
 	t.HandleOutput()
 }
 
-// SetHosts ...
-func (t *Task) SetHosts(hosts []string) {
+// SetTargetHosts ...
+func (t *Task) SetTargetHosts(hosts []string) {
 	t.hosts = hosts
 }
 
@@ -391,7 +391,7 @@ func (t *Task) buildSSHClient() {
 		err       error
 	)
 
-	user, password, err := t.getUserAndPassword()
+	password, err := t.getPassword()
 	if err != nil {
 		util.CheckErr(err)
 	}
@@ -402,7 +402,7 @@ func (t *Task) buildSSHClient() {
 		proxyAuths := t.getProxySSHAuthMethods(&password)
 
 		sshClient, err = batchssh.NewClient(
-			user,
+			t.configFlags.Auth.User,
 			password,
 			auths,
 			batchssh.WithConnTimeout(time.Duration(t.configFlags.Timeout.Conn)*time.Second),
@@ -418,7 +418,7 @@ func (t *Task) buildSSHClient() {
 		)
 	} else {
 		sshClient, err = batchssh.NewClient(
-			user,
+			t.configFlags.Auth.User,
 			password,
 			auths,
 			batchssh.WithConnTimeout(time.Duration(t.configFlags.Timeout.Conn)*time.Second),
@@ -538,40 +538,35 @@ func (t *Task) getProxySSHAuthMethods(password *string) []ssh.AuthMethod {
 	return proxyAuths
 }
 
-func (t *Task) getUserAndPassword() (user string, password string, err error) {
-	user = t.configFlags.Auth.User
-	authFile := t.configFlags.Auth.File
-
+func (t *Task) getPassword() (password string, err error) {
+	authFile := t.configFlags.Auth.PassFile
 	if authFile != "" {
-		var authContent []byte
+		var passwordContent []byte
 
-		authContent, err = ioutil.ReadFile(authFile)
+		passwordContent, err = ioutil.ReadFile(authFile)
 		if err != nil {
-			err = fmt.Errorf("read auth file failed: %w", err)
+			err = fmt.Errorf("read auth file '%s' failed: %w", authFile, err)
 		}
 
-		contentTrim := strings.TrimSpace(string(authContent))
-		auths := strings.Split(contentTrim, ":")
+		password = strings.TrimSpace(string(passwordContent))
 
-		if len(auths) != 2 {
-			err = errors.New("invalid auth file format")
-		}
-
-		user = auths[0]
-		password = auths[1]
+		log.Debugf("read password from file '%s'", authFile)
 	}
 
 	passwordFromFlag := t.configFlags.Auth.Password
 	if passwordFromFlag != "" {
 		password = passwordFromFlag
+
+		log.Debugf("read password from commandline flag or configuration file")
 	}
 
 	if t.configFlags.Auth.AskPass {
 		log.Debugf("Auth: ask for password of login user by flag '-k/--auth.ask-pass'")
 		password = getPasswordFromPrompt()
+
+		log.Debugf("read password from terminal prompt")
 	}
 
-	//nolint:nakedret
 	return
 }
 

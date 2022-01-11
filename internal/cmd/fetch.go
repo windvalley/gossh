@@ -73,7 +73,7 @@ Copy files/dirs from target hosts to local.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		task := sshtask.NewTask(sshtask.FetchTask, config)
 
-		task.SetHosts(args)
+		task.SetTargetHosts(args)
 		task.SetFetchFiles(srcFiles)
 		task.SetFetchOptions(localDstDir, tmpDir)
 

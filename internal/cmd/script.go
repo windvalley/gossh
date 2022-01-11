@@ -79,7 +79,7 @@ Execute a local shell script on target hosts.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		task := sshtask.NewTask(sshtask.ScriptTask, config)
 
-		task.SetHosts(args)
+		task.SetTargetHosts(args)
 		task.SetScriptFile(scriptFile)
 		task.SetScriptOptions(destPath, remove, force)
 
