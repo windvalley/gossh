@@ -38,6 +38,8 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 	"golang.org/x/term"
 
+	"github.com/windvalley/gossh/internal/cmd/vault"
+	"github.com/windvalley/gossh/internal/pkg/aes"
 	"github.com/windvalley/gossh/internal/pkg/configflags"
 	"github.com/windvalley/gossh/pkg/batchssh"
 	"github.com/windvalley/gossh/pkg/log"
@@ -560,6 +562,8 @@ func (t *Task) getPassword() (password string, err error) {
 		log.Debugf("read password from commandline flag or configuration file")
 	}
 
+	assignRealPass(&password)
+
 	if t.configFlags.Auth.AskPass {
 		log.Debugf("Auth: ask for password of login user by flag '-k/--auth.ask-pass'")
 		password = getPasswordFromPrompt()
@@ -567,6 +571,7 @@ func (t *Task) getPassword() (password string, err error) {
 		log.Debugf("read password from terminal prompt")
 	}
 
+	//nolint:nakedret
 	return
 }
 
@@ -597,6 +602,8 @@ func (t *Task) getProxyItentityFiles() (proxyKeyfiles []string) {
 }
 
 func getSigners(keyfiles []string, passphrase string, isForProxy bool) []ssh.Signer {
+	assignRealPass(&passphrase)
+
 	var (
 		signers []ssh.Signer
 		msgHead string
@@ -662,4 +669,20 @@ func getPasswordFromPrompt() string {
 	log.Debugf("Auth: read password of the login user from terminal prompt")
 
 	return password
+}
+
+func assignRealPass(pass *string) {
+	var err error
+
+	if aes.IsAES256CipherText(*pass) {
+		vaultPass := vault.GetVaultPassword()
+
+		*pass, err = aes.AES256Decode(*pass, vaultPass)
+		if err != nil {
+			log.Debugf("Auth: decrypt password/passphrase which encrypted by vault failed: %s", err)
+			util.CheckErr(err)
+		}
+
+		log.Debugf("Auth: decrypt password/passphrase which encrypted by vault success")
+	}
 }

@@ -39,6 +39,7 @@ const (
 	flagAuthPassFile      = "auth.pass-file"
 	flagAuthIdentityFiles = "auth.identity-files"
 	flagAuthPassphrase    = "auth.passphrase"
+	flagAuthVaultPassFile = "auth.vault-pass-file"
 )
 
 // Auth config.
@@ -49,6 +50,7 @@ type Auth struct {
 	PassFile      string   `json:"pass-file" mapstructure:"pass-file"`
 	IdentityFiles []string `json:"identity-files" mapstructure:"identity-files"`
 	Passphrase    string   `json:"passphrase" mapstructure:"passphrase"`
+	VaultPassFile string   `json:"vault-pass-file" mapstructure:"vault-pass-file"`
 }
 
 // NewAuth ...
@@ -60,6 +62,7 @@ func NewAuth() *Auth {
 		PassFile:      "",
 		IdentityFiles: []string{},
 		Passphrase:    "",
+		VaultPassFile: "",
 	}
 }
 
@@ -69,11 +72,13 @@ func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.StringVarP(&a.Password, flagAuthPassword, "p", a.Password, "password of login user")
 	fs.BoolVarP(&a.AskPass, flagAuthAskPass, "k", a.AskPass, "ask for password of login user")
 	fs.StringVarP(&a.PassFile, flagAuthPassFile, "a", a.PassFile,
-		`file containing the password of login user`)
+		`file that holds the login user's password`)
 	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "i", nil,
 		"identity files (default $HOME/.ssh/{id_rsa,id_dsa})")
 	fs.StringVarP(&a.Passphrase, flagAuthPassphrase, "K", a.Passphrase,
 		"passphrase of the identity files")
+	fs.StringVarP(&a.VaultPassFile, flagAuthVaultPassFile, "V", a.VaultPassFile,
+		"file that holds the vault password for encryption and decryption")
 }
 
 // Complete some flags value.
@@ -95,6 +100,10 @@ func (a *Auth) Complete() error {
 func (a *Auth) Validate() (errs []error) {
 	if a.PassFile != "" && !util.FileExists(a.PassFile) {
 		errs = append(errs, fmt.Errorf("invalid %s: %s not found", flagAuthPassFile, a.PassFile))
+	}
+
+	if a.VaultPassFile != "" && !util.FileExists(a.VaultPassFile) {
+		errs = append(errs, fmt.Errorf("invalid %s: %s not found", flagAuthVaultPassFile, a.VaultPassFile))
 	}
 
 	return

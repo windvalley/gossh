@@ -28,6 +28,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/windvalley/gossh/internal/cmd/vault"
 	"github.com/windvalley/gossh/internal/pkg/configflags"
 	"github.com/windvalley/gossh/pkg/log"
 	"github.com/windvalley/gossh/pkg/util"
@@ -35,10 +36,7 @@ import (
 
 const cfgFileFlag = "config"
 
-var (
-	cfgFile string
-	config  *configflags.ConfigFlags
-)
+var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -61,6 +59,8 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig, initLogger, printDebugInfo)
+
+	rootCmd.AddCommand(vault.Cmd)
 
 	persistentFlags := rootCmd.PersistentFlags()
 
@@ -96,22 +96,22 @@ func initConfig() {
 		util.CheckErr(err)
 	}
 
-	if err := viper.Unmarshal(&config); err != nil {
+	if err := viper.Unmarshal(&configflags.Config); err != nil {
 		util.CheckErr(err)
 	}
 
-	if err := config.Complete(); err != nil {
+	if err := configflags.Config.Complete(); err != nil {
 		util.CheckErr(err)
 	}
 }
 
 func initLogger() {
 	log.Init(
-		config.Output.File,
-		config.Output.JSON,
-		config.Output.Verbose,
-		config.Output.Quiet,
-		config.Output.Condense,
+		configflags.Config.Output.File,
+		configflags.Config.Output.JSON,
+		configflags.Config.Output.Verbose,
+		configflags.Config.Output.Quiet,
+		configflags.Config.Output.Condense,
 	)
 }
 
@@ -123,5 +123,5 @@ func printDebugInfo() {
 		log.Debugf("Not using config file")
 	}
 
-	log.Debugf("Config contents: %s", config.String())
+	log.Debugf("Config contents: %s", configflags.Config.String())
 }

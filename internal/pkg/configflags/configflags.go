@@ -28,6 +28,9 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// Config instance.
+var Config *ConfigFlags
+
 // ConfigFlags is cli flags that also in config file.
 type ConfigFlags struct {
 	Auth    *Auth    `json:"auth" mapstructure:"auth"`

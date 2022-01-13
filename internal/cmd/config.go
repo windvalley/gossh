@@ -26,6 +26,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/windvalley/gossh/internal/pkg/configflags"
 )
 
 const configTemplate = `auth:
@@ -41,7 +43,7 @@ const configTemplate = `auth:
   # Default: false
   ask-pass: %v
 
-  # File that contains the password of login user.
+  # File that holds the login user's password.
   # Default: ""
   file: %q
 
@@ -55,8 +57,12 @@ const configTemplate = `auth:
   # Default: ""
   passphrase: %q
 
+  # File that holds the vault password for encryption and decryption.
+  # Default: ""
+  vault-pass-file: %q
+
 hosts:
-  # File containing target hosts (format: one host per line).
+  # File that holds the target hosts (format: one host/pattern per line).
   # Default: ""
   file: %q
 
@@ -74,7 +80,7 @@ run:
   as-user: %s
 
   # Specify i18n envs when execute command/script.
-  # Default: origin i18n value on target hosts
+  # Default: original i18n value on target hosts
   lang: %q
 
   # Number of concurrent connections.
@@ -155,14 +161,18 @@ $PWD/.gossh.yaml has higher priority than $HOME/.gossh.yaml`,
   # Generate configuration file with customized field values by specifying some global flags.
   $ gossh config -u zhangsan -c 100 -j --timeout.command 20 > ./.gossh.yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
+		config := configflags.Config
+
 		fmt.Printf(
 			configTemplate,
-			config.Auth.User, config.Auth.Password, config.Auth.AskPass, config.Auth.PassFile, config.Auth.Passphrase,
+			config.Auth.User, config.Auth.Password, config.Auth.AskPass,
+			config.Auth.PassFile, config.Auth.Passphrase, config.Auth.VaultPassFile,
 			config.Hosts.File, config.Hosts.Port,
 			config.Run.Sudo, config.Run.AsUser, config.Run.Lang, config.Run.Concurrency,
 			config.Output.File, config.Output.JSON, config.Output.Verbose, config.Output.Quiet,
 			config.Timeout.Conn, config.Timeout.Command, config.Timeout.Task,
-			config.Proxy.Server, config.Proxy.Port, config.Proxy.User, config.Proxy.Password, config.Proxy.Passphrase,
+			config.Proxy.Server, config.Proxy.Port, config.Proxy.User,
+			config.Proxy.Password, config.Proxy.Passphrase,
 		)
 	},
 }

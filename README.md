@@ -29,7 +29,7 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
   `SSH-Agent Authentication`: through the system environment variable `$SSH_AUTH_SOCK`.  
   `Pubkey Authentication`: by identity files(Default `$HOME/.ssh/{id_rsa,id_dsa}`), also support that with passphrase.  
   `Password`: from command line flag `-k/--auth.ask-pass` or `-p/--auth.password`, or from configuration file.  
-  `Password File`: file that containing `username:password`, and it has lower priority than auth method `Password`.  
+  `Password File`: file that containing `password` of login user, and it has lower priority than auth method `Password`.  
   `Gossh` will auto detected the supported authentication methods, and if no legal authentication methods detected, it will prompt user to enter password of login user(Default `$USER`).
 
 - Supports two ways to specify target hosts. One is through command line arguments, input one or more target hosts, separated by space. The other is through command line flag or configuration file option to specify the hosts file. Both ways can be used at the same time.
@@ -62,12 +62,15 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
 
 - High-performance and high-concurrency. You can specify number of concurrent connections (default `1`).
 
+- Supports SSH Proxy, it can connect to the target hosts by specifying the ssh proxy server.
+
+- Provides subcommand `vault` to helps you encrypt/decrypt confidential information
+  such as password or passphrase without compromising security.
+
 - For ease of use, it supports config file. You can write flags that are not frequently modified into the config file, so you don't need to laboriously specify these flags on the command line. If the flag in both command line and config file, flag that from command line takes precedence over the other.  
   The default configuration file is `$PWD/.gossh.yaml` or `$HOME/.gossh.yaml`, and `$PWD/.gossh.yaml` has a higher priority.
 
-- Provides the subcommand `config` to help users generate configuration file in easy way.
-
-- Supports SSH Proxy, it can connect to the target hosts by specifying the ssh proxy server.
+- Provides subcommand `config` to help users generate configuration file in easy way.
 
 ## Installation
 
@@ -107,15 +110,17 @@ Available Commands:
   help        Help about any command
   push        Copy local files/dirs to target hosts
   script      Execute a local shell script on target hosts
+  vault       Encryption and decryption utility
   version     Show gossh version information
 
 Flags:
   -k, --auth.ask-pass                  ask for password of login user
-  -a, --auth.file string               file containing the credentials (format: "username:password")
   -i, --auth.identity-files strings    identity files (default $HOME/.ssh/{id_rsa,id_dsa})
+  -a, --auth.pass-file string          file containing the password of login user
   -K, --auth.passphrase string         passphrase of the identity files
-  -p, --auth.password string           password of the login user
+  -p, --auth.password string           password of login user
   -u, --auth.user string               login user (default $USER)
+  -V, --auth.vault-pass-file string    vault password file for encryption or decryption
       --config string                  config file (default {$PWD,$HOME}/.gossh.yaml)
   -h, --help                           help for gossh
   -H, --hosts.file string              file containing target hosts (format: one host/pattern per line)

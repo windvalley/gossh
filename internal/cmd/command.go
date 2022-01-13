@@ -25,14 +25,15 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/windvalley/gossh/internal/pkg/configflags"
 	"github.com/windvalley/gossh/internal/pkg/sshtask"
 	"github.com/windvalley/gossh/pkg/util"
 )
 
 var shellCommand string
 
-// execCmd represents the exec command
-var execCmd = &cobra.Command{
+// commandCmd represents the exec command
+var commandCmd = &cobra.Command{
 	Use:   "command",
 	Short: "Execute commands on target hosts",
 	Long: `
@@ -76,12 +77,12 @@ Execute commands on target hosts.`,
   # Connect target hosts by proxy server 10.16.0.1.
   $ gossh command host1 host2 -e "uptime" -X 10.16.0.1`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		if errs := config.Validate(); len(errs) != 0 {
+		if errs := configflags.Config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		task := sshtask.NewTask(sshtask.CommandTask, config)
+		task := sshtask.NewTask(sshtask.CommandTask, configflags.Config)
 
 		task.SetTargetHosts(args)
 		task.SetCommand(shellCommand)
@@ -90,9 +91,9 @@ Execute commands on target hosts.`,
 }
 
 func init() {
-	rootCmd.AddCommand(execCmd)
+	rootCmd.AddCommand(commandCmd)
 
-	execCmd.Flags().StringVarP(
+	commandCmd.Flags().StringVarP(
 		&shellCommand,
 		"execute",
 		"e",

@@ -32,6 +32,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/windvalley/gossh/internal/pkg/configflags"
 	"github.com/windvalley/gossh/internal/pkg/sshtask"
 	"github.com/windvalley/gossh/pkg/util"
 )
@@ -66,7 +67,7 @@ Copy local files/dirs to target hosts.`,
   # Provide a list of hosts at the same time in multiple ways.
   $ gossh push host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -f /path/foo.txt`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		if errs := config.Validate(); len(errs) != 0 {
+		if errs := configflags.Config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
 		}
 
@@ -80,7 +81,7 @@ Copy local files/dirs to target hosts.`,
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		task := sshtask.NewTask(sshtask.PushTask, config)
+		task := sshtask.NewTask(sshtask.PushTask, configflags.Config)
 
 		var zipFiles []string
 

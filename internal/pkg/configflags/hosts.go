@@ -59,7 +59,7 @@ func (h *Hosts) AddFlagsTo(fs *pflag.FlagSet) {
 		flagHostsFile,
 		"H",
 		h.File,
-		"file containing target hosts (format: one host/pattern per line)",
+		`file that holds the target hosts (one host/pattern per line)`,
 	)
 	fs.IntVarP(
 		&h.Port,

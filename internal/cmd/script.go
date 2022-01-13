@@ -27,6 +27,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/windvalley/gossh/internal/pkg/configflags"
 	"github.com/windvalley/gossh/internal/pkg/sshtask"
 	"github.com/windvalley/gossh/pkg/util"
 )
@@ -68,7 +69,7 @@ Execute a local shell script on target hosts.`,
   # Just output a list of target hosts, and does not execute anything else.
   $ gossh script host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -L`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		if errs := config.Validate(); len(errs) != 0 {
+		if errs := configflags.Config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
 		}
 
@@ -77,7 +78,7 @@ Execute a local shell script on target hosts.`,
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		task := sshtask.NewTask(sshtask.ScriptTask, config)
+		task := sshtask.NewTask(sshtask.ScriptTask, configflags.Config)
 
 		task.SetTargetHosts(args)
 		task.SetScriptFile(scriptFile)

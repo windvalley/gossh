@@ -25,6 +25,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/windvalley/gossh/internal/pkg/configflags"
 	"github.com/windvalley/gossh/internal/pkg/sshtask"
 	"github.com/windvalley/gossh/pkg/util"
 )
@@ -66,12 +67,12 @@ Copy files/dirs from target hosts to local.`,
   # Use sudo as 'zhangsan' to copy no permission files.
   $ gossh fetch host1 -f /home/zhangsan/foo.txt -d ./backup -s -U zhangsan`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		if errs := config.Validate(); len(errs) != 0 {
+		if errs := configflags.Config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		task := sshtask.NewTask(sshtask.FetchTask, config)
+		task := sshtask.NewTask(sshtask.FetchTask, configflags.Config)
 
 		task.SetTargetHosts(args)
 		task.SetFetchFiles(srcFiles)

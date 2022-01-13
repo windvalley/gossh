@@ -11,7 +11,7 @@ auth:
   # Default: false
   ask-pass: false
 
-  # File that contains 'username:password'.
+  # File that holds the login user's password.
   # Default: ""
   file: ""
 
@@ -25,8 +25,12 @@ auth:
   # Default: ""
   passphrase: ""
 
+  # File that holds the vault password for encryption and decryption.
+  # Default: ""
+  vault-pass-file: ""
+
 hosts:
-  # File containing target hosts (format: one host per line).
+  # File that holds the target hosts (format: one host/pattern per line).
   # Default: ""
   file: ""
 
@@ -44,7 +48,7 @@ run:
   as-user: root
 
   # Specify i18n envs when execute command/script.
-  # Default: origin i18n value on target hosts
+  # Default: original i18n value on target hosts
   lang: ""
 
   # Number of concurrent connections.

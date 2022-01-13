@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0]
+
+### Added
+
+- Add subcommand `vault` that helps you encrypt/decrypt confidential information without compromising security.
+  ([#14](https://github.com/windvalley/gossh/issues/14)).
+
+```sh
+$ gossh vault -h
+
+Encrypt sensitive content such as passwords so you can protect it rather than
+leaving it visible as plaintext in public place. To use vault you need another
+password(vault-pass) to encrypt and decrypt the content.
+
+Usage:
+  gossh vault [command]
+
+Available Commands:
+  decrypt     Decrypt content encrypted by vault
+  encrypt     Encrypt sensitive content
+
+Flags:
+  -h, --help                     help for vault
+
+Global Flags:
+  -V, --auth.vault-pass-file string    file that holds the vault password for encryption and decryption
+```
+
+- Add flag `-V/--auth.vault-pass-file` for:
+  - Subcommand `vault`: providing vault password to encrypt sensitive content or decrypt content.
+  - Decrypting password/passphrase(that encrypted by subcommand `vault`) that provided by `--auth.password`, `--auth.passphrase`, `--auth.pass-file`,
+    `--proxy.password`, `--proxy.passphrase`.
+
+### Changed
+
+- Flag `-a/--auth.file string file containing the credentials (format: "username:password")`
+  changed to `-a, --auth.pass-file string file that holds the login user's password`.
+
+- Update subcommand `config`: add `auth.vault-pass-file` and optimize some annotations.
+
+- Update `configs/gossh.yaml`.
+
 ## [1.4.2]
 
 ### Added
@@ -135,15 +177,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   --proxy.user string              login user for proxy(default the same as 'auth.user')
   ```
 
-- Support parsing identity-files(private keys) with passphrase.  
+````
+
+- Support parsing identity-files(private keys) with passphrase.
   Add flag `-K/--auth.passphrase` for parsing identity files with passphrase.
 
 - Add flag `-k/--auth.ask-pass` for asking password of login user.
 
 ### Changed
 
-- Auto detected supported authentication methods:  
-  `ssh-agent authentication` -> `pubkey authentication` -> `password from flag/config` -> `username:password from a file`.  
+- Auto detected supported authentication methods:
+  `ssh-agent authentication` -> `pubkey authentication` -> `password from flag/config` -> `username:password from a file`.
   If no legal authentication method is detected, you will be prompted to enter password.
 
 - Add more detailed authentication debug messages(print by flag `-v/--verbose`).
@@ -156,7 +200,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Delete flag `-k/--auth.pubkey`.  
+- Delete flag `-k/--auth.pubkey`.
   Changed to: If the identity files specified by flag `-i/--auth.identity-files` are valid,
   the pubkey authentication method will be used automatically.
 
@@ -178,7 +222,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support expanding host pattern that from commandline arguments or from host list file(specified by `-H` flag) to host list, and deduplicate the host list.  
+- Support expanding host pattern that from commandline arguments or from host list file(specified by `-H` flag) to host list, and deduplicate the host list.
   Supported host patterns e.g.:
 
   ```text
@@ -302,3 +346,4 @@ If the dest directory given by flag `-d` does not exist or does not have permiss
 ### Fixed
 
 ### Security
+````
