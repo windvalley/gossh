@@ -46,10 +46,6 @@ leaving it visible as plaintext in public place. To use vault you need another
 password(vault-pass) to encrypt and decrypt the content.`,
 }
 
-//func init() {
-//persistentFlags := Cmd.PersistentFlags()
-//}
-
 func getVaultConfirmPassword() string {
 	password := getVaultPasswordFromFile()
 	if password != "" {

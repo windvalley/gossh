@@ -31,8 +31,8 @@ import (
 	"github.com/windvalley/gossh/pkg/util"
 )
 
-// decryptCmd represents the vault decrypt command
-var decryptCmd = &cobra.Command{
+// DecryptCmd represents the vault decrypt command
+var DecryptCmd = &cobra.Command{
 	Use:   "decrypt",
 	Short: "Decrypt content encrypted by vault",
 	Long: `
@@ -71,5 +71,5 @@ Decrypt content encrypted by vault.`,
 }
 
 func init() {
-	Cmd.AddCommand(decryptCmd)
+	Cmd.AddCommand(DecryptCmd)
 }

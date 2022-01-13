@@ -25,9 +25,10 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/go-project-pkg/version"
 	"github.com/spf13/cobra"
 
-	"github.com/go-project-pkg/version"
+	"github.com/windvalley/gossh/pkg/util"
 )
 
 // versionCmd represents the version command
@@ -42,5 +43,10 @@ Show gossh version information.`,
 }
 
 func init() {
+	versionCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		util.CobraMarkHiddenGlobalFlagsExcept(rootCmd)
+		command.Parent().HelpFunc()(command, strings)
+	})
+
 	rootCmd.AddCommand(versionCmd)
 }

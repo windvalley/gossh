@@ -32,13 +32,7 @@ import (
 
 var shellCommand string
 
-// commandCmd represents the exec command
-var commandCmd = &cobra.Command{
-	Use:   "command",
-	Short: "Execute commands on target hosts",
-	Long: `
-Execute commands on target hosts.`,
-	Example: `
+const commandCmdExamples = `
   # Ask for password.
   $ gossh command host1 -e "uptime" -k
 
@@ -75,7 +69,15 @@ Execute commands on target hosts.`,
   $ gossh command host1 host2 -e "uptime" --timeout.command 10
 
   # Connect target hosts by proxy server 10.16.0.1.
-  $ gossh command host1 host2 -e "uptime" -X 10.16.0.1`,
+  $ gossh command host1 host2 -e "uptime" -X 10.16.0.1`
+
+// commandCmd represents the exec command
+var commandCmd = &cobra.Command{
+	Use:   "command",
+	Short: "Execute commands on target hosts",
+	Long: `
+Execute commands on target hosts.`,
+	Example: commandCmdExamples,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := configflags.Config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
@@ -86,6 +88,7 @@ Execute commands on target hosts.`,
 
 		task.SetTargetHosts(args)
 		task.SetCommand(shellCommand)
+
 		task.Start()
 	},
 }

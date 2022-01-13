@@ -60,10 +60,36 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig, initLogger, printDebugInfo)
 
+	markHiddenGlobalFlagsExceptsForVault := func() {
+		util.CobraMarkHiddenGlobalFlagsExcept(
+			rootCmd,
+			"auth.vault-pass-file",
+			"output.verbose",
+			"output.json",
+			"output.quiet",
+			"output.file",
+			"output.condense",
+		)
+	}
+
+	vault.Cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markHiddenGlobalFlagsExceptsForVault()
+		command.Parent().HelpFunc()(command, strings)
+	})
+
+	vault.EncryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markHiddenGlobalFlagsExceptsForVault()
+		command.Parent().Parent().HelpFunc()(command, strings)
+	})
+
+	vault.DecryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markHiddenGlobalFlagsExceptsForVault()
+		command.Parent().Parent().HelpFunc()(command, strings)
+	})
+
 	rootCmd.AddCommand(vault.Cmd)
 
 	persistentFlags := rootCmd.PersistentFlags()
-
 	persistentFlags.StringVarP(&cfgFile, cfgFileFlag, "", "", "config file (default {$PWD,$HOME}/.gossh.yaml)")
 
 	configFlags := configflags.New()

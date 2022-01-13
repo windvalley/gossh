@@ -28,6 +28,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/windvalley/gossh/internal/pkg/configflags"
+	"github.com/windvalley/gossh/pkg/util"
 )
 
 const configTemplate = `auth:
@@ -178,5 +179,17 @@ $PWD/.gossh.yaml has higher priority than $HOME/.gossh.yaml`,
 }
 
 func init() {
+	configCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		util.CobraMarkHiddenGlobalFlags(
+			command,
+			"config",
+			"auth.identity-files",
+			"proxy.identity-files",
+			"hosts.list",
+		)
+
+		command.Parent().HelpFunc()(command, strings)
+	})
+
 	rootCmd.AddCommand(configCmd)
 }
