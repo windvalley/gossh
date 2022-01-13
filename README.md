@@ -104,26 +104,26 @@ Usage:
 
 Available Commands:
   command     Execute commands on target hosts
-  completion  generate the autocompletion script for the specified shell
-  config      Generate gossh configuration file
-  fetch       Copy files/dirs from target hosts to local
-  help        Help about any command
-  push        Copy local files/dirs to target hosts
   script      Execute a local shell script on target hosts
+  push        Copy local files/dirs to target hosts
+  fetch       Copy files/dirs from target hosts to local
   vault       Encryption and decryption utility
+  config      Generate gossh configuration file
   version     Show gossh version information
+  help        Help about any command
+  completion  Generate the autocompletion script for the specified shell
 
 Flags:
   -k, --auth.ask-pass                  ask for password of login user
   -i, --auth.identity-files strings    identity files (default $HOME/.ssh/{id_rsa,id_dsa})
-  -a, --auth.pass-file string          file containing the password of login user
+  -a, --auth.pass-file string          file that holds the login user's password
   -K, --auth.passphrase string         passphrase of the identity files
   -p, --auth.password string           password of login user
   -u, --auth.user string               login user (default $USER)
-  -V, --auth.vault-pass-file string    vault password file for encryption or decryption
+  -V, --auth.vault-pass-file string    file that holds the vault password for encryption and decryption
       --config string                  config file (default {$PWD,$HOME}/.gossh.yaml)
   -h, --help                           help for gossh
-  -H, --hosts.file string              file containing target hosts (format: one host/pattern per line)
+  -H, --hosts.file string              file that holds the target hosts (one host/pattern per line)
   -L, --hosts.list                     outputs a list of target hosts, and does not do anything else
   -P, --hosts.port int                 port of target hosts (default 22)
   -C, --output.condense                condense output and disable color
