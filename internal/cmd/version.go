@@ -47,6 +47,4 @@ func init() {
 		util.CobraMarkHiddenGlobalFlagsExcept(rootCmd)
 		command.Parent().HelpFunc()(command, strings)
 	})
-
-	rootCmd.AddCommand(versionCmd)
 }

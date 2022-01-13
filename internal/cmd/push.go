@@ -119,8 +119,6 @@ Copy local files/dirs to target hosts.`,
 }
 
 func init() {
-	rootCmd.AddCommand(pushCmd)
-
 	pushCmd.Flags().StringSliceVarP(&files, "files", "f", nil,
 		"local files/dirs to be copied to target hosts",
 	)

@@ -69,7 +69,3 @@ Decrypt content encrypted by vault.`,
 		fmt.Println(plainText)
 	},
 }
-
-func init() {
-	Cmd.AddCommand(DecryptCmd)
-}

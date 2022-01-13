@@ -65,7 +65,3 @@ Encrypt sensitive content.`,
 		fmt.Println(encryptContent)
 	},
 }
-
-func init() {
-	Cmd.AddCommand(EncryptCmd)
-}

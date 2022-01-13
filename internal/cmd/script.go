@@ -89,8 +89,6 @@ Execute a local shell script on target hosts.`,
 }
 
 func init() {
-	rootCmd.AddCommand(scriptCmd)
-
 	scriptCmd.Flags().StringVarP(&scriptFile, "execute", "e", "",
 		"a shell script to be executed on target hosts",
 	)

@@ -83,8 +83,6 @@ Copy files/dirs from target hosts to local.`,
 }
 
 func init() {
-	rootCmd.AddCommand(fetchCmd)
-
 	fetchCmd.Flags().StringSliceVarP(&srcFiles, "files", "f", nil,
 		"files/dirs on target hosts that to be copied",
 	)

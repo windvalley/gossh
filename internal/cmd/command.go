@@ -94,8 +94,6 @@ Execute commands on target hosts.`,
 }
 
 func init() {
-	rootCmd.AddCommand(commandCmd)
-
 	commandCmd.Flags().StringVarP(
 		&shellCommand,
 		"execute",

@@ -190,6 +190,4 @@ func init() {
 
 		command.Parent().HelpFunc()(command, strings)
 	})
-
-	rootCmd.AddCommand(configCmd)
 }

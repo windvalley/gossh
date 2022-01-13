@@ -76,18 +76,24 @@ func init() {
 		markHiddenGlobalFlagsExceptsForVault()
 		command.Parent().HelpFunc()(command, strings)
 	})
-
 	vault.EncryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
 		markHiddenGlobalFlagsExceptsForVault()
 		command.Parent().Parent().HelpFunc()(command, strings)
 	})
-
 	vault.DecryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
 		markHiddenGlobalFlagsExceptsForVault()
 		command.Parent().Parent().HelpFunc()(command, strings)
 	})
 
+	cobra.EnableCommandSorting = false
+
+	rootCmd.AddCommand(commandCmd)
+	rootCmd.AddCommand(scriptCmd)
+	rootCmd.AddCommand(pushCmd)
+	rootCmd.AddCommand(fetchCmd)
 	rootCmd.AddCommand(vault.Cmd)
+	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(versionCmd)
 
 	persistentFlags := rootCmd.PersistentFlags()
 	persistentFlags.StringVarP(&cfgFile, cfgFileFlag, "", "", "config file (default {$PWD,$HOME}/.gossh.yaml)")
