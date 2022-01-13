@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Hide global flags that are not used by some subcommands
+  ([#21](https://github.com/windvalley/gossh/issues/21)).
+
+  - Hide following global flags for subcommand `config`.
+
+    - `--config`
+    - `-i/--auth.identity-files`
+    - `--proxy.identity-files`
+    - `-L/--hosts.list`
+
+  - Hide all global flags for subcommand `version`.
+
+  - Hide all global flags except following for `vault`.
+    - `-V/auth.vault-pass-file`
+    - `-v/output.verbose`
+    - `-j/output.json`
+    - `-q/output.quiet`
+    - `-o/output.file`
+    - `-C/output.condense`
+
+- Optimize the order of available commands.
+  Before:
+  ```text
+  Available Commands:
+  command     Execute commands on target hosts
+  completion  Generate the autocompletion script for the specified shell
+  config      Generate gossh configuration file
+  fetch       Copy files/dirs from target hosts to local
+  help        Help about any command
+  push        Copy local files/dirs to target hosts
+  script      Execute a local shell script on target hosts
+  vault       Encryption and decryption utility
+  version     Show gossh version information
+  ```
+  After:
+  ```text
+  Available Commands:
+  command     Execute commands on target hosts
+  script      Execute a local shell script on target hosts
+  push        Copy local files/dirs to target hosts
+  fetch       Copy files/dirs from target hosts to local
+  vault       Encryption and decryption utility
+  config      Generate gossh configuration file
+  version     Show gossh version information
+  help        Help about any command
+  completion  Generate the autocompletion script for the specified shell
+  ```
+
+### Fixed
+
+- Fix default `completion` command description is inconsistent with others
+  ([#22](https://github.com/windvalley/gossh/issues/22)).
+
 ## [1.5.0]
 
 ### Added
@@ -177,8 +232,6 @@ Global Flags:
   --proxy.user string              login user for proxy(default the same as 'auth.user')
   ```
 
-````
-
 - Support parsing identity-files(private keys) with passphrase.
   Add flag `-K/--auth.passphrase` for parsing identity files with passphrase.
 
@@ -346,4 +399,3 @@ If the dest directory given by flag `-d` does not exist or does not have permiss
 ### Fixed
 
 ### Security
-````
