@@ -111,6 +111,8 @@ type Task struct {
 
 	taskOutput   chan taskResult
 	detailOutput chan detailResult
+
+	err error
 }
 
 // NewTask ...
@@ -227,7 +229,8 @@ func (t *Task) BatchRun() {
 
 	allHosts, err := t.getAllHosts()
 	if err != nil {
-		util.CheckErr(err)
+		t.err = err
+		return
 	}
 
 	log.Debugf("got target hosts, count: %d", len(allHosts))
@@ -251,29 +254,31 @@ func (t *Task) BatchRun() {
 	switch t.taskType {
 	case CommandTask:
 		if t.command == "" {
-			util.CheckErr(errors.New("need flag '-e/--execute' or '-L/--hosts.list'"))
+			t.err = errors.New("need flag '-e/--execute' or '-L/--hosts.list'")
 		}
 	case ScriptTask:
 		if t.scriptFile == "" {
-			util.CheckErr(errors.New("need flag '-e/--execute' or '-L/--hosts.list'"))
+			t.err = errors.New("need flag '-e/--execute' or '-L/--hosts.list'")
 		}
 	case PushTask:
 		if t.pushFiles == nil || len(t.pushFiles.files) == 0 {
-			util.CheckErr(errors.New("need flag '-f/--files' or '-L/--hosts.list'"))
+			t.err = errors.New("need flag '-f/--files' or '-L/--hosts.list'")
 		}
 	case FetchTask:
 		if len(t.fetchFiles) == 0 {
-			util.CheckErr(errors.New("need flag '-f/--files' or '-L/--hosts.list'"))
+			t.err = errors.New("need flag '-f/--files' or '-L/--hosts.list'")
+		} else if len(t.dstDir) == 0 {
+			t.err = errors.New("need flag '-d/--dest-path' or '-L/--hosts.list'")
+		} else {
+			if !util.DirExists(t.dstDir) {
+				err := os.MkdirAll(t.dstDir, os.ModePerm)
+				util.CheckErr(err)
+			}
 		}
+	}
 
-		if len(t.dstDir) == 0 {
-			util.CheckErr(errors.New("need flag '-d/--dest-path' or '-L/--hosts.list'"))
-		}
-
-		if !util.DirExists(t.dstDir) {
-			err := os.MkdirAll(t.dstDir, os.ModePerm)
-			util.CheckErr(err)
-		}
+	if t.err != nil {
+		return
 	}
 
 	t.buildSSHClient()
@@ -348,6 +353,11 @@ func (t *Task) HandleOutput() {
 	}
 }
 
+// CheckErr ...
+func (t *Task) CheckErr() error {
+	return t.err
+}
+
 func (t *Task) getAllHosts() ([]string, error) {
 	var hosts []string
 
@@ -392,17 +402,15 @@ func (t *Task) getAllHosts() ([]string, error) {
 	}
 
 	if len(hosts) == 0 {
-		return nil, fmt.Errorf("no target hosts provided")
+		return nil, fmt.Errorf("need target hosts, you can specify hosts file by flag '-H' or " +
+			"provide host/pattern as positional arguments")
 	}
 
 	return util.RemoveDuplStr(hosts), nil
 }
 
 func (t *Task) buildSSHClient() {
-	var (
-		sshClient *batchssh.Client
-		err       error
-	)
+	var sshClient *batchssh.Client
 
 	password, err := t.getPassword()
 	if err != nil {
@@ -414,7 +422,7 @@ func (t *Task) buildSSHClient() {
 	if t.configFlags.Proxy.Server != "" {
 		proxyAuths := t.getProxySSHAuthMethods(&password)
 
-		sshClient, err = batchssh.NewClient(
+		sshClient = batchssh.NewClient(
 			t.configFlags.Auth.User,
 			password,
 			auths,
@@ -430,7 +438,7 @@ func (t *Task) buildSSHClient() {
 			),
 		)
 	} else {
-		sshClient, err = batchssh.NewClient(
+		sshClient = batchssh.NewClient(
 			t.configFlags.Auth.User,
 			password,
 			auths,
@@ -439,10 +447,6 @@ func (t *Task) buildSSHClient() {
 			batchssh.WithConcurrency(t.configFlags.Run.Concurrency),
 			batchssh.WithPort(t.configFlags.Hosts.Port),
 		)
-	}
-
-	if err != nil {
-		util.CheckErr(err)
 	}
 
 	t.sshClient = sshClient

@@ -45,11 +45,11 @@ Decrypt content encrypted by vault.`,
     $ gossh vault decrypt GOSSH-AES256:a5c1b3c0cdad4669f84 -V /path/vault-password-file`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			util.CheckErr("requires one arg to represent the vault encrypted content")
+			util.CobraCheckErrWithHelp(cmd, "requires one arg to represent the vault encrypted content")
 		}
 
 		if len(args) > 1 {
-			util.CheckErr("to many args, only need one")
+			util.CobraCheckErrWithHelp(cmd, "to many args, only need one")
 		}
 
 		if !aes.IsAES256CipherText(args[0]) {
@@ -66,6 +66,6 @@ Decrypt content encrypted by vault.`,
 		}
 		util.CheckErr(err)
 
-		fmt.Println(plainText)
+		fmt.Printf("\n%s\n", plainText)
 	},
 }

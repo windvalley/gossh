@@ -7,6 +7,19 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// CobraCheckErrWithHelp instead of cobra default behavior.
+func CobraCheckErrWithHelp(cmd *cobra.Command, errMsg interface{}) {
+	if errMsg != nil {
+		PrintErr(errMsg)
+
+		_ = cmd.Help()
+
+		fmt.Println()
+
+		CheckErr(errMsg)
+	}
+}
+
 // CobraMarkHiddenGlobalFlags that from params.
 func CobraMarkHiddenGlobalFlags(command *cobra.Command, flags ...string) {
 	for _, v := range flags {

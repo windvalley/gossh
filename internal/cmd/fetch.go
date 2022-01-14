@@ -79,6 +79,8 @@ Copy files/dirs from target hosts to local.`,
 		task.SetFetchOptions(localDstDir, tmpDir)
 
 		task.Start()
+
+		util.CobraCheckErrWithHelp(cmd, task.CheckErr())
 	},
 }
 

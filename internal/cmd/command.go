@@ -90,6 +90,8 @@ Execute commands on target hosts.`,
 		task.SetCommand(shellCommand)
 
 		task.Start()
+
+		util.CobraCheckErrWithHelp(cmd, task.CheckErr())
 	},
 }
 

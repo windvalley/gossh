@@ -115,6 +115,8 @@ Copy local files/dirs to target hosts.`,
 		task.SetPushOptions(fileDstPath, allowOverwrite)
 
 		task.Start()
+
+		util.CobraCheckErrWithHelp(cmd, task.CheckErr())
 	},
 }
 
@@ -134,4 +136,15 @@ func init() {
 		false,
 		"allow overwrite files/dirs if they already exist on target hosts",
 	)
+
+	pushCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		util.CobraMarkHiddenGlobalFlags(
+			command,
+			"run.sudo",
+			"run.as-user",
+			"run.lang",
+		)
+
+		command.Parent().HelpFunc()(command, strings)
+	})
 }

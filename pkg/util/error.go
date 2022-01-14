@@ -36,3 +36,10 @@ func CheckErr(msg interface{}) {
 		os.Exit(1)
 	}
 }
+
+// PrintErr with red color if err not nil.
+func PrintErr(msg interface{}) {
+	if msg != nil {
+		fmt.Fprintln(os.Stderr, color.RedString("Error:"), msg)
+	}
+}

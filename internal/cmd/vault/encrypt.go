@@ -45,23 +45,24 @@ Encrypt sensitive content.`,
     $ gossh vault encrypt your-sensitive-content -V /path/vault-password-file`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			util.CheckErr("requires one arg to represent the plaintxt to be encrypted")
+			util.CobraCheckErrWithHelp(cmd, "requires one arg to represent the plaintxt to be encrypted")
 		}
 
 		if len(args) > 1 {
-			util.CheckErr("to many args, only need one")
+			util.CobraCheckErrWithHelp(cmd, "to many args, only need one")
 		}
 
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		vaultPass := getVaultConfirmPassword()
+
 		encryptContent, err := aes.AES256Encode(args[0], vaultPass)
 		if err != nil {
 			err = fmt.Errorf("encrypt failed: %w", err)
 		}
 		util.CheckErr(err)
 
-		fmt.Println(encryptContent)
+		fmt.Printf("\n%s\n", encryptContent)
 	},
 }

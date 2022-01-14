@@ -85,6 +85,8 @@ Execute a local shell script on target hosts.`,
 		task.SetScriptOptions(destPath, remove, force)
 
 		task.Start()
+
+		util.CobraCheckErrWithHelp(cmd, task.CheckErr())
 	},
 }
 

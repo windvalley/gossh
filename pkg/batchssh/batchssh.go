@@ -83,11 +83,7 @@ type Proxy struct {
 }
 
 // NewClient session.
-func NewClient(
-	user, password string,
-	auths []ssh.AuthMethod,
-	options ...func(*Client),
-) (*Client, error) {
+func NewClient(user, password string, auths []ssh.AuthMethod, options ...func(*Client)) *Client {
 	client := Client{
 		User:           user,
 		Password:       password,
@@ -103,7 +99,7 @@ func NewClient(
 		option(&client)
 	}
 
-	return &client, nil
+	return &client
 }
 
 // BatchRun command on remote servers.
