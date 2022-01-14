@@ -114,39 +114,39 @@ Available Commands:
   completion  Generate the autocompletion script for the specified shell
 
 Flags:
-  -k, --auth.ask-pass                  ask for password of login user
-  -i, --auth.identity-files strings    identity files (default $HOME/.ssh/{id_rsa,id_dsa})
-  -a, --auth.pass-file string          file that holds the login user's password
-  -K, --auth.passphrase string         passphrase of the identity files
-  -p, --auth.password string           password of login user
   -u, --auth.user string               login user (default $USER)
+  -p, --auth.password string           password of login user
+  -k, --auth.ask-pass                  ask for password of login user
+  -a, --auth.pass-file string          file that holds the login user's password
+  -i, --auth.identity-files strings    identity files (default $HOME/.ssh/{id_rsa,id_dsa})
+  -K, --auth.passphrase string         passphrase of the identity files
   -V, --auth.vault-pass-file string    file that holds the vault password for encryption and decryption
-      --config string                  config file (default {$PWD,$HOME}/.gossh.yaml)
-  -h, --help                           help for gossh
   -H, --hosts.file string              file that holds the target hosts (one host/pattern per line)
-  -L, --hosts.list                     outputs a list of target hosts, and does not do anything else
   -P, --hosts.port int                 port of target hosts (default 22)
-  -C, --output.condense                condense output and disable color
+  -L, --hosts.list                     outputs a list of target hosts, and does not do anything else
+  -s, --run.sudo                       use sudo to execute commands/script or fetch files/dirs
+  -U, --run.as-user string             run via sudo as this user (default "root")
+  -l, --run.lang string                specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
+  -c, --run.concurrency int            number of concurrent connections (default 1)
   -o, --output.file string             file to which messages are output
   -j, --output.json                    output messages in json format
+  -C, --output.condense                condense output and disable color
   -q, --output.quiet                   do not output messages to screen (except error messages)
   -v, --output.verbose                 show debug messages
+  -X, --proxy.server string            proxy server address
+      --proxy.port int                 proxy server port (default 22)
+      --proxy.user string              login user for proxy (default same as 'auth.user')
+      --proxy.password string          password for proxy (default same as 'auth.password')
       --proxy.identity-files strings   identity files for proxy (default same as 'auth.identity-files')
       --proxy.passphrase string        passphrase of the identity files for proxy
                                        (default same as 'auth.passphrase')
-      --proxy.password string          password for proxy (default same as 'auth.password')
-      --proxy.port int                 proxy server port (default 22)
-  -X, --proxy.server string            proxy server address
-      --proxy.user string              login user for proxy (default same as 'auth.user')
-  -U, --run.as-user string             run via sudo as this user (default "root")
-  -c, --run.concurrency int            number of concurrent connections (default 1)
-  -l, --run.lang string                specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
-  -s, --run.sudo                       use sudo to execute commands/script or fetch files/dirs
+      --timeout.task int               timeout seconds for the entire gossh command task
+      --timeout.conn int               timeout seconds for connecting each target host (default 10)
       --timeout.command int            timeout seconds for executing commands/script on each target host
                                        or copying local files and dirs to each target host
                                        or copying files and dirs from each target host to local
-      --timeout.conn int               timeout seconds for connecting each target host (default 10)
-      --timeout.task int               timeout seconds for the current gossh task
+      --config string                  config file (default {$PWD,$HOME}/.gossh.yaml)
+  -h, --help                           help for gossh
 
 Use "gossh [command] --help" for more information about a command.
 ```
