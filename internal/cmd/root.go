@@ -60,46 +60,28 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig, initLogger, printDebugInfo)
 
-	markHiddenGlobalFlagsExceptsForVault := func() {
-		util.CobraMarkHiddenGlobalFlagsExcept(
-			rootCmd,
-			"auth.vault-pass-file",
-			"output.verbose",
-			"output.json",
-			"output.quiet",
-			"output.file",
-			"output.condense",
-		)
-	}
+	vault.SetHelpFunc(rootCmd)
 
-	vault.Cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		markHiddenGlobalFlagsExceptsForVault()
-		command.Parent().HelpFunc()(command, strings)
-	})
-	vault.EncryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		markHiddenGlobalFlagsExceptsForVault()
-		command.Parent().Parent().HelpFunc()(command, strings)
-	})
-	vault.DecryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
-		markHiddenGlobalFlagsExceptsForVault()
-		command.Parent().Parent().HelpFunc()(command, strings)
-	})
+	util.CobraAddSubCommandInOrder(rootCmd,
+		commandCmd,
+		scriptCmd,
+		pushCmd,
+		fetchCmd,
+		vault.Cmd,
+		configCmd,
+		versionCmd,
+	)
 
-	cobra.EnableCommandSorting = false
-
-	rootCmd.AddCommand(commandCmd)
-	rootCmd.AddCommand(scriptCmd)
-	rootCmd.AddCommand(pushCmd)
-	rootCmd.AddCommand(fetchCmd)
-	rootCmd.AddCommand(vault.Cmd)
-	rootCmd.AddCommand(configCmd)
-	rootCmd.AddCommand(versionCmd)
-
+	localFlags := rootCmd.Flags()
 	persistentFlags := rootCmd.PersistentFlags()
-	persistentFlags.StringVarP(&cfgFile, cfgFileFlag, "", "", "config file (default {$PWD,$HOME}/.gossh.yaml)")
+
+	localFlags.SortFlags = false
+	persistentFlags.SortFlags = false
 
 	configFlags := configflags.New()
 	configFlags.AddFlagsTo(persistentFlags)
+
+	persistentFlags.StringVarP(&cfgFile, cfgFileFlag, "", "", "config file (default {$PWD,$HOME}/.gossh.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.

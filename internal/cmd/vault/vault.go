@@ -47,8 +47,37 @@ password(vault-pass) to encrypt and decrypt the content.`,
 }
 
 func init() {
-	Cmd.AddCommand(EncryptCmd)
-	Cmd.AddCommand(DecryptCmd)
+	util.CobraAddSubCommandInOrder(Cmd, EncryptCmd, DecryptCmd)
+}
+
+// SetHelpFunc for vault command and its subcommands.
+func SetHelpFunc(rootCmd *cobra.Command) {
+	markHiddenGlobalFlagsExceptsForVault := func() {
+		util.CobraMarkHiddenGlobalFlagsExcept(
+			rootCmd,
+			"auth.vault-pass-file",
+			"output.verbose",
+			"output.json",
+			"output.quiet",
+			"output.file",
+			"output.condense",
+		)
+	}
+
+	Cmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markHiddenGlobalFlagsExceptsForVault()
+		command.Parent().HelpFunc()(command, strings)
+	})
+
+	EncryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markHiddenGlobalFlagsExceptsForVault()
+		command.Parent().Parent().HelpFunc()(command, strings)
+	})
+
+	DecryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markHiddenGlobalFlagsExceptsForVault()
+		command.Parent().Parent().HelpFunc()(command, strings)
+	})
 }
 
 func getVaultConfirmPassword() string {

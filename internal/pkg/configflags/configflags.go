@@ -37,8 +37,8 @@ type ConfigFlags struct {
 	Hosts   *Hosts   `json:"hosts" mapstructure:"hosts"`
 	Run     *Run     `json:"run" mapstructure:"run"`
 	Output  *Output  `json:"output" mapstructure:"output"`
-	Timeout *Timeout `json:"timeout" mapstructure:"timeout"`
 	Proxy   *Proxy   `json:"proxy" mapstructure:"proxy"`
+	Timeout *Timeout `json:"timeout" mapstructure:"timeout"`
 }
 
 // New config flags.
@@ -48,8 +48,8 @@ func New() *ConfigFlags {
 		Hosts:   NewHosts(),
 		Run:     NewRun(),
 		Output:  NewOutput(),
-		Timeout: NewTimeout(),
 		Proxy:   NewProxy(),
+		Timeout: NewTimeout(),
 	}
 }
 
@@ -59,8 +59,8 @@ func (c *ConfigFlags) AddFlagsTo(flags *pflag.FlagSet) {
 	c.Hosts.AddFlagsTo(flags)
 	c.Run.AddFlagsTo(flags)
 	c.Output.AddFlagsTo(flags)
-	c.Timeout.AddFlagsTo(flags)
 	c.Proxy.AddFlagsTo(flags)
+	c.Timeout.AddFlagsTo(flags)
 }
 
 // String ...

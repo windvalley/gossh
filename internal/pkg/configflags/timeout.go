@@ -48,13 +48,14 @@ func NewTimeout() *Timeout {
 
 // AddFlagsTo ...
 func (t *Timeout) AddFlagsTo(flags *pflag.FlagSet) {
+	flags.IntVarP(&t.Task, flagTimeoutTask, "", t.Task,
+		"timeout seconds for the entire gossh command task")
 	flags.IntVarP(&t.Conn, flagTimeoutConn, "", t.Conn,
 		"timeout seconds for connecting each target host")
 	flags.IntVarP(&t.Command, flagTimeoutCommand, "", t.Command,
 		`timeout seconds for executing commands/script on each target host
 or copying local files and dirs to each target host
 or copying files and dirs from each target host to local`)
-	flags.IntVarP(&t.Task, flagTimeoutTask, "", t.Task, "timeout seconds for the current gossh task")
 }
 
 // Complete ...
