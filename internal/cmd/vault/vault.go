@@ -57,10 +57,6 @@ func SetHelpFunc(rootCmd *cobra.Command) {
 			rootCmd,
 			"auth.vault-pass-file",
 			"output.verbose",
-			"output.json",
-			"output.quiet",
-			"output.file",
-			"output.condense",
 		)
 	}
 
