@@ -88,8 +88,6 @@ func NewClient(
 	auths []ssh.AuthMethod,
 	options ...func(*Client),
 ) (*Client, error) {
-	log.Debugf("Login user: %s", user)
-
 	client := Client{
 		User:           user,
 		Password:       password,
@@ -814,8 +812,6 @@ func WithConcurrency(count int) func(*Client) {
 // WithProxyServer connect remote hosts by proxy server.
 func WithProxyServer(proxyServer, user string, port int, auths []ssh.AuthMethod) func(*Client) {
 	return func(c *Client) {
-		log.Debugf("Proxy login user: %s", user)
-
 		proxySSHConfig := &ssh.ClientConfig{
 			User:    user,
 			Auth:    auths,

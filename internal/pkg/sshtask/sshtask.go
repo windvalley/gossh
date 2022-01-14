@@ -230,11 +230,22 @@ func (t *Task) BatchRun() {
 		util.CheckErr(err)
 	}
 
+	log.Debugf("got target hosts, count: %d", len(allHosts))
+
 	if t.configFlags.Hosts.List {
 		hostsCount := len(allHosts)
 		fmt.Printf("%s\n", strings.Join(allHosts, "\n"))
 		fmt.Fprintf(os.Stderr, "\nhosts (%d)\n", hostsCount)
 		return
+	}
+
+	authConf := t.configFlags.Auth
+	runConf := t.configFlags.Run
+
+	log.Debugf("Auth: login user: %s", authConf.User)
+
+	if runConf.Sudo {
+		log.Debugf("Auth: use sudo as user '%s'", runConf.AsUser)
 	}
 
 	switch t.taskType {
@@ -445,8 +456,6 @@ func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
 	)
 
 	if *password != "" {
-		log.Debugf("Auth: received password of the login user")
-
 		auths = append(auths, ssh.Password(*password))
 	} else {
 		log.Debugf("Auth: password of the login user not provided")
@@ -479,7 +488,7 @@ func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
 	if len(auths) == 0 {
 		log.Debugf("Auth: no valid authentication method detected. Prompt for password of the login user")
 
-		*password = getPasswordFromPrompt()
+		*password = getPasswordFromPrompt(t.configFlags.Auth.User)
 		auths = append(auths, ssh.Password(*password))
 
 		return auths
@@ -488,7 +497,7 @@ func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
 	if *password == "" && t.configFlags.Run.Sudo {
 		log.Debugf("Auth: using sudo as other user needs password. Prompt for password of the login user")
 
-		*password = getPasswordFromPrompt()
+		*password = getPasswordFromPrompt(t.configFlags.Auth.User)
 		auths = append(auths, ssh.Password(*password))
 	}
 
@@ -502,15 +511,14 @@ func (t *Task) getProxySSHAuthMethods(password *string) []ssh.AuthMethod {
 		err        error
 	)
 
-	if t.configFlags.Proxy.Password != "" {
-		log.Debugf("Proxy Auth: received password of the proxy user")
+	log.Debugf("Proxy Auth: proxy login user: %s", t.configFlags.Proxy.User)
 
+	if t.configFlags.Proxy.Password != "" {
 		proxyAuths = append(proxyAuths, ssh.Password(t.configFlags.Proxy.Password))
 	} else {
-		log.Debugf("Proxy Auth: received password of the proxy user")
-
 		proxyAuths = append(proxyAuths, ssh.Password(*password))
 	}
+	log.Debugf("Proxy Auth: received password of the proxy user")
 
 	proxyKeyfiles := t.getProxyItentityFiles()
 	if len(proxyKeyfiles) != 0 {
@@ -552,23 +560,21 @@ func (t *Task) getPassword() (password string, err error) {
 
 		password = strings.TrimSpace(string(passwordContent))
 
-		log.Debugf("read password from file '%s'", authFile)
+		log.Debugf("Auth: read password from file '%s'", authFile)
 	}
 
 	passwordFromFlag := t.configFlags.Auth.Password
 	if passwordFromFlag != "" {
 		password = passwordFromFlag
 
-		log.Debugf("read password from commandline flag or configuration file")
+		log.Debugf("Auth: received password from commandline flag or configuration file")
 	}
 
 	assignRealPass(&password)
 
 	if t.configFlags.Auth.AskPass {
 		log.Debugf("Auth: ask for password of login user by flag '-k/--auth.ask-pass'")
-		password = getPasswordFromPrompt()
-
-		log.Debugf("read password from terminal prompt")
+		password = getPasswordFromPrompt(t.configFlags.Auth.User)
 	}
 
 	//nolint:nakedret
@@ -652,8 +658,8 @@ func getSigner(keyfile, passphrase string) (ssh.Signer, string) {
 	return pubkey, fmt.Sprintf("parsed identity file '%s'", keyfile)
 }
 
-func getPasswordFromPrompt() string {
-	fmt.Fprintf(os.Stderr, "Password: ")
+func getPasswordFromPrompt(loginUser string) string {
+	fmt.Fprintf(os.Stderr, "Password for %s: ", loginUser)
 
 	var passwordByte []byte
 	passwordByte, err := term.ReadPassword(0)
@@ -666,7 +672,7 @@ func getPasswordFromPrompt() string {
 
 	fmt.Println("")
 
-	log.Debugf("Auth: read password of the login user from terminal prompt")
+	log.Debugf("Auth: received password of the login user '%s' from terminal prompt", loginUser)
 
 	return password
 }
