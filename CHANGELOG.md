@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0]
+
 ### Changed
 
 - Hide global flags that are not used by some subcommands
@@ -22,15 +24,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Hide all global flags for subcommand `version`.
 
   - Hide all global flags except following for `vault`.
-    - `-V/auth.vault-pass-file`
-    - `-v/output.verbose`
-    - `-j/output.json`
-    - `-q/output.quiet`
-    - `-o/output.file`
-    - `-C/output.condense`
+
+    - `-V/--auth.vault-pass-file`
+    - `-v/--output.verbose`
+    - `-j/--output.json`
+    - `-q/--output.quiet`
+    - `-o/--output.file`
+    - `-C/--output.condense`
+
+  - Hide following global flags for subcommand `push`.
+    - `-s/--run.sudo`
+    - `-U/--run.as-user`
+    - `-L/--run.lang`
 
 - Optimize the order of available commands.
   Before:
+
   ```text
   Available Commands:
   command     Execute commands on target hosts
@@ -43,7 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   vault       Encryption and decryption utility
   version     Show gossh version information
   ```
+
   After:
+
   ```text
   Available Commands:
   command     Execute commands on target hosts
@@ -56,6 +67,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   help        Help about any command
   completion  Generate the autocompletion script for the specified shell
   ```
+
+- Optimize the order of flags to make them more friendly
+  ([#23](https://github.com/windvalley/gossh/issues/23)).
+
+- Password prompt for login user changed from `Password` to `Password for zhangsan`.
+
+- Optimize output error messages that caused by improper use.
 
 ### Fixed
 
