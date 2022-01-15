@@ -66,7 +66,7 @@ func (h *Hosts) AddFlagsTo(fs *pflag.FlagSet) {
 		flagHostsPort,
 		"P",
 		h.Port,
-		"port of target hosts",
+		"port of the target hosts",
 	)
 	fs.BoolVarP(
 		&h.List,

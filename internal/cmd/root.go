@@ -45,7 +45,7 @@ var rootCmd = &cobra.Command{
 	Long: `
 Gossh is a high-performance and high-concurrency ssh tool.
 This tool can efficiently manage tens of thousands of Linux server clusters.
-It can efficiently execute commands or a local script on target hosts,
+It can efficiently execute commands or a local shell script on target hosts,
 push files and dirs to target hosts, and fetch files and dirs from target hosts to local.
 
 Find more information at: https://github.com/windvalley/gossh`,
