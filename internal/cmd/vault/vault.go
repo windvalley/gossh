@@ -23,11 +23,13 @@ THE SOFTWARE.
 package vault
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
@@ -82,27 +84,10 @@ func getVaultConfirmPassword() string {
 		return password
 	}
 
-	var passwordConfirm string
-	for {
-		password = getPasswordFromPrompt("New Vault password: ")
-		if password != "" {
-			break
-		}
-
-		fmt.Printf("password can not be null, retry\n")
-	}
-
-	for {
-		passwordConfirm = getPasswordFromPrompt("Confirm New Vault password: ")
-		if passwordConfirm != "" {
-			break
-		}
-
-		fmt.Printf("password can not be null, retry\n")
-	}
-
-	if password != passwordConfirm {
-		util.CheckErr("passwords do not match")
+	prompt := "New Vault password: "
+	password, err := getConfirmPasswordFromPrompt(prompt)
+	if err != nil {
+		util.CheckErr(fmt.Sprintf("get vault password from terminal prompt failed: %s", err))
 	}
 
 	log.Debugf("confirmed vault password that from terminal prompt")
@@ -112,19 +97,27 @@ func getVaultConfirmPassword() string {
 
 // GetVaultPassword from terminal prompt or vault file.
 func GetVaultPassword() string {
+	var err error
+
 	password := getVaultPasswordFromFile()
 	if password != "" {
 		return password
 	}
 
+	prompt := "Vault password: "
 	for {
-		password = getPasswordFromPrompt("Vault password: ")
+		password, err = getPasswordFromPrompt(prompt)
+		if err != nil {
+			util.CheckErr(fmt.Sprintf("get vault password from terminal prompt '%s' failed: %s", prompt, err))
+		}
 		if password != "" {
 			break
 		}
 
 		fmt.Printf("password can not be null, retry\n")
 	}
+
+	log.Debugf("read vault password from terminal prompt '%s'", prompt)
 
 	return password
 }
@@ -148,21 +141,58 @@ func getVaultPasswordFromFile() string {
 	return ""
 }
 
-func getPasswordFromPrompt(prompt string) string {
+func getPasswordFromPrompt(prompt string) (string, error) {
 	fmt.Fprint(os.Stderr, prompt)
 
 	var passwordByte []byte
 	passwordByte, err := term.ReadPassword(0)
 	if err != nil {
-		err = fmt.Errorf("get vault password from terminal prompt '%s' failed: %s", prompt, err)
+		return "", err
 	}
-	util.CheckErr(err)
 
 	password := string(passwordByte)
 
 	fmt.Println("")
 
-	log.Debugf("read vault password from terminal prompt '%s'", prompt)
+	return password, nil
+}
 
-	return password
+func getConfirmPasswordFromPrompt(prompt string) (string, error) {
+	var (
+		password        string
+		passwordConfirm string
+		err             error
+	)
+
+	warnStr := color.YellowString("input can not be null, retry")
+
+	for {
+		password, err = getPasswordFromPrompt(prompt)
+		if err != nil {
+			return "", err
+		}
+		if password != "" {
+			break
+		}
+
+		fmt.Println(warnStr)
+	}
+
+	for {
+		passwordConfirm, err = getPasswordFromPrompt(fmt.Sprintf("Confirm %s", strings.ToLower(prompt)))
+		if err != nil {
+			return "", err
+		}
+		if passwordConfirm != "" {
+			break
+		}
+
+		fmt.Println(warnStr)
+	}
+
+	if password != passwordConfirm {
+		return "", errors.New("two inputs do not match")
+	}
+
+	return password, nil
 }

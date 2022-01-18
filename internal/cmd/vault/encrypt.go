@@ -39,15 +39,14 @@ var EncryptCmd = &cobra.Command{
 Encrypt sensitive content.`,
 	Example: `
     # Encrypt plaintext by asking for vault password.
-    $ gossh vault encrypt your-sensitive-content
+    $ gossh vault encrypt "your-sensitive-plaintext"
 
     # Encrypt plaintext by vault password file.
-    $ gossh vault encrypt your-sensitive-content -V /path/vault-password-file`,
-	Args: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 1 {
-			util.CobraCheckErrWithHelp(cmd, "requires one arg to represent the plaintxt to be encrypted")
-		}
+    $ gossh vault encrypt "your-sensitive-plaintext" -V /path/vault-password-file
 
+	# Encrypt plaintext from terminal prompt.
+	$ gossh vault encrypt -V /path/vault-password-file`,
+	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) > 1 {
 			util.CobraCheckErrWithHelp(cmd, "to many args, only need one")
 		}
@@ -57,7 +56,13 @@ Encrypt sensitive content.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		vaultPass := getVaultConfirmPassword()
 
-		encryptContent, err := aes.AES256Encode(args[0], vaultPass)
+		plainPassword, err := getPlainPassword(args)
+		if err != nil {
+			err = fmt.Errorf("get plaintext to be encrypted failed: %s", err)
+		}
+		util.CheckErr(err)
+
+		encryptContent, err := aes.AES256Encode(plainPassword, vaultPass)
 		if err != nil {
 			err = fmt.Errorf("encrypt failed: %w", err)
 		}
@@ -65,4 +70,12 @@ Encrypt sensitive content.`,
 
 		fmt.Printf("\n%s\n", encryptContent)
 	},
+}
+
+func getPlainPassword(args []string) (string, error) {
+	if len(args) == 1 {
+		return args[0], nil
+	}
+
+	return getConfirmPasswordFromPrompt("Plaintext: ")
 }
