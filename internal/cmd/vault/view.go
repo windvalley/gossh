@@ -24,6 +24,7 @@ package vault
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"github.com/spf13/cobra"
 
@@ -31,41 +32,54 @@ import (
 	"github.com/windvalley/gossh/pkg/util"
 )
 
-// decryptCmd represents the vault decrypt command
-var decryptCmd = &cobra.Command{
-	Use:   "decrypt",
-	Short: "Decrypt content encrypted by vault",
+// viewCmd represents the vault view command
+var viewCmd = &cobra.Command{
+	Use:   "view",
+	Short: "View vault encrypted file",
 	Long: `
-Decrypt content encrypted by vault.`,
+View vault encrypted file.`,
 	Example: `
-    # Decrypt cipher text by asking for vault password.
-    $ gossh vault decrypt GOSSH-AES256:a5c1b3c0cdad4669f84
+    # View a vault encrypted file by asking for vault password.
+    $ gossh vault view /path/auth.txt
 
-    # Decrypt cipher text by vault password file.
-    $ gossh vault decrypt GOSSH-AES256:a5c1b3c0cdad4669f84 -V /path/vault-password-file`,
+    # View a vault encrypted file by vault password file.
+    $ gossh vault view /path/auth.txt -V /path/vault-password-file`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			util.CobraCheckErrWithHelp(cmd, "requires one arg to represent the vault encrypted content")
+			util.CobraCheckErrWithHelp(cmd, "requires one arg to represent the vault encrypted file")
 		}
 
 		if len(args) > 1 {
 			util.CobraCheckErrWithHelp(cmd, "to many args, only need one")
 		}
 
-		if !aes.IsAES256CipherText(args[0]) {
-			util.CheckErr(fmt.Sprintf("'%s' is not vault encrypted content", args[0]))
+		if !util.FileExists(args[0]) {
+			util.CheckErr(fmt.Sprintf("file '%s' not found", args[0]))
 		}
 
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		vaultPass := GetVaultPassword()
-		plainText, err := aes.AES256Decode(args[0], vaultPass)
+
+		file := args[0]
+
+		p, err := ioutil.ReadFile(file)
+		util.CheckErr(err)
+
+		content := string(p)
+
+		if !aes.IsAES256CipherText(content) {
+			util.CheckErr(fmt.Sprintf("'%s' is not vault encrypted file", file))
+		}
+
+		decryptContent, err := aes.AES256Decode(content, vaultPass)
 		if err != nil {
 			err = fmt.Errorf("decrypt failed: %w", err)
 		}
 		util.CheckErr(err)
 
-		fmt.Printf("\n%s\n", plainText)
+		err = util.LessContent(decryptContent)
+		util.CheckErr(err)
 	},
 }

@@ -49,7 +49,8 @@ password(vault-pass) to encrypt and decrypt the content.`,
 }
 
 func init() {
-	util.CobraAddSubCommandInOrder(Cmd, EncryptCmd, DecryptCmd)
+	util.CobraAddSubCommandInOrder(Cmd,
+		encryptCmd, decryptCmd, encryptFileCmd, decryptFileCmd, viewCmd)
 }
 
 // SetHelpFunc for vault command and its subcommands.
@@ -67,12 +68,27 @@ func SetHelpFunc(rootCmd *cobra.Command) {
 		command.Parent().HelpFunc()(command, strings)
 	})
 
-	EncryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+	encryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
 		markHiddenGlobalFlagsExceptsForVault()
 		command.Parent().Parent().HelpFunc()(command, strings)
 	})
 
-	DecryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+	decryptCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markHiddenGlobalFlagsExceptsForVault()
+		command.Parent().Parent().HelpFunc()(command, strings)
+	})
+
+	encryptFileCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markHiddenGlobalFlagsExceptsForVault()
+		command.Parent().Parent().HelpFunc()(command, strings)
+	})
+
+	decryptFileCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
+		markHiddenGlobalFlagsExceptsForVault()
+		command.Parent().Parent().HelpFunc()(command, strings)
+	})
+
+	viewCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
 		markHiddenGlobalFlagsExceptsForVault()
 		command.Parent().Parent().HelpFunc()(command, strings)
 	})

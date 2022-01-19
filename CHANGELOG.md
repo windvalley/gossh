@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0]
+
+### Added
+
+- `gossh vault encrypt`: adding the feature of obtaining plaintext from promt.
+  For details at ([#24](https://github.com/windvalley/gossh/issues/24)).
+
+- Add following new commands for subcommand `vault`,
+  for details at ([#25](https://github.com/windvalley/gossh/issues/25)).
+  - `encrypt-file`: Encrypt a file
+  - `decrypt-file`: Decrypt vault encrypted file
+  - `view`: View vault encrypted file
+
+### Changed
+
+- Hide following global flags for `vault`.
+
+  - `-j/--output.json`
+  - `-q/--output.quiet`
+  - `-o/--output.file`
+  - `-C/--output.condense`
+
+- Optimize some flags description.
+
 ## [1.6.0]
 
 ### Changed

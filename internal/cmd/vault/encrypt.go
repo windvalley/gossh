@@ -31,8 +31,8 @@ import (
 	"github.com/windvalley/gossh/pkg/util"
 )
 
-// EncryptCmd represents the vault encrypt command
-var EncryptCmd = &cobra.Command{
+// encryptCmd represents the vault encrypt command
+var encryptCmd = &cobra.Command{
 	Use:   "encrypt",
 	Short: "Encrypt sensitive content",
 	Long: `
