@@ -193,6 +193,20 @@ sys     0m0.592s
 
 [CHANGELOG](CHANGELOG.md)
 
+## ✨ Contributing
+
+I actively welcome your pull requests, please follow the steps below:
+
+1. Open a new issue at [gossh/issues](https://github.com/windvalley/gossh/issues).
+
+2. Fork the repo and create your branch from `main`.
+
+3. Do the changes in your fork.
+
+4. Send a pull request.
+
+> Note: Any contributions you make will be under the [MIT](LICENSE) Software License.
+
 ## ⚖️ License
 
 This project is under the MIT License.
