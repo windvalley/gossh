@@ -105,7 +105,7 @@ Decrypt vault encrypted file.`,
 			f, err1 = os.OpenFile(file, os.O_TRUNC|os.O_RDWR, os.ModePerm)
 		}
 		util.CheckErr(err1)
-
+		defer f.Close()
 		reader := bytes.NewReader([]byte(decryptContent))
 		_, err = reader.WriteTo(f)
 		util.CheckErr(err)
