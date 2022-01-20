@@ -36,6 +36,7 @@ import (
 
 var outputFile string
 
+//nolint:dupl
 // encryptFileCmd represents the vault encrypt-file command
 var encryptFileCmd = &cobra.Command{
 	Use:   "encrypt-file",
@@ -74,43 +75,12 @@ Encrypt a file.`,
 
 		file := args[0]
 
-		p, err := ioutil.ReadFile(file)
+		content, err := encryptFile(file, vaultPass)
 		util.CheckErr(err)
 
-		content := string(p)
+		handleOutput(content, file, outputFile)
 
-		if aes.IsAES256CipherText(content) {
-			util.CheckErr(fmt.Sprintf("file '%s' is already encrypted", file))
-		}
-
-		encryptContent, err := aes.AES256Encode(content, vaultPass)
-		if err != nil {
-			err = fmt.Errorf("encrypt failed: %w", err)
-		}
-		util.CheckErr(err)
-
-		var (
-			f    *os.File
-			err1 error
-		)
-
-		if outputFile != "" {
-			if outputFile == "-" {
-				fmt.Println(encryptContent)
-				fmt.Printf("\nEncryption successful\n")
-				return
-			}
-			f, err1 = os.OpenFile(outputFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
-		} else {
-			f, err1 = os.OpenFile(file, os.O_TRUNC|os.O_RDWR, os.ModePerm)
-		}
-		util.CheckErr(err1)
-
-		reader := bytes.NewReader([]byte(encryptContent))
-		_, err = reader.WriteTo(f)
-		util.CheckErr(err)
-
-		fmt.Printf("\nEncryption successful\n")
+		fmt.Printf("Encryption successful\n")
 	},
 }
 
@@ -122,4 +92,65 @@ func init() {
 		"",
 		"file that encrypted content is written to (use - for stdout)",
 	)
+}
+
+func handleOutput(content, originalFile, newFile string) {
+	var err error
+
+	switch {
+	case newFile != "" && newFile == "-":
+		fmt.Println(content)
+	case newFile != "":
+		err = writeContentToNewFile(newFile, content)
+	default:
+		err = writeContentToOriFile(originalFile, content)
+	}
+
+	util.CheckErr(err)
+}
+
+func encryptFile(file, vaultPass string) (string, error) {
+	p, err := ioutil.ReadFile(file)
+	if err != nil {
+		return "", err
+	}
+
+	content := string(p)
+
+	if aes.IsAES256CipherText(content) {
+		return "", fmt.Errorf("file '%s' is already encrypted", file)
+	}
+
+	encryptContent, err := aes.AES256Encode(content, vaultPass)
+	if err != nil {
+		return "", fmt.Errorf("encrypt failed: %w", err)
+	}
+
+	return encryptContent, nil
+}
+
+func writeContentToOriFile(file, content string) error {
+	f, err := os.OpenFile(file, os.O_TRUNC|os.O_RDWR, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	reader := bytes.NewReader([]byte(content))
+	_, err = reader.WriteTo(f)
+
+	return err
+}
+
+func writeContentToNewFile(file, content string) error {
+	f, err := os.OpenFile(file, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	reader := bytes.NewReader([]byte(content))
+	_, err = reader.WriteTo(f)
+
+	return err
 }

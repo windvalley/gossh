@@ -23,10 +23,8 @@ THE SOFTWARE.
 package vault
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -36,6 +34,7 @@ import (
 
 var deOutputFile string
 
+//nolint:dupl
 // decryptFileCmd represents the vault decrypt-file command
 var decryptFileCmd = &cobra.Command{
 	Use:   "decrypt-file",
@@ -74,43 +73,12 @@ Decrypt vault encrypted file.`,
 
 		file := args[0]
 
-		p, err := ioutil.ReadFile(file)
+		content, err := decryptFile(file, vaultPass)
 		util.CheckErr(err)
 
-		content := string(p)
+		handleOutput(content, file, deOutputFile)
 
-		if !aes.IsAES256CipherText(content) {
-			util.CheckErr(fmt.Sprintf("'%s' is not vault encrypted file", file))
-		}
-
-		decryptContent, err := aes.AES256Decode(content, vaultPass)
-		if err != nil {
-			err = fmt.Errorf("decrypt failed: %w", err)
-		}
-		util.CheckErr(err)
-
-		var (
-			f    *os.File
-			err1 error
-		)
-
-		if deOutputFile != "" {
-			if deOutputFile == "-" {
-				fmt.Println(decryptContent)
-				fmt.Printf("Decryption successful\n")
-				return
-			}
-			f, err1 = os.OpenFile(deOutputFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModePerm)
-		} else {
-			f, err1 = os.OpenFile(file, os.O_TRUNC|os.O_RDWR, os.ModePerm)
-		}
-		util.CheckErr(err1)
-
-		reader := bytes.NewReader([]byte(decryptContent))
-		_, err = reader.WriteTo(f)
-		util.CheckErr(err)
-
-		fmt.Printf("\nDecryption successful\n")
+		fmt.Printf("Decryption successful\n")
 	},
 }
 
@@ -122,4 +90,24 @@ func init() {
 		"",
 		"file that decrypted content is written to (use - for stdout)",
 	)
+}
+
+func decryptFile(file, vaultPass string) (string, error) {
+	p, err := ioutil.ReadFile(file)
+	if err != nil {
+		return "", err
+	}
+
+	content := string(p)
+
+	if !aes.IsAES256CipherText(content) {
+		return "", fmt.Errorf("'%s' is not vault encrypted file", file)
+	}
+
+	decryptContent, err := aes.AES256Decode(content, vaultPass)
+	if err != nil {
+		return "", fmt.Errorf("decrypt failed: %w", err)
+	}
+
+	return decryptContent, nil
 }

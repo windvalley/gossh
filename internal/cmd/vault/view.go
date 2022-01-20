@@ -24,11 +24,9 @@ package vault
 
 import (
 	"fmt"
-	"io/ioutil"
 
 	"github.com/spf13/cobra"
 
-	"github.com/windvalley/gossh/internal/pkg/aes"
 	"github.com/windvalley/gossh/pkg/util"
 )
 
@@ -64,19 +62,7 @@ View vault encrypted file.`,
 
 		file := args[0]
 
-		p, err := ioutil.ReadFile(file)
-		util.CheckErr(err)
-
-		content := string(p)
-
-		if !aes.IsAES256CipherText(content) {
-			util.CheckErr(fmt.Sprintf("'%s' is not vault encrypted file", file))
-		}
-
-		decryptContent, err := aes.AES256Decode(content, vaultPass)
-		if err != nil {
-			err = fmt.Errorf("decrypt failed: %w", err)
-		}
+		decryptContent, err := decryptFile(file, vaultPass)
 		util.CheckErr(err)
 
 		err = util.LessContent(decryptContent)
