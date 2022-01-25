@@ -54,22 +54,18 @@ const (
 
 // Task execute command or copy file or execute script.
 type Task interface {
-	RunSSH(addr string) (string, error)
+	RunSSH(host *Host) (string, error)
 }
 
 // Result of ssh command.
 type Result struct {
-	Addr    string `json:"addr"`
+	Host    string `json:"host"`
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
 
 // Client for ssh.
 type Client struct {
-	User           string
-	Password       string
-	Auths          []ssh.AuthMethod
-	Port           int
 	ConnTimeout    time.Duration
 	CommandTimeout time.Duration
 	Concurrency    int
@@ -82,13 +78,21 @@ type Proxy struct {
 	Err       error
 }
 
+// Host target host.
+type Host struct {
+	Alias      string
+	Host       string
+	Port       int
+	User       string
+	Password   string
+	Keys       []string
+	Passphrase string
+	SSHAuths   []ssh.AuthMethod
+}
+
 // NewClient session.
-func NewClient(user, password string, auths []ssh.AuthMethod, options ...func(*Client)) *Client {
+func NewClient(options ...func(*Client)) *Client {
 	client := Client{
-		User:           user,
-		Password:       password,
-		Auths:          auths,
-		Port:           22,
 		ConnTimeout:    10 * time.Second,
 		CommandTimeout: 0,
 		Concurrency:    100,
@@ -104,14 +108,14 @@ func NewClient(user, password string, auths []ssh.AuthMethod, options ...func(*C
 
 // BatchRun command on remote servers.
 func (c *Client) BatchRun(
-	addrs []string,
+	hosts []*Host,
 	sshTask Task,
 ) <-chan *Result {
-	addrCh := make(chan string)
+	hostCh := make(chan *Host)
 	go func() {
-		defer close(addrCh)
-		for _, addr := range addrs {
-			addrCh <- addr
+		defer close(hostCh)
+		for _, host := range hosts {
+			hostCh <- host
 		}
 	}()
 
@@ -120,18 +124,18 @@ func (c *Client) BatchRun(
 	wg.Add(c.Concurrency)
 	for i := 0; i < c.Concurrency; i++ {
 		go func(wg *sync.WaitGroup) {
-			for addr := range addrCh {
+			for host := range hostCh {
 				var result *Result
 
 				done := make(chan struct{})
 				go func() {
 					defer close(done)
 
-					output, err := sshTask.RunSSH(addr)
+					output, err := sshTask.RunSSH(host)
 					if err != nil {
-						result = &Result{addr, FailedIdentifier, err.Error()}
+						result = &Result{host.Alias, FailedIdentifier, err.Error()}
 					} else {
-						result = &Result{addr, SuccessIdentifier, output}
+						result = &Result{host.Alias, SuccessIdentifier, output}
 					}
 				}()
 
@@ -140,7 +144,7 @@ func (c *Client) BatchRun(
 					case <-done:
 					case <-time.After(c.CommandTimeout):
 						result = &Result{
-							addr,
+							host.Host,
 							FailedIdentifier,
 							fmt.Sprintf(
 								"command timeout, timeout value: %d seconds",
@@ -168,8 +172,8 @@ func (c *Client) BatchRun(
 }
 
 // ExecuteCmd on remote host.
-func (c *Client) ExecuteCmd(addr, command, lang, runAs string, sudo bool) (string, error) {
-	client, err := c.getClient(addr)
+func (c *Client) ExecuteCmd(host *Host, command, lang, runAs string, sudo bool) (string, error) {
+	client, err := c.getClient(host)
 	if err != nil {
 		return "", err
 	}
@@ -191,15 +195,16 @@ func (c *Client) ExecuteCmd(addr, command, lang, runAs string, sudo bool) (strin
 		command = exportLang + command
 	}
 
-	return c.executeCmd(session, command)
+	return c.executeCmd(session, command, host.Password)
 }
 
 // ExecuteScript on remote host.
 func (c *Client) ExecuteScript(
-	addr, srcFile, dstDir, lang, runAs string,
+	host *Host,
+	srcFile, dstDir, lang, runAs string,
 	sudo, remove, allowOverwrite bool,
 ) (string, error) {
-	client, err := c.getClient(addr)
+	client, err := c.getClient(host)
 	if err != nil {
 		return "", err
 	}
@@ -247,17 +252,17 @@ func (c *Client) ExecuteScript(
 		command = exportLang + script
 	}
 
-	return c.executeCmd(session, command)
+	return c.executeCmd(session, command, host.Password)
 }
 
 // PushFiles to remote host.
 func (c *Client) PushFiles(
-	addr string,
+	host *Host,
 	srcFiles, srcZipFiles []string,
 	dstDir string,
 	allowOverwrite bool,
 ) (string, error) {
-	client, err := c.getClient(addr)
+	client, err := c.getClient(host)
 	if err != nil {
 		return "", err
 	}
@@ -311,6 +316,7 @@ func (c *Client) PushFiles(
 				dstDir,
 				dstZipFile,
 			),
+			host.Password,
 		)
 		if err != nil {
 			return "", err
@@ -328,13 +334,13 @@ func (c *Client) PushFiles(
 //nolint:funlen,gocyclo
 // FetchFiles from remote host.
 func (c *Client) FetchFiles(
-	addr string,
+	host *Host,
 	srcFiles []string,
 	dstDir, tmpDir string,
 	sudo bool,
 	runAs string,
 ) (string, error) {
-	client, err := c.getClient(addr)
+	client, err := c.getClient(host)
 	if err != nil {
 		return "", err
 	}
@@ -391,8 +397,8 @@ func (c *Client) FetchFiles(
 	}
 	defer session.Close()
 
-	zippedFileTmpDir := path.Join(tmpDir, "gossh-"+addr)
-	tmpZipFile := fmt.Sprintf("%s.%d", addr, time.Now().UnixMicro())
+	zippedFileTmpDir := path.Join(tmpDir, "gossh-"+host.Host)
+	tmpZipFile := fmt.Sprintf("%s.%d", host.Host, time.Now().UnixMicro())
 	zippedFileFullpath := path.Join(zippedFileTmpDir, tmpZipFile)
 	_, err = c.executeCmd(
 		session,
@@ -410,9 +416,10 @@ fi`,
 			zippedFileFullpath,
 			strings.Join(validSrcFiles, " "),
 		),
+		host.Password,
 	)
 	if err != nil {
-		log.Debugf("zip %s of %s failed: %s", strings.Join(validSrcFiles, ","), addr, err)
+		log.Debugf("zip %s of %s failed: %s", strings.Join(validSrcFiles, ","), host.Host, err)
 		return "", err
 	}
 
@@ -421,7 +428,7 @@ fi`,
 		file.Close()
 	}
 	if err != nil {
-		log.Debugf("fetch zip file '%s' from %s failed: %s", zippedFileFullpath, addr, err)
+		log.Debugf("fetch zip file '%s' from %s failed: %s", zippedFileFullpath, host.Host, err)
 		return "", err
 	}
 
@@ -434,13 +441,14 @@ fi`,
 	_, err = c.executeCmd(
 		session2,
 		fmt.Sprintf("sudo -u %s -H bash -c 'rm -f %s'", runAs, zippedFileFullpath),
+		host.Password,
 	)
 	if err != nil {
-		log.Debugf("remove '%s:%s' failed: %s", addr, zippedFileFullpath, err)
+		log.Debugf("remove '%s:%s' failed: %s", host.Host, zippedFileFullpath, err)
 		return "", err
 	}
 
-	finalDstDir := path.Join(dstDir, addr)
+	finalDstDir := path.Join(dstDir, host.Host)
 	localZippedFileFullpath := path.Join(dstDir, tmpZipFile)
 	defer func() {
 		if err := os.Remove(localZippedFileFullpath); err != nil {
@@ -492,7 +500,7 @@ fi`,
 	return ret, nil
 }
 
-func (c *Client) executeCmd(session *ssh.Session, command string) (string, error) {
+func (c *Client) executeCmd(session *ssh.Session, command, password string) (string, error) {
 	modes := ssh.TerminalModes{
 		ssh.ECHO:          0,
 		ssh.TTY_OP_ISPEED: 28800,
@@ -514,7 +522,7 @@ func (c *Client) executeCmd(session *ssh.Session, command string) (string, error
 		return "", err
 	}
 
-	out, isWrongPass := c.handleOutput(w, r)
+	out, isWrongPass := c.handleOutput(w, r, password)
 
 	done := make(chan struct{})
 	go func() {
@@ -694,21 +702,21 @@ func (c *Client) fetchZipFile(
 	return file, nil
 }
 
-func (c *Client) getClient(addr string) (*ssh.Client, error) {
+func (c *Client) getClient(host *Host) (*ssh.Client, error) {
 	var (
 		client *ssh.Client
 		err    error
 	)
 
 	sshConfig := &ssh.ClientConfig{
-		User:    c.User,
-		Auth:    c.Auths,
+		User:    host.User,
+		Auth:    host.SSHAuths,
 		Timeout: c.ConnTimeout,
 	}
 	//nolint:gosec
 	sshConfig.HostKeyCallback = ssh.InsecureIgnoreHostKey()
 
-	remoteHost := net.JoinHostPort(addr, strconv.Itoa(c.Port))
+	remoteHost := net.JoinHostPort(host.Host, strconv.Itoa(host.Port))
 
 	if c.Proxy.SSHClient != nil || c.Proxy.Err != nil {
 		if c.Proxy.Err != nil {
@@ -737,7 +745,7 @@ func (c *Client) getClient(addr string) (*ssh.Client, error) {
 }
 
 // handle output stream, and give sudo password if necessary.
-func (c *Client) handleOutput(w io.Writer, r io.Reader) (<-chan []byte, <-chan bool) {
+func (c *Client) handleOutput(w io.Writer, r io.Reader, password string) (<-chan []byte, <-chan bool) {
 	out := make(chan []byte, 1)
 	isWrongPass := make(chan bool, 1)
 
@@ -758,7 +766,7 @@ func (c *Client) handleOutput(w io.Writer, r io.Reader) (<-chan []byte, <-chan b
 				sudoTimes++
 
 				if sudoTimes == 1 {
-					if _, err := w.Write([]byte(c.Password + "\n")); err != nil {
+					if _, err := w.Write([]byte(password + "\n")); err != nil {
 						isWrongPass <- false
 						close(out)
 						return
@@ -788,13 +796,6 @@ func WithConnTimeout(timeout time.Duration) func(*Client) {
 func WithCommandTimeout(timeout time.Duration) func(*Client) {
 	return func(c *Client) {
 		c.CommandTimeout = timeout
-	}
-}
-
-// WithPort port option.
-func WithPort(port int) func(*Client) {
-	return func(c *Client) {
-		c.Port = port
 	}
 }
 

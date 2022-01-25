@@ -46,6 +46,14 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
   foo[01-03,06,12-16].idc[1-3].[beijing,wuhan].bar.com
   ```
 
+- Allow adding variables to host file. E.g.:
+
+  ```text
+  alias_name_node1 host=node1.sre.im
+  alias_name_node2 host=192.168.33.12 port=8022 user=vagrant password=123456 keys=~/.ssh/id_dsa,~/.ssh/id_rsa passphrase=xxx
+  node3.sre.im user=vagrant password=GOSSH-AES256:9cfe499133b69a6c7fc62b5b6ba72d3d8dfb4d0e7987170a40c5d50bb5d71e19
+  ```
+
 - Use `sudo` to run as other user(default `root`) to execute the commands/shell-script or fetch files/dirs.
 
 - Specify i18n environment variable value while executing commands or a shell script to help keep the language of the outputs consistent. For example: `zh_CN.UTF-8`, `en_US.UTF-8`.
@@ -158,7 +166,7 @@ Target servers: `hosts.list` contains `936` servers distributed in `86` differen
 **Ansible:**
 
 ```sh
-$ time ansible all -i hosts.list -m command -a "uptime" -k -f 100
+$ time ansible all -i hosts.list -m command -a "uptime" -f 100 -k
 ```
 
 Output:
@@ -174,7 +182,7 @@ sys     1m24.263s
 **Gossh:**
 
 ```sh
-$ time gossh command -H hosts.list -e "uptime" -c 100
+$ time gossh command -H hosts.list -e "uptime" -c 100 -k
 ```
 
 Output:

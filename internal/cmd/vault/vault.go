@@ -106,7 +106,7 @@ func getVaultConfirmPassword() string {
 		util.CheckErr(fmt.Sprintf("get vault password from terminal prompt failed: %s", err))
 	}
 
-	log.Debugf("confirmed vault password that from terminal prompt")
+	log.Debugf("Vault: confirmed vault password that from terminal prompt")
 
 	return password
 }
@@ -133,7 +133,7 @@ func GetVaultPassword() string {
 		fmt.Printf("password can not be null, retry\n")
 	}
 
-	log.Debugf("read vault password from terminal prompt '%s'", prompt)
+	log.Debugf("Vault: read vault password from terminal prompt '%s'", prompt)
 
 	return password
 }
@@ -149,7 +149,7 @@ func getVaultPasswordFromFile() string {
 
 		password := strings.TrimSpace(string(passwordContent))
 
-		log.Debugf("read vault password from file '%s'", vaultPassFile)
+		log.Debugf("Vault: read vault password from file '%s'", vaultPassFile)
 
 		return password
 	}

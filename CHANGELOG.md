@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0]
+
+### Added
+
+- Allow adding variables to inventory(host file), available variables: `host port user password keys passphrase`.
+
+  Example host file:
+
+  ```text
+  alias_name_node1 host=node1.sre.im
+  alias_name_node2 host=192.168.33.12 port=22 user=vagrant password=vagrant keys=~/.ssh/id_dsa,~/.ssh/id_rsa passphrase=xxx
+  node3.sre.im user=vagrant password=GOSSH-AES256:9cfe499133b69a6c7fc62b5b6ba72d3d8dfb4d0e7987170a40c5d50bb5d71e19
+  ```
+
+  For details at ([#27](https://github.com/windvalley/gossh/issues/27)).
+
 ## [1.7.0]
 
 ### Added
@@ -77,20 +93,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   version     Show gossh version information
   ```
 
-  After:
+````
 
-  ```text
-  Available Commands:
-  command     Execute commands on target hosts
-  script      Execute a local shell script on target hosts
-  push        Copy local files/dirs to target hosts
-  fetch       Copy files/dirs from target hosts to local
-  vault       Encryption and decryption utility
-  config      Generate gossh configuration file
-  version     Show gossh version information
-  help        Help about any command
-  completion  Generate the autocompletion script for the specified shell
-  ```
+After:
+
+```text
+Available Commands:
+command     Execute commands on target hosts
+script      Execute a local shell script on target hosts
+push        Copy local files/dirs to target hosts
+fetch       Copy files/dirs from target hosts to local
+vault       Encryption and decryption utility
+config      Generate gossh configuration file
+version     Show gossh version information
+help        Help about any command
+completion  Generate the autocompletion script for the specified shell
+```
 
 - Optimize the order of flags to make them more friendly
   ([#23](https://github.com/windvalley/gossh/issues/23)).
@@ -441,3 +459,4 @@ If the dest directory given by flag `-d` does not exist or does not have permiss
 ### Fixed
 
 ### Security
+````

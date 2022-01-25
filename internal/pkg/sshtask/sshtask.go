@@ -29,6 +29,7 @@ import (
 	"net"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -66,6 +67,26 @@ const (
 	FetchTask
 )
 
+type hostVarType int
+
+const (
+	hostVarHost hostVarType = iota
+	hostVarPort
+	hostVarUser
+	hostVarPassword
+	hostVarKeys
+	hostVarPassphrase
+)
+
+var hostVarsMap = map[hostVarType]string{
+	hostVarHost:       "host",
+	hostVarPort:       "port",
+	hostVarUser:       "user",
+	hostVarPassword:   "password",
+	hostVarKeys:       "keys",
+	hostVarPassphrase: "passphrase",
+}
+
 // taskResult ...
 type taskResult struct {
 	taskID            string
@@ -91,10 +112,14 @@ type pushFiles struct {
 type Task struct {
 	configFlags *configflags.ConfigFlags
 
-	id        string
-	taskType  TaskType
-	sshClient *batchssh.Client
-	sshAgent  net.Conn
+	id       string
+	taskType TaskType
+
+	sshClient            *batchssh.Client
+	sshAgent             net.Conn
+	defaultUser          string
+	defaultPass          *string
+	defaultIdentityFiles []string
 
 	// hostnames or ips from command line arguments.
 	hosts []string
@@ -117,12 +142,19 @@ type Task struct {
 
 // NewTask ...
 func NewTask(taskType TaskType, configFlags *configflags.ConfigFlags) *Task {
+	defaultIdentityFiles := parseItentityFiles(configFlags.Auth.IdentityFiles)
+
+	defaultPass := getDefaultPassword(configFlags.Auth)
+
 	return &Task{
-		configFlags:  configFlags,
-		id:           time.Now().Format("20060102150405"),
-		taskType:     taskType,
-		taskOutput:   make(chan taskResult, 1),
-		detailOutput: make(chan detailResult),
+		configFlags:          configFlags,
+		id:                   time.Now().Format("20060102150405"),
+		taskType:             taskType,
+		defaultUser:          configFlags.Auth.User,
+		defaultPass:          &defaultPass,
+		defaultIdentityFiles: defaultIdentityFiles,
+		taskOutput:           make(chan taskResult, 1),
+		detailOutput:         make(chan detailResult),
 	}
 }
 
@@ -203,20 +235,20 @@ func (t *Task) SetFetchOptions(destPath, tmpDir string) {
 }
 
 // RunSSH implements batchssh.Task
-func (t *Task) RunSSH(addr string) (string, error) {
+func (t *Task) RunSSH(host *batchssh.Host) (string, error) {
 	lang := t.configFlags.Run.Lang
 	runAs := t.configFlags.Run.AsUser
 	sudo := t.configFlags.Run.Sudo
 
 	switch t.taskType {
 	case CommandTask:
-		return t.sshClient.ExecuteCmd(addr, t.command, lang, runAs, sudo)
+		return t.sshClient.ExecuteCmd(host, t.command, lang, runAs, sudo)
 	case ScriptTask:
-		return t.sshClient.ExecuteScript(addr, t.scriptFile, t.dstDir, lang, runAs, sudo, t.remove, t.allowOverwrite)
+		return t.sshClient.ExecuteScript(host, t.scriptFile, t.dstDir, lang, runAs, sudo, t.remove, t.allowOverwrite)
 	case PushTask:
-		return t.sshClient.PushFiles(addr, t.pushFiles.files, t.pushFiles.zipFiles, t.dstDir, t.allowOverwrite)
+		return t.sshClient.PushFiles(host, t.pushFiles.files, t.pushFiles.zipFiles, t.dstDir, t.allowOverwrite)
 	case FetchTask:
-		return t.sshClient.FetchFiles(addr, t.fetchFiles, t.dstDir, t.tmpDir, sudo, runAs)
+		return t.sshClient.FetchFiles(host, t.fetchFiles, t.dstDir, t.tmpDir, sudo, runAs)
 	default:
 		return "", fmt.Errorf("unknown task type: %v", t.taskType)
 	}
@@ -227,28 +259,31 @@ func (t *Task) RunSSH(addr string) (string, error) {
 func (t *Task) BatchRun() {
 	timeNow := time.Now()
 
-	allHosts, err := t.getAllHosts()
-	if err != nil {
-		t.err = err
-		return
-	}
-
-	log.Debugf("got target hosts, count: %d", len(allHosts))
-
 	if t.configFlags.Hosts.List {
+		allHosts, err := t.ListHosts()
+		if err != nil {
+			t.err = err
+			return
+		}
+
 		hostsCount := len(allHosts)
-		fmt.Printf("%s\n", strings.Join(allHosts, "\n"))
+
+		for _, v := range allHosts {
+			fmt.Printf("%s\n", v)
+		}
+
 		fmt.Fprintf(os.Stderr, "\nhosts (%d)\n", hostsCount)
+
 		return
 	}
 
 	authConf := t.configFlags.Auth
 	runConf := t.configFlags.Run
 
-	log.Debugf("Auth: login user: %s", authConf.User)
+	log.Debugf("Default Auth: login user '%s'", authConf.User)
 
 	if runConf.Sudo {
-		log.Debugf("Auth: use sudo as user '%s'", runConf.AsUser)
+		log.Debugf("Default Auth: use sudo as user '%s'", runConf.AsUser)
 	}
 
 	switch t.taskType {
@@ -283,6 +318,14 @@ func (t *Task) BatchRun() {
 
 	t.buildSSHClient()
 
+	allHosts, err := t.getAllHosts()
+	if err != nil {
+		t.err = err
+		return
+	}
+
+	log.Debugf("got target hosts, count: %d", len(allHosts))
+
 	result := t.sshClient.BatchRun(allHosts, t)
 	successCount, failedCount := 0, 0
 	for v := range result {
@@ -294,7 +337,7 @@ func (t *Task) BatchRun() {
 
 		t.detailOutput <- detailResult{
 			taskID:   t.id,
-			hostname: v.Addr,
+			hostname: v.Host,
 			status:   v.Status,
 			output:   v.Message,
 		}
@@ -358,7 +401,8 @@ func (t *Task) CheckErr() error {
 	return t.err
 }
 
-func (t *Task) getAllHosts() ([]string, error) {
+// ListHosts ...
+func (t *Task) ListHosts() ([]string, error) {
 	var hosts []string
 
 	if len(t.hosts) != 0 {
@@ -385,7 +429,37 @@ func (t *Task) getAllHosts() ([]string, error) {
 		}
 
 		hostSlice := strings.Split(strings.TrimSuffix(string(content), "\n"), "\n")
-		for _, hostOrPattern := range hostSlice {
+		for _, hostLine := range hostSlice {
+			if hostLine == "" || strings.HasPrefix(hostLine, "#") {
+				continue
+			}
+
+			hostFields := strings.Fields(hostLine)
+
+			hostAlias := hostFields[0]
+
+			hostList, err := expandhost.PatternToHosts(hostAlias)
+			if err != nil {
+				return nil, fmt.Errorf("invalid host pattern: %s", err)
+			}
+
+			hosts = append(hosts, hostList...)
+		}
+	}
+
+	return hosts, nil
+}
+
+//nolint:funlen,gocyclo
+func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
+	var hosts []*batchssh.Host
+
+	port := t.configFlags.Hosts.Port
+
+	sshAuthMethods := t.getDefaultSSHAuthMethods()
+
+	if len(t.hosts) != 0 {
+		for _, hostOrPattern := range t.hosts {
 			hostOrPattern = strings.TrimSpace(hostOrPattern)
 
 			if hostOrPattern == "" {
@@ -397,7 +471,126 @@ func (t *Task) getAllHosts() ([]string, error) {
 				return nil, fmt.Errorf("invalid host pattern: %s", err)
 			}
 
-			hosts = append(hosts, hostList...)
+			for _, v := range hostList {
+				hosts = append(hosts, &batchssh.Host{
+					Alias:    v,
+					Host:     v,
+					Port:     port,
+					User:     t.defaultUser,
+					Password: *t.defaultPass,
+					Keys:     t.defaultIdentityFiles,
+					SSHAuths: sshAuthMethods,
+				})
+			}
+		}
+	}
+
+	if t.configFlags.Hosts.File != "" {
+		content, err := ioutil.ReadFile(t.configFlags.Hosts.File)
+		if err != nil {
+			return nil, fmt.Errorf("read hosts file failed: %s", err)
+		}
+
+		var hostVars []string
+		for _, v := range hostVarsMap {
+			hostVars = append(hostVars, v)
+		}
+
+		hostSlice := strings.Split(strings.TrimSuffix(string(content), "\n"), "\n")
+		for _, hostLine := range hostSlice {
+			if hostLine == "" || strings.HasPrefix(hostLine, "#") {
+				continue
+			}
+
+			hostUser := t.defaultUser
+			hostPassword := *t.defaultPass
+			hostPort := port
+			hostSSHAuths := sshAuthMethods
+
+			var (
+				hostKeys       []string
+				hostPassphrase string
+			)
+
+			hostFields := strings.Fields(hostLine)
+
+			hostAlias := hostFields[0]
+
+			hostAddr := ""
+			if len(hostFields) > 1 {
+				for _, v := range hostFields[1:] {
+					item := strings.Split(v, "=")
+					hostVar := item[0]
+
+					switch hostVar {
+					case hostVarsMap[hostVarHost]:
+						hostAddr = item[1]
+					case hostVarsMap[hostVarPort]:
+						hostPort, _ = strconv.Atoi(item[1])
+						log.Debugf("Individual Auth: individual port '%d' for '%s'", hostPort, hostAlias)
+					case hostVarsMap[hostVarUser]:
+						hostUser = item[1]
+						log.Debugf("Individual Auth: individual user '%s' for '%s'", hostUser, hostAlias)
+					case hostVarsMap[hostVarPassword]:
+						hostPassword = item[1]
+						assignRealPass(&hostPassword, hostAlias, "password")
+						hostSSHAuths = append(hostSSHAuths, ssh.Password(hostPassword))
+						log.Debugf("Individual Auth: add individual password auth for '%s'", hostAlias)
+					case hostVarsMap[hostVarKeys]:
+						hostKeys = strings.Split(item[1], ",")
+						hostKeys = parseItentityFiles(hostKeys)
+					case hostVarsMap[hostVarPassphrase]:
+						hostPassphrase = item[1]
+						assignRealPass(&hostPassphrase, hostAlias, "passphrase")
+					default:
+						log.Warnf(
+							"indvalid host var '%s' in host entry '%s', available vars: %s",
+							hostVar,
+							hostLine,
+							hostVars,
+						)
+					}
+				}
+			}
+
+			if len(hostKeys) != 0 {
+				sshSigners := getSigners(hostKeys, hostPassphrase, "Individual")
+				if len(sshSigners) == 0 {
+					log.Debugf("Individual Auth: no valid individual identity files for '%s'", hostAlias)
+				} else {
+					hostSSHAuths = append(hostSSHAuths, ssh.PublicKeys(sshSigners...))
+					log.Debugf("Individual Auth: add individual pubkey auth for '%s'", hostAlias)
+				}
+			}
+
+			hostList, err := expandhost.PatternToHosts(hostAlias)
+			if err != nil {
+				return nil, fmt.Errorf("invalid host pattern: %s", err)
+			}
+
+			for _, v := range hostList {
+				if hostAddr == "" {
+					hosts = append(hosts, &batchssh.Host{
+						Alias:    v,
+						Host:     v,
+						Port:     hostPort,
+						User:     hostUser,
+						Password: hostPassword,
+						Keys:     hostKeys,
+						SSHAuths: hostSSHAuths,
+					})
+				} else {
+					hosts = append(hosts, &batchssh.Host{
+						Alias:    v,
+						Host:     hostAddr,
+						Port:     hostPort,
+						User:     hostUser,
+						Password: hostPassword,
+						Keys:     hostKeys,
+						SSHAuths: hostSSHAuths,
+					})
+				}
+			}
 		}
 	}
 
@@ -406,30 +599,19 @@ func (t *Task) getAllHosts() ([]string, error) {
 			"provide host/pattern as positional arguments")
 	}
 
-	return util.RemoveDuplStr(hosts), nil
+	return hosts, nil
 }
 
 func (t *Task) buildSSHClient() {
 	var sshClient *batchssh.Client
 
-	password, err := t.getPassword()
-	if err != nil {
-		util.CheckErr(err)
-	}
-
-	auths := t.getSSHAuthMethods(&password)
-
 	if t.configFlags.Proxy.Server != "" {
-		proxyAuths := t.getProxySSHAuthMethods(&password)
+		proxyAuths := t.getProxySSHAuthMethods()
 
 		sshClient = batchssh.NewClient(
-			t.configFlags.Auth.User,
-			password,
-			auths,
 			batchssh.WithConnTimeout(time.Duration(t.configFlags.Timeout.Conn)*time.Second),
 			batchssh.WithCommandTimeout(time.Duration(t.configFlags.Timeout.Command)*time.Second),
 			batchssh.WithConcurrency(t.configFlags.Run.Concurrency),
-			batchssh.WithPort(t.configFlags.Hosts.Port),
 			batchssh.WithProxyServer(
 				t.configFlags.Proxy.Server,
 				t.configFlags.Proxy.User,
@@ -439,37 +621,32 @@ func (t *Task) buildSSHClient() {
 		)
 	} else {
 		sshClient = batchssh.NewClient(
-			t.configFlags.Auth.User,
-			password,
-			auths,
 			batchssh.WithConnTimeout(time.Duration(t.configFlags.Timeout.Conn)*time.Second),
 			batchssh.WithCommandTimeout(time.Duration(t.configFlags.Timeout.Command)*time.Second),
 			batchssh.WithConcurrency(t.configFlags.Run.Concurrency),
-			batchssh.WithPort(t.configFlags.Hosts.Port),
 		)
 	}
 
 	t.sshClient = sshClient
 }
 
-func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
+func (t *Task) getDefaultSSHAuthMethods() []ssh.AuthMethod {
 	var (
 		auths    []ssh.AuthMethod
 		sshAgent net.Conn
 		err      error
 	)
 
-	if *password != "" {
-		auths = append(auths, ssh.Password(*password))
+	if *t.defaultPass != "" {
+		auths = append(auths, ssh.Password(*t.defaultPass))
 	} else {
-		log.Debugf("Auth: password of the login user not provided")
+		log.Debugf("Default Auth: password of the login user '%s' not provided", t.defaultUser)
 	}
 
-	keyfiles := t.getItentityFiles()
-	if len(keyfiles) != 0 {
-		sshSigners := getSigners(keyfiles, t.configFlags.Auth.Passphrase, false)
+	if len(t.defaultIdentityFiles) != 0 {
+		sshSigners := getSigners(t.defaultIdentityFiles, t.configFlags.Auth.Passphrase, "Default")
 		if len(sshSigners) == 0 {
-			log.Debugf("Auth: no valid identity files")
+			log.Debugf("Default Auth: no valid default identity files")
 		} else {
 			auths = append(auths, ssh.PublicKeys(sshSigners...))
 		}
@@ -479,9 +656,9 @@ func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
 	if sshAuthSock != "" {
 		sshAgent, err = net.Dial("unix", sshAuthSock)
 		if err != nil {
-			log.Debugf("Auth: connect ssh-agent failed: %s", err)
+			log.Debugf("Default Auth: connect ssh-agent failed: %s", err)
 		} else {
-			log.Debugf("Auth: connected to SSH_AUTH_SOCK: %s", sshAuthSock)
+			log.Debugf("Default Auth: connected to SSH_AUTH_SOCK: %s", sshAuthSock)
 
 			auths = append(auths, ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers))
 		}
@@ -489,30 +666,23 @@ func (t *Task) getSSHAuthMethods(password *string) []ssh.AuthMethod {
 		t.sshAgent = sshAgent
 	}
 
-	if len(auths) == 0 {
-		log.Debugf("Auth: no valid authentication method detected. Prompt for password of the login user")
+	if *t.defaultPass == "" && t.configFlags.Run.Sudo {
+		log.Debugf(
+			"Default Auth: using sudo as other user needs password. Prompt for password of the login user '%s'",
+			t.defaultUser,
+		)
 
-		*password = getPasswordFromPrompt(t.configFlags.Auth.User)
-		auths = append(auths, ssh.Password(*password))
-
-		return auths
-	}
-
-	if *password == "" && t.configFlags.Run.Sudo {
-		log.Debugf("Auth: using sudo as other user needs password. Prompt for password of the login user")
-
-		*password = getPasswordFromPrompt(t.configFlags.Auth.User)
-		auths = append(auths, ssh.Password(*password))
+		*t.defaultPass = getPasswordFromPrompt(t.defaultUser)
+		auths = append(auths, ssh.Password(*t.defaultPass))
 	}
 
 	return auths
 }
 
-func (t *Task) getProxySSHAuthMethods(password *string) []ssh.AuthMethod {
+func (t *Task) getProxySSHAuthMethods() []ssh.AuthMethod {
 	var (
 		proxyAuths []ssh.AuthMethod
 		sshAgent   net.Conn
-		err        error
 	)
 
 	log.Debugf("Proxy Auth: proxy login user: %s", t.configFlags.Proxy.User)
@@ -520,13 +690,13 @@ func (t *Task) getProxySSHAuthMethods(password *string) []ssh.AuthMethod {
 	if t.configFlags.Proxy.Password != "" {
 		proxyAuths = append(proxyAuths, ssh.Password(t.configFlags.Proxy.Password))
 	} else {
-		proxyAuths = append(proxyAuths, ssh.Password(*password))
+		proxyAuths = append(proxyAuths, ssh.Password(*t.defaultPass))
 	}
 	log.Debugf("Proxy Auth: received password of the proxy user")
 
-	proxyKeyfiles := t.getProxyItentityFiles()
+	proxyKeyfiles := parseItentityFiles(t.configFlags.Proxy.IdentityFiles)
 	if len(proxyKeyfiles) != 0 {
-		sshSigners := getSigners(proxyKeyfiles, t.configFlags.Proxy.Passphrase, true)
+		sshSigners := getSigners(proxyKeyfiles, t.configFlags.Proxy.Passphrase, "Proxy")
 		if len(sshSigners) == 0 {
 			log.Debugf("Proxy Auth: no valid identity files for proxy")
 		} else {
@@ -534,60 +704,54 @@ func (t *Task) getProxySSHAuthMethods(password *string) []ssh.AuthMethod {
 		}
 	}
 
-	sshAuthSock := os.Getenv("SSH_AUTH_SOCK")
-	if sshAuthSock != "" {
-		sshAgent, err = net.Dial("unix", sshAuthSock)
-		if err != nil {
-			log.Debugf("Proxy Auth: connect ssh-agent failed: %s", err)
-		} else {
-			log.Debugf("Proxy Auth: connected to SSH_AUTH_SOCK: %s", sshAuthSock)
+	if t.sshAgent != nil {
+		log.Debugf("Proxy Auth: connected to default SSH_AUTH_SOCK")
 
-			agentSigners := ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers)
-			proxyAuths = append(proxyAuths, agentSigners)
-		}
-
-		t.sshAgent = sshAgent
+		agentSigners := ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers)
+		proxyAuths = append(proxyAuths, agentSigners)
 	}
 
 	return proxyAuths
 }
 
-func (t *Task) getPassword() (password string, err error) {
-	authFile := t.configFlags.Auth.PassFile
+func getDefaultPassword(auth *configflags.Auth) string {
+	var password string
+
+	authFile := auth.PassFile
 	if authFile != "" {
 		var passwordContent []byte
 
-		passwordContent, err = ioutil.ReadFile(authFile)
+		passwordContent, err := ioutil.ReadFile(authFile)
 		if err != nil {
-			err = fmt.Errorf("read auth file '%s' failed: %w", authFile, err)
+			err = fmt.Errorf("read password file '%s' failed: %w", authFile, err)
 		}
+		util.CheckErr(err)
 
 		password = strings.TrimSpace(string(passwordContent))
 
-		log.Debugf("Auth: read password from file '%s'", authFile)
+		log.Debugf("Default Auth: read password of user '%s' from file '%s'", authFile, auth.User)
 	}
 
-	passwordFromFlag := t.configFlags.Auth.Password
+	passwordFromFlag := auth.Password
 	if passwordFromFlag != "" {
 		password = passwordFromFlag
 
-		log.Debugf("Auth: received password from commandline flag or configuration file")
+		log.Debugf("Default Auth: received password of user '%s' from commandline flag or configuration file", auth.User)
 	}
 
-	assignRealPass(&password)
+	assignRealPass(&password, "default", "password")
 
-	if t.configFlags.Auth.AskPass {
-		log.Debugf("Auth: ask for password of login user by flag '-k/--auth.ask-pass'")
-		password = getPasswordFromPrompt(t.configFlags.Auth.User)
+	if auth.AskPass {
+		log.Debugf("Default Auth: ask for password of user '%s' by flag '-k/--auth.ask-pass'", auth.User)
+		password = getPasswordFromPrompt(auth.User)
 	}
 
-	//nolint:nakedret
-	return
+	return password
 }
 
-func (t *Task) getItentityFiles() (keyFiles []string) {
+func parseItentityFiles(identityFiles []string) (keyFiles []string) {
 	homeDir := os.Getenv("HOME")
-	for _, file := range t.configFlags.Auth.IdentityFiles {
+	for _, file := range identityFiles {
 		if strings.HasPrefix(file, "~/") {
 			file = strings.Replace(file, "~", homeDir, 1)
 		}
@@ -598,32 +762,13 @@ func (t *Task) getItentityFiles() (keyFiles []string) {
 	return
 }
 
-func (t *Task) getProxyItentityFiles() (proxyKeyfiles []string) {
-	homeDir := os.Getenv("HOME")
-	for _, file := range t.configFlags.Proxy.IdentityFiles {
-		if strings.HasPrefix(file, "~/") {
-			file = strings.Replace(file, "~", homeDir, 1)
-		}
-
-		proxyKeyfiles = append(proxyKeyfiles, file)
-	}
-
-	return
-}
-
-func getSigners(keyfiles []string, passphrase string, isForProxy bool) []ssh.Signer {
-	assignRealPass(&passphrase)
-
+func getSigners(keyfiles []string, passphrase string, authKind string) []ssh.Signer {
 	var (
 		signers []ssh.Signer
 		msgHead string
 	)
 
-	if isForProxy {
-		msgHead = "Proxy Auth: "
-	} else {
-		msgHead = "Auth: "
-	}
+	msgHead = authKind + " Auth: "
 
 	for _, f := range keyfiles {
 		signer, msg := getSigner(f, passphrase)
@@ -676,12 +821,12 @@ func getPasswordFromPrompt(loginUser string) string {
 
 	fmt.Println("")
 
-	log.Debugf("Auth: received password of the login user '%s' from terminal prompt", loginUser)
+	log.Debugf("Default Auth: received password of the login user '%s' from terminal prompt", loginUser)
 
 	return password
 }
 
-func assignRealPass(pass *string) {
+func assignRealPass(pass *string, host, objectType string) {
 	var err error
 
 	if aes.IsAES256CipherText(*pass) {
@@ -689,10 +834,10 @@ func assignRealPass(pass *string) {
 
 		*pass, err = aes.AES256Decode(*pass, vaultPass)
 		if err != nil {
-			log.Debugf("Auth: decrypt password/passphrase which encrypted by vault failed: %s", err)
+			log.Debugf("Vault: decrypt %s for '%s' failed: %s", objectType, host, err)
 			util.CheckErr(err)
 		}
 
-		log.Debugf("Auth: decrypt password/passphrase which encrypted by vault success")
+		log.Debugf("Vault: decrypt %s for '%s' success", objectType, host)
 	}
 }
