@@ -25,16 +25,14 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
   `push`: Copy local files and dirs to target hosts.  
   `fetch`: Copy files and dirs from target hosts to local.
 
-- Four authentication methods:  
-  `SSH-Agent Authentication`: through the system environment variable `$SSH_AUTH_SOCK`.  
-  `Pubkey Authentication`: by identity files(Default `$HOME/.ssh/{id_rsa,id_dsa}`), also include that with passphrase.  
-  `Password`: from command line flag `-k/--auth.ask-pass` or `-p/--auth.password`, or from configuration file.  
-  `Password File`: file that holds the `password` of login user, and it has lower priority than method `Password`.  
-  Auto detected the supported authentication methods, and if no legal authentication methods detected, it will prompt user to enter password of login user(Default `$USER`).
+- Auto detect following authentication methods for the login user(default `$USER`):  
+  `Password`: from inventory file, or from flag `-k/--auth.ask-pass`,`-p/--auth.password`,`-a/--auth.pass-file`, or from configuration file.  
+  `Pubkey Authentication`: by identity files(default `$HOME/.ssh/{id_rsa,id_dsa}`), also include that with passphrase.  
+  `SSH-Agent Authentication`: through the system environment variable `$SSH_AUTH_SOCK`.
 
 - Provide the target hosts by:  
   Hosts/host-patterns/host-group-names as positional arguments separated by space.  
-  Inventory file specified by flag `-H/--hosts.inventory` or from configuration file.
+  Inventory file by flag `-H/--hosts.inventory` or from configuration file.
 
 - Expand host patterns that from positional arguments or a inventory file to host list.
   Supported host patterns e.g.:
@@ -62,13 +60,14 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
 
   # group hosts
   [webserver]
-  node2.sre.im port=1001
+  node2.sre.im port=6022
   node3.sre.im
 
   # host variables for group webserver
   [webserver:vars]
-  port=2002
+  port=8022
   user=zhangsan
+  password=plaintextOrCiphertextByVault
 
   [dbserver]
   db[1-3].sre.im
