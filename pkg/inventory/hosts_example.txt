@@ -1,0 +1,28 @@
+# This is a hosts inventory file for gossh
+
+# no group hosts
+alias_name_node1 host=node1.sre.im
+node100.sre.im
+
+# hosts group
+[webserver]
+alias_name_node2 host=192.168.33.12 port=8022 user=vagrant password=123456 keys=~/.ssh/id_dsa,~/.ssh/id_rsa passphrase=xxx
+node[06-07].sre.im port=9022 user=lisi password=654321
+node08.sre.im 
+
+# host vars for group webserver
+[webserver:vars]
+port=8033
+user=wangwu
+
+[dbserver]
+192.168.1.10
+
+[dbserver:vars]
+user=vagrant2
+password=abcdefg
+
+# hosts group project1 has hosts that defined in group dbserver and group webserver
+[project1:children]
+dbserver
+webserver
