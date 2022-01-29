@@ -31,35 +31,35 @@ import (
 )
 
 const (
-	flagHostsFile = "hosts.file"
+	flagHostsFile = "hosts.inventory"
 	flagHostsPort = "hosts.port"
 	flagHostsList = "hosts.list"
 )
 
 // Hosts ...
 type Hosts struct {
-	File string `json:"file" mapstructure:"file"`
-	Port int    `json:"port" mapstructure:"port"`
-	List bool   `json:"list" mapstructure:"list"`
+	Inventory string `json:"inventory" mapstructure:"inventory"`
+	Port      int    `json:"port" mapstructure:"port"`
+	List      bool   `json:"list" mapstructure:"list"`
 }
 
 // NewHosts ...
 func NewHosts() *Hosts {
 	return &Hosts{
-		File: "",
-		Port: 22,
-		List: false,
+		Inventory: "",
+		Port:      22,
+		List:      false,
 	}
 }
 
 // AddFlagsTo pflagSet.
 func (h *Hosts) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.StringVarP(
-		&h.File,
+		&h.Inventory,
 		flagHostsFile,
 		"H",
-		h.File,
-		`file that holds the target hosts (one host/pattern per line)`,
+		h.Inventory,
+		`file that holds the target hosts`,
 	)
 	fs.IntVarP(
 		&h.Port,
@@ -92,8 +92,8 @@ func (h *Hosts) Validate() (errs []error) {
 		))
 	}
 
-	if h.File != "" && !util.FileExists(h.File) {
-		errs = append(errs, fmt.Errorf("invalid %s: %s not found", flagHostsFile, h.File))
+	if h.Inventory != "" && !util.FileExists(h.Inventory) {
+		errs = append(errs, fmt.Errorf("invalid %s: %s not found", flagHostsFile, h.Inventory))
 	}
 
 	return

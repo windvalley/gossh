@@ -7,21 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0]
+
+### Added
+
+- Support group hosts, group vars and group combination in inventory file.
+
+  Example inventory file:
+
+```text
+# This is a hosts inventory file for gossh
+
+# no group hosts
+alias_name_node1 host=node1.sre.im
+node100.sre.im
+
+# hosts group
+[webserver]
+alias_name_node2 host=192.168.33.12 port=8022 user=vagrant password=123456 keys=~/.ssh/id_dsa,~/.ssh/id_rsa passphrase=xxx
+node[06-07].sre.im port=9022 user=lisi password=654321
+node08.sre.im
+
+# host vars for group webserver
+[webserver:vars]
+port=8033
+user=wangwu
+
+[dbserver]
+192.168.1.10
+
+[dbserver:vars]
+user=vagrant2
+password=abcdefg
+
+# hosts group project1 has hosts that defined in group dbserver and group webserver
+[project1:children]
+dbserver
+webserver
+```
+
+For details at ([#29](https://github.com/windvalley/gossh/issues/29)).
+
+### Changed
+
+- Flag `-H, --hosts.file` changed to `-H, --hosts.inventory`.
+
 ## [1.8.0]
 
 ### Added
 
 - Allow adding variables to inventory(host file), available variables: `host port user password keys passphrase`.
 
-  Example host file:
+Example host file:
 
-  ```text
-  alias_name_node1 host=node1.sre.im
-  alias_name_node2 host=192.168.33.12 port=22 user=vagrant password=vagrant keys=~/.ssh/id_dsa,~/.ssh/id_rsa passphrase=xxx
-  node3.sre.im user=vagrant password=GOSSH-AES256:9cfe499133b69a6c7fc62b5b6ba72d3d8dfb4d0e7987170a40c5d50bb5d71e19
-  ```
+```text
+alias_name_node1 host=node1.sre.im
+alias_name_node2 host=192.168.33.12 port=22 user=vagrant password=vagrant keys=~/.ssh/id_dsa,~/.ssh/id_rsa passphrase=xxx
+node3.sre.im user=vagrant password=GOSSH-AES256:9cfe499133b69a6c7fc62b5b6ba72d3d8dfb4d0e7987170a40c5d50bb5d71e19
+```
 
-  For details at ([#27](https://github.com/windvalley/gossh/issues/27)).
+For details at ([#27](https://github.com/windvalley/gossh/issues/27)).
 
 ## [1.7.0]
 
@@ -93,22 +138,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   version     Show gossh version information
   ```
 
-````
+  After:
 
-After:
-
-```text
-Available Commands:
-command     Execute commands on target hosts
-script      Execute a local shell script on target hosts
-push        Copy local files/dirs to target hosts
-fetch       Copy files/dirs from target hosts to local
-vault       Encryption and decryption utility
-config      Generate gossh configuration file
-version     Show gossh version information
-help        Help about any command
-completion  Generate the autocompletion script for the specified shell
-```
+  ```text
+  Available Commands:
+  command     Execute commands on target hosts
+  script      Execute a local shell script on target hosts
+  push        Copy local files/dirs to target hosts
+  fetch       Copy files/dirs from target hosts to local
+  vault       Encryption and decryption utility
+  config      Generate gossh configuration file
+  version     Show gossh version information
+  help        Help about any command
+  completion  Generate the autocompletion script for the specified shell
+  ```
 
 - Optimize the order of flags to make them more friendly
   ([#23](https://github.com/windvalley/gossh/issues/23)).
@@ -459,4 +502,3 @@ If the dest directory given by flag `-d` does not exist or does not have permiss
 ### Fixed
 
 ### Security
-````

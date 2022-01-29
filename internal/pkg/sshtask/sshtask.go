@@ -29,7 +29,6 @@ import (
 	"net"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -43,6 +42,7 @@ import (
 	"github.com/windvalley/gossh/internal/pkg/aes"
 	"github.com/windvalley/gossh/internal/pkg/configflags"
 	"github.com/windvalley/gossh/pkg/batchssh"
+	"github.com/windvalley/gossh/pkg/inventory"
 	"github.com/windvalley/gossh/pkg/log"
 	"github.com/windvalley/gossh/pkg/util"
 )
@@ -66,26 +66,6 @@ const (
 	PushTask
 	FetchTask
 )
-
-type hostVarType int
-
-const (
-	hostVarHost hostVarType = iota
-	hostVarPort
-	hostVarUser
-	hostVarPassword
-	hostVarKeys
-	hostVarPassphrase
-)
-
-var hostVarsMap = map[hostVarType]string{
-	hostVarHost:       "host",
-	hostVarPort:       "port",
-	hostVarUser:       "user",
-	hostVarPassword:   "password",
-	hostVarKeys:       "keys",
-	hostVarPassphrase: "passphrase",
-}
 
 // taskResult ...
 type taskResult struct {
@@ -121,8 +101,8 @@ type Task struct {
 	defaultPass          *string
 	defaultIdentityFiles []string
 
-	// hostnames or ips from command line arguments.
-	hosts []string
+	// Hostname or IP or host pattern or host group from command line arguments.
+	argHosts []string
 
 	command    string
 	scriptFile string
@@ -189,7 +169,7 @@ func (t *Task) Start() {
 
 // SetTargetHosts ...
 func (t *Task) SetTargetHosts(hosts []string) {
-	t.hosts = hosts
+	t.argHosts = hosts
 }
 
 // SetCommand ...
@@ -405,201 +385,177 @@ func (t *Task) CheckErr() error {
 func (t *Task) ListHosts() ([]string, error) {
 	var hosts []string
 
-	if len(t.hosts) != 0 {
-		for _, hostOrPattern := range t.hosts {
-			hostOrPattern = strings.TrimSpace(hostOrPattern)
+	if t.configFlags.Hosts.Inventory == "" {
+		if len(t.argHosts) != 0 {
+			for _, hostOrPattern := range t.argHosts {
+				hostOrPattern = strings.TrimSpace(hostOrPattern)
 
-			if hostOrPattern == "" {
-				continue
+				if hostOrPattern == "" {
+					continue
+				}
+
+				hostList, err := expandhost.PatternToHosts(hostOrPattern)
+				if err != nil {
+					return nil, fmt.Errorf("invalid host pattern: %s", err)
+				}
+
+				hosts = append(hosts, hostList...)
 			}
-
-			hostList, err := expandhost.PatternToHosts(hostOrPattern)
-			if err != nil {
-				return nil, fmt.Errorf("invalid host pattern: %s", err)
-			}
-
-			hosts = append(hosts, hostList...)
 		}
+
+		return deDuplicate(hosts), nil
 	}
 
-	if t.configFlags.Hosts.File != "" {
-		content, err := ioutil.ReadFile(t.configFlags.Hosts.File)
-		if err != nil {
-			return nil, fmt.Errorf("read hosts file failed: %s", err)
-		}
+	targetHosts, err := t.getInventoryHosts()
+	if err != nil {
+		return nil, err
+	}
 
-		hostSlice := strings.Split(strings.TrimSuffix(string(content), "\n"), "\n")
-		for _, hostLine := range hostSlice {
-			if hostLine == "" || strings.HasPrefix(hostLine, "#") {
-				continue
-			}
-
-			hostFields := strings.Fields(hostLine)
-
-			hostAlias := hostFields[0]
-
-			hostList, err := expandhost.PatternToHosts(hostAlias)
-			if err != nil {
-				return nil, fmt.Errorf("invalid host pattern: %s", err)
-			}
-
-			hosts = append(hosts, hostList...)
-		}
+	for _, v := range inventory.DeDuplHosts(targetHosts) {
+		hosts = append(hosts, v.Alias)
 	}
 
 	return hosts, nil
 }
 
-//nolint:funlen,gocyclo
 func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
 	var hosts []*batchssh.Host
 
-	port := t.configFlags.Hosts.Port
+	helpErr := errors.New(
+		"need target hosts, you can specify hosts file by flag '-H', provide host/pattern/group as positional arguments")
 
 	sshAuthMethods := t.getDefaultSSHAuthMethods()
 
-	if len(t.hosts) != 0 {
-		for _, hostOrPattern := range t.hosts {
-			hostOrPattern = strings.TrimSpace(hostOrPattern)
+	if t.configFlags.Hosts.Inventory == "" {
+		if len(t.argHosts) != 0 {
+			for _, hostOrPattern := range t.argHosts {
+				hostOrPattern = strings.TrimSpace(hostOrPattern)
 
-			if hostOrPattern == "" {
-				continue
-			}
-
-			hostList, err := expandhost.PatternToHosts(hostOrPattern)
-			if err != nil {
-				return nil, fmt.Errorf("invalid host pattern: %s", err)
-			}
-
-			for _, v := range hostList {
-				hosts = append(hosts, &batchssh.Host{
-					Alias:    v,
-					Host:     v,
-					Port:     port,
-					User:     t.defaultUser,
-					Password: *t.defaultPass,
-					Keys:     t.defaultIdentityFiles,
-					SSHAuths: sshAuthMethods,
-				})
-			}
-		}
-	}
-
-	if t.configFlags.Hosts.File != "" {
-		content, err := ioutil.ReadFile(t.configFlags.Hosts.File)
-		if err != nil {
-			return nil, fmt.Errorf("read hosts file failed: %s", err)
-		}
-
-		var hostVars []string
-		for _, v := range hostVarsMap {
-			hostVars = append(hostVars, v)
-		}
-
-		hostSlice := strings.Split(strings.TrimSuffix(string(content), "\n"), "\n")
-		for _, hostLine := range hostSlice {
-			if hostLine == "" || strings.HasPrefix(hostLine, "#") {
-				continue
-			}
-
-			hostUser := t.defaultUser
-			hostPassword := *t.defaultPass
-			hostPort := port
-			hostSSHAuths := sshAuthMethods
-
-			var (
-				hostKeys       []string
-				hostPassphrase string
-			)
-
-			hostFields := strings.Fields(hostLine)
-
-			hostAlias := hostFields[0]
-
-			hostAddr := ""
-			if len(hostFields) > 1 {
-				for _, v := range hostFields[1:] {
-					item := strings.Split(v, "=")
-					hostVar := item[0]
-
-					switch hostVar {
-					case hostVarsMap[hostVarHost]:
-						hostAddr = item[1]
-					case hostVarsMap[hostVarPort]:
-						hostPort, _ = strconv.Atoi(item[1])
-						log.Debugf("Individual Auth: individual port '%d' for '%s'", hostPort, hostAlias)
-					case hostVarsMap[hostVarUser]:
-						hostUser = item[1]
-						log.Debugf("Individual Auth: individual user '%s' for '%s'", hostUser, hostAlias)
-					case hostVarsMap[hostVarPassword]:
-						hostPassword = item[1]
-						assignRealPass(&hostPassword, hostAlias, "password")
-						hostSSHAuths = append(hostSSHAuths, ssh.Password(hostPassword))
-						log.Debugf("Individual Auth: add individual password auth for '%s'", hostAlias)
-					case hostVarsMap[hostVarKeys]:
-						hostKeys = strings.Split(item[1], ",")
-						hostKeys = parseItentityFiles(hostKeys)
-					case hostVarsMap[hostVarPassphrase]:
-						hostPassphrase = item[1]
-						assignRealPass(&hostPassphrase, hostAlias, "passphrase")
-					default:
-						log.Warnf(
-							"indvalid host var '%s' in host entry '%s', available vars: %s",
-							hostVar,
-							hostLine,
-							hostVars,
-						)
-					}
+				if hostOrPattern == "" {
+					continue
 				}
-			}
 
-			if len(hostKeys) != 0 {
-				sshSigners := getSigners(hostKeys, hostPassphrase, "Individual")
-				if len(sshSigners) == 0 {
-					log.Debugf("Individual Auth: no valid individual identity files for '%s'", hostAlias)
-				} else {
-					hostSSHAuths = append(hostSSHAuths, ssh.PublicKeys(sshSigners...))
-					log.Debugf("Individual Auth: add individual pubkey auth for '%s'", hostAlias)
+				hostList, err := expandhost.PatternToHosts(hostOrPattern)
+				if err != nil {
+					return nil, fmt.Errorf("invalid host pattern: %s", err)
 				}
-			}
 
-			hostList, err := expandhost.PatternToHosts(hostAlias)
-			if err != nil {
-				return nil, fmt.Errorf("invalid host pattern: %s", err)
-			}
-
-			for _, v := range hostList {
-				if hostAddr == "" {
+				for _, v := range hostList {
 					hosts = append(hosts, &batchssh.Host{
 						Alias:    v,
 						Host:     v,
-						Port:     hostPort,
-						User:     hostUser,
-						Password: hostPassword,
-						Keys:     hostKeys,
-						SSHAuths: hostSSHAuths,
-					})
-				} else {
-					hosts = append(hosts, &batchssh.Host{
-						Alias:    v,
-						Host:     hostAddr,
-						Port:     hostPort,
-						User:     hostUser,
-						Password: hostPassword,
-						Keys:     hostKeys,
-						SSHAuths: hostSSHAuths,
+						Port:     t.configFlags.Hosts.Port,
+						User:     t.defaultUser,
+						Password: *t.defaultPass,
+						Keys:     t.defaultIdentityFiles,
+						SSHAuths: sshAuthMethods,
 					})
 				}
+			}
+
+			return deDuplSSHHosts(hosts), nil
+		}
+
+		return nil, helpErr
+	}
+
+	targetHosts, err := t.getInventoryHosts()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(targetHosts) == 0 {
+		return nil, helpErr
+	}
+
+	for _, v := range inventory.DeDuplHosts(targetHosts) {
+		hostSSHAuths := sshAuthMethods
+
+		if v.Port == 0 {
+			v.Port = t.configFlags.Hosts.Port
+		} else {
+			log.Debugf("Host Info: individual port '%d' for '%s'", v.Port, v.Alias)
+		}
+
+		if v.User == "" {
+			v.User = t.defaultUser
+		} else {
+			log.Debugf("Host Info: individual user '%s' for '%s'", v.User, v.Alias)
+		}
+
+		if v.Password == "" {
+			v.Password = *t.defaultPass
+			assignRealPass(&v.Password, v.Alias, "password")
+		} else {
+			assignRealPass(&v.Password, v.Alias, "password")
+			hostSSHAuths = append(hostSSHAuths, ssh.Password(v.Password))
+			log.Debugf("Individual Auth: add individual password for '%s'", v.Alias)
+		}
+
+		if len(v.Keys) != 0 {
+			keys := parseItentityFiles(v.Keys)
+			assignRealPass(&v.Passphrase, v.Alias, "passphrase")
+			sshSigners := getSigners(keys, v.Passphrase, "Individual")
+			if len(sshSigners) == 0 {
+				log.Debugf("Individual Auth: no valid individual identity files for '%s'", v.Alias)
+			} else {
+				hostSSHAuths = append(hostSSHAuths, ssh.PublicKeys(sshSigners...))
+				log.Debugf("Individual Auth: add individual pubkey auth for '%s'", v.Alias)
+			}
+		}
+
+		hosts = append(hosts, &batchssh.Host{
+			Alias:    v.Alias,
+			Host:     v.Host,
+			Port:     v.Port,
+			User:     v.User,
+			Password: v.Password,
+			Keys:     v.Keys,
+			SSHAuths: hostSSHAuths,
+		})
+	}
+
+	return hosts, nil
+}
+
+func (t *Task) getInventoryHosts() ([]*inventory.Host, error) {
+	var fileHosts []*inventory.Host
+
+	if err := inventory.Parse(t.configFlags.Hosts.Inventory); err != nil {
+		return nil, err
+	}
+
+	if len(t.argHosts) == 0 {
+		fileHosts = inventory.GetAllHosts()
+	} else {
+		for _, v := range t.argHosts {
+			hostList, err := expandhost.PatternToHosts(v)
+			if err != nil {
+				return nil, fmt.Errorf("invalid host pattern: %s", err)
+			}
+
+			for _, host := range hostList {
+				_fileHosts := inventory.GetHostsByGroup(host)
+				if _fileHosts == nil {
+					_host := inventory.GetHostByAlias(host)
+					if _host != nil {
+						_fileHosts = []*inventory.Host{_host}
+					} else {
+						_fileHosts = []*inventory.Host{
+							{
+								Alias: host,
+								Host:  host,
+							},
+						}
+					}
+				}
+
+				fileHosts = append(fileHosts, _fileHosts...)
 			}
 		}
 	}
 
-	if len(hosts) == 0 {
-		return nil, fmt.Errorf("need target hosts, you can specify hosts file by flag '-H' or " +
-			"provide host/pattern as positional arguments")
-	}
-
-	return hosts, nil
+	return fileHosts, nil
 }
 
 func (t *Task) buildSSHClient() {
@@ -840,4 +796,34 @@ func assignRealPass(pass *string, host, objectType string) {
 
 		log.Debugf("Vault: decrypt %s for '%s' success", objectType, host)
 	}
+}
+
+func deDuplicate(hosts []string) []string {
+	var set []string
+
+	keys := make(map[string]bool)
+
+	for _, v := range hosts {
+		if !keys[v] {
+			set = append(set, v)
+			keys[v] = true
+		}
+	}
+
+	return set
+}
+
+func deDuplSSHHosts(hosts []*batchssh.Host) []*batchssh.Host {
+	var set []*batchssh.Host
+
+	keys := make(map[string]bool)
+
+	for _, v := range hosts {
+		if !keys[v.Alias] {
+			set = append(set, v)
+			keys[v.Alias] = true
+		}
+	}
+
+	return set
 }

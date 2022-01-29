@@ -32,13 +32,12 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
   `Password File`: file that holds the `password` of login user, and it has lower priority than method `Password`.  
   Auto detected the supported authentication methods, and if no legal authentication methods detected, it will prompt user to enter password of login user(Default `$USER`).
 
-- Two ways to provide the target hosts:  
-  Hosts/patterns as positional arguments separated by space.  
-  Hosts file specified by flag `-H/--hosts.file` or from configuration file.  
-  Both ways can be used at the same time.
+- Provide the target hosts by:  
+  Hosts/host-patterns/host-group-names as positional arguments separated by space.  
+  Inventory file specified by flag `-H/--hosts.inventory` or from configuration file.
 
-- Expand host patterns that from commandline arguments or a hosts file to host list,
-  and deduplicate the host list. Supported host patterns e.g.:
+- Expand host patterns that from positional arguments or a inventory file to host list.
+  Supported host patterns e.g.:
 
   ```text
   10.16.0.[1-10]
@@ -46,12 +45,38 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
   foo[01-03,06,12-16].idc[1-3].[beijing,wuhan].bar.com
   ```
 
-- Allow adding variables to host file. E.g.:
+- Allow adding variables to inventory file.  
+  Available variables: `host`, `port`, `user`, `password`, `keys`, `passphrase`. E.g.:
 
   ```text
   alias_name_node1 host=node1.sre.im
   alias_name_node2 host=192.168.33.12 port=8022 user=vagrant password=123456 keys=~/.ssh/id_dsa,~/.ssh/id_rsa passphrase=xxx
   node3.sre.im user=vagrant password=GOSSH-AES256:9cfe499133b69a6c7fc62b5b6ba72d3d8dfb4d0e7987170a40c5d50bb5d71e19
+  ```
+
+- Group hosts in inventory file. E.g.:
+
+  ```text
+  # no group hosts
+  node1.sre.im
+
+  # group hosts
+  [webserver]
+  node2.sre.im port=1001
+  node3.sre.im
+
+  # host variables for group webserver
+  [webserver:vars]
+  port=2002
+  user=zhangsan
+
+  [dbserver]
+  db[1-3].sre.im
+
+  # group project1 has hosts that from both group webserver and dbserver
+  [project1:children]
+  webserver
+  dbserver
   ```
 
 - Use `sudo` to run as other user(default `root`) to execute the commands/shell-script or fetch files/dirs.
@@ -127,7 +152,7 @@ Flags:
   -i, --auth.identity-files strings    identity files (default $HOME/.ssh/{id_rsa,id_dsa})
   -K, --auth.passphrase string         passphrase of the identity files
   -V, --auth.vault-pass-file string    file that holds the vault password for encryption and decryption
-  -H, --hosts.file string              file that holds the target hosts (one host/pattern per line)
+  -H, --hosts.inventory string         file that holds the target hosts
   -P, --hosts.port int                 port of the target hosts (default 22)
   -L, --hosts.list                     outputs a list of target hosts, and does not do anything else
   -s, --run.sudo                       use sudo to execute commands/script or fetch files/dirs
