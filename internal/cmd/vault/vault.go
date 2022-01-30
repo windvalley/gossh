@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/fatih/color"
@@ -141,17 +142,51 @@ func GetVaultPassword() string {
 func getVaultPasswordFromFile() string {
 	vaultPassFile := configflags.Config.Auth.VaultPassFile
 	if vaultPassFile != "" {
+		ok, err := isExectuable(vaultPassFile)
+		util.CheckErr(err)
+
+		if ok {
+			bin := fmt.Sprintf("./%s", vaultPassFile)
+			out, err1 := exec.Command(bin).Output()
+			if err1 != nil {
+				util.CheckErr(fmt.Errorf(
+					"problem executing file '%s': %s, if this is not a executable file, "+
+						"remove the executable bit from the file", vaultPassFile, err1))
+			}
+
+			vaultPass := strings.TrimSpace(string(out))
+			if vaultPass == "" {
+				util.CheckErr(fmt.Sprintf(
+					"problem executing file '%s': output cannot be empty, if this is not a script, "+
+						"remove the executable bit from the file", vaultPassFile))
+			}
+
+			log.Debugf("Vault: get vault password by executing file '%s'", vaultPassFile)
+
+			return vaultPass
+		}
+
 		passwordContent, err := ioutil.ReadFile(vaultPassFile)
 		if err != nil {
 			err = fmt.Errorf("read vault password file '%s' failed: %w", vaultPassFile, err)
 		}
 		util.CheckErr(err)
 
-		password := strings.TrimSpace(string(passwordContent))
+		vaultPass := strings.TrimSpace(string(passwordContent))
+		if vaultPass == "" {
+			util.CheckErr("vault password file cannot be empty")
+		}
+
+		if strings.HasPrefix(vaultPass, "#!/") {
+			util.CheckErr(fmt.Sprintf(
+				"'%s' looks like a script file, please add the executable bit to this file",
+				vaultPassFile,
+			))
+		}
 
 		log.Debugf("Vault: read vault password from file '%s'", vaultPassFile)
 
-		return password
+		return vaultPass
 	}
 
 	return ""
@@ -211,4 +246,13 @@ func getConfirmPasswordFromPrompt(prompt string) (string, error) {
 	}
 
 	return password, nil
+}
+
+func isExectuable(file string) (bool, error) {
+	f, err := os.Stat(file)
+	if err != nil {
+		return false, err
+	}
+
+	return f.Mode().Perm()&0111 != 0, nil
 }

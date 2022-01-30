@@ -78,7 +78,8 @@ func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.StringVarP(&a.Passphrase, flagAuthPassphrase, "K", a.Passphrase,
 		"passphrase of the identity files")
 	fs.StringVarP(&a.VaultPassFile, flagAuthVaultPassFile, "V", a.VaultPassFile,
-		"file that holds the vault password for encryption and decryption")
+		`text file or executable file that holds the vault password
+for encryption and decryption`)
 }
 
 // Complete some flags value.
