@@ -269,21 +269,21 @@ func (t *Task) BatchRun() {
 	switch t.taskType {
 	case CommandTask:
 		if t.command == "" {
-			t.err = errors.New("need flag '-e/--execute' or '-L/--hosts.list'")
+			t.err = errors.New("need flag '-e/--execute' or '-l/--hosts.list'")
 		}
 	case ScriptTask:
 		if t.scriptFile == "" {
-			t.err = errors.New("need flag '-e/--execute' or '-L/--hosts.list'")
+			t.err = errors.New("need flag '-e/--execute' or '-l/--hosts.list'")
 		}
 	case PushTask:
 		if t.pushFiles == nil || len(t.pushFiles.files) == 0 {
-			t.err = errors.New("need flag '-f/--files' or '-L/--hosts.list'")
+			t.err = errors.New("need flag '-f/--files' or '-l/--hosts.list'")
 		}
 	case FetchTask:
 		if len(t.fetchFiles) == 0 {
-			t.err = errors.New("need flag '-f/--files' or '-L/--hosts.list'")
+			t.err = errors.New("need flag '-f/--files' or '-l/--hosts.list'")
 		} else if len(t.dstDir) == 0 {
-			t.err = errors.New("need flag '-d/--dest-path' or '-L/--hosts.list'")
+			t.err = errors.New("need flag '-d/--dest-path' or '-l/--hosts.list'")
 		} else {
 			if !util.DirExists(t.dstDir) {
 				err := os.MkdirAll(t.dstDir, os.ModePerm)

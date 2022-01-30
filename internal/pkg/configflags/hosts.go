@@ -71,7 +71,7 @@ func (h *Hosts) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.BoolVarP(
 		&h.List,
 		flagHostsList,
-		"L",
+		"l",
 		h.List,
 		"outputs a list of target hosts, and does not do anything else",
 	)

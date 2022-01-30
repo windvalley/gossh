@@ -59,7 +59,7 @@ func (r *Run) AddFlagsTo(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&r.Lang,
 		flagRunLang,
-		"l",
+		"L",
 		r.Lang,
 		`specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)`,
 	)
