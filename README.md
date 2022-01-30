@@ -150,13 +150,14 @@ Flags:
   -a, --auth.pass-file string          file that holds the password of login user
   -i, --auth.identity-files strings    identity files (default $HOME/.ssh/{id_rsa,id_dsa})
   -K, --auth.passphrase string         passphrase of the identity files
-  -V, --auth.vault-pass-file string    file that holds the vault password for encryption and decryption
+  -V, --auth.vault-pass-file string    text file or executable file that holds the vault password
+                                       for encryption and decryption
   -H, --hosts.inventory string         file that holds the target hosts
   -P, --hosts.port int                 port of the target hosts (default 22)
-  -L, --hosts.list                     outputs a list of target hosts, and does not do anything else
+  -l, --hosts.list                     outputs a list of target hosts, and does not do anything else
   -s, --run.sudo                       use sudo to execute commands/script or fetch files/dirs
   -U, --run.as-user string             run via sudo as this user (default "root")
-  -l, --run.lang string                specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
+  -L, --run.lang string                specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
   -c, --run.concurrency int            number of concurrent connections (default 1)
   -o, --output.file string             file to which messages are output
   -j, --output.json                    output messages in json format

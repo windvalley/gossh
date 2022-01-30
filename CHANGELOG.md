@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0]
+
+### Added
+
+- Add feature that getting vault password from an executable file.
+  For details at ([#28](https://github.com/windvalley/gossh/issues/28)).
+
+### Changed
+
+- Flag `-L, --hosts.list` changed to `-l, --hosts.list`.
+
+- Flag `-l, --run.lang` changed to `-L, --host.lang`.
+
+- Optimize help description of flag `-V, --auth.vault-pass-file`.
+
 ## [1.9.0]
 
 ### Added
