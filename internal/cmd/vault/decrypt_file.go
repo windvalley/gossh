@@ -42,17 +42,17 @@ var decryptFileCmd = &cobra.Command{
 	Long: `
 Decrypt vault encrypted file.`,
 	Example: `
-    # Decrypt a vault encrypted file by asking for vault password.
-    $ gossh vault decrypt-file /path/auth.txt
+  # Decrypt a vault encrypted file by asking for vault password.
+  $ gossh vault decrypt-file /path/auth.txt
 
-    # Decrypt a vault encrypted file by vault password file.
-    $ gossh vault decrypt-file /path/auth.txt -V /path/vault-password-file
+  # Decrypt a vault encrypted file by vault password file or script.
+  $ gossh vault decrypt-file /path/auth.txt -V /path/vault-password-file-or-script
 
-    # Output decrypted content to another file.
-    $ gossh vault decrypt-file /path/auth.txt -O /path/plaintxt.txt
+  # Output decrypted content to another file.
+  $ gossh vault decrypt-file /path/auth.txt -O /path/plaintxt.txt
 
-    # Output decrypted content to screen.
-    $ gossh vault decrypt-file /path/auth.txt -O -`,
+  # Output decrypted content to screen.
+  $ gossh vault decrypt-file /path/auth.txt -O -`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			util.CobraCheckErrWithHelp(cmd, "requires one arg to represent the vault encrypted file")

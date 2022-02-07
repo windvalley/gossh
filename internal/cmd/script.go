@@ -46,28 +46,13 @@ var scriptCmd = &cobra.Command{
 	Long: `
 Execute a local shell script on target hosts.`,
 	Example: `
-  # Execute foo.sh on host1.
-  $ gossh script host1 -e foo.sh
+  # Execute foo.sh on target hosts.
+  $ gossh script host[1-3] -e foo.sh -k
 
-  # Remove the target copied shell script after	execution.
-  $ gossh script host1 -e foo.sh -r
+  # Remove the copied 'foo.sh' on the target hosts after execution.
+  $ gossh script host[1-3] -H hosts.txt -e foo.sh -k -r
 
-  # Use sudo as root to execute foo.sh on host1.
-  # NOTE: This will prompt for a password(login user).
-  $ gossh script host1 -e foo.sh -s
-
-  # Use sudo as user 'zhangsan' to execute foo.sh on host1.
-  # NOTE: This will prompt for a password(login user).
-  $ gossh script host1 -e foo.sh -s -U zhangsan
-
-  # Set timeout seconds for executing script on each target host.
-  $ gossh script host1 host2 -e foo.sh --timeout.command 10
-
-  # Provide a list of hosts at the same time in multiple ways.
-  $ gossh script host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -e foo.sh
-
-  # Just output a list of target hosts, and does not execute anything else.
-  $ gossh script host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -L`,
+  Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/script.md`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := configflags.Config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)

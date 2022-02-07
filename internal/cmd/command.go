@@ -33,43 +33,13 @@ import (
 var shellCommand string
 
 const commandCmdExamples = `
-  # Ask for password.
-  $ gossh command host1 -e "uptime" -k
+  # Execute 'uptime' on target hosts.
+  $ gossh command host1 host2 -e "uptime" -u zhangsan -k
 
-  # Get password by '-p' flag.
-  $ gossh command host1 -e "uptime" -p "your-password"
+  # Use sudo as root to execute command on target hosts.
+  $ gossh command host[1-2] -e "uptime" -u zhangsan -s
 
-  # Get 'user:password' from a file.
-  $ gossh command host1 host2 -e "uptime" -a auth.txt
-
-  # Pubkey authentication with specified private-key-file(with passphrase).
-  $ gossh command host1 -e "uptime" -i /path/id_rsa -K "passphrase"
-
-  # Specify login user instead of default $USER.
-  # NOTE: 
-  # If ssh-agent($SSH_AUTH_SOCK) exists, it will use ssh-agent auth first,
-  # and if no valid authentication methods detected, it will ask for password.
-  $ gossh command host1 -u zhangsan -e "uptime"
-
-  # Get target hosts from both arguments and '-H' flag.
-  $ gossh command host1 host2 -H hosts.txt -e "uptime" -k
-
-  # Host pattern is also supported.
-  $ gossh command host1 foo[01-03].[beijing,wuhan].bar.com -e "uptime" -k
-
-  # Use sudo as root to execute commands on host1.
-  # NOTE: This will prompt for a password(login user).
-  $ gossh command host1 -e "uptime" -s
-
-  # Use sudo as user 'zhangsan' to execute commands on host1.
-  # NOTE: This will prompt for a password(login user).
-  $ gossh command host1 -e "uptime" -s -U zhangsan
-
-  # Set timeout seconds for executing commands on each target host.
-  $ gossh command host1 host2 -e "uptime" --timeout.command 10
-
-  # Connect target hosts by proxy server 10.16.0.1.
-  $ gossh command host1 host2 -e "uptime" -X 10.16.0.1`
+  Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/command.md`
 
 // commandCmd represents the exec command
 var commandCmd = &cobra.Command{

@@ -46,26 +46,17 @@ var (
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "Copy local files/dirs to target hosts",
+	Short: "Copy local files and dirs to target hosts",
 	Long: `
-Copy local files/dirs to target hosts.`,
+Copy local files and dirs to target hosts.`,
 	Example: `
   # Copy a local file or dir to host1:/tmp/ by default.
-  $ gossh push host1 -f /path/foo
-
-  # Also you can custom dest dir by '-d' flag.
-  $ gossh push host1 -f /path/foo -d /home/user
+  $ gossh push host[1-2] -f /path/foo -k
 
   # Copy local files and dirs to target hosts. 
-  $ gossh push host1 host2 -f /path/foo.txt -f /path/bar/
-    or
-  $ gossh push host1 host2 -f /path/foo.txt,/path/bar/
+  $ gossh push host[1-2] -f /path/foo.txt,/path/bar/ -k
 
-  # Set timeout seconds for pushing files/dirs.
-  $ gossh push host1 host2 -f /path/foo.txt,/path/bar/ --timeout.command 10
-
-  # Provide a list of hosts at the same time in multiple ways.
-  $ gossh push host1 foo[01-03].[beijing,wuhan].bar.com -H hosts.txt -f /path/foo.txt`,
+  Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/push.md`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := configflags.Config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)

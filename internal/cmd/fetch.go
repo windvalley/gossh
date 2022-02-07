@@ -39,9 +39,9 @@ var (
 // fetchCmd represents the fetch command
 var fetchCmd = &cobra.Command{
 	Use:   "fetch",
-	Short: "Copy files/dirs from target hosts to local",
+	Short: "Copy files and dirs from target hosts to local",
 	Long: `
-Copy files/dirs from target hosts to local.`,
+Copy files and dirs from target hosts to local.`,
 	Example: `
   # Copy host1:/path/foo to local /tmp/backup/host1/path/foo.
   $ gossh fetch host1 -f /path/foo -d /tmp/backup
@@ -53,19 +53,9 @@ Copy files/dirs from target hosts to local.`,
   #    /tmp/backup/host2/path1/foo.txt
   #    /tmp/backup/host2/path2/bar/
   #
-  $ gossh fetch host1 host2 -f /path1/foo.txt -f /path2/bar/ -d /tmp/backup
-    or
-  $ gossh fetch host1 host2 -f /path1/foo.txt,/path2/bar/ -d /tmp/backup
+  $ gossh fetch host[1-2] -f /path1/foo.txt,/path2/bar/ -d /tmp/backup
 
-  # Specify tmp dir on target host instead of default /tmp by flag '-t'.
-  # NOTE: If the tmp dir not exist, it will auto create it.
-  $ gossh fetch host1 -f /path/foo.txt -d ./backup/ -t /home/user/tmp/
-
-  # Use sudo as root to copy no permission files.
-  $ gossh fetch host1 -f /root/foo.txt -d ./backup/ -s
-
-  # Use sudo as 'zhangsan' to copy no permission files.
-  $ gossh fetch host1 -f /home/zhangsan/foo.txt -d ./backup -s -U zhangsan`,
+  Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/fetch.md`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := configflags.Config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)

@@ -38,14 +38,14 @@ var encryptCmd = &cobra.Command{
 	Long: `
 Encrypt sensitive content.`,
 	Example: `
-    # Encrypt plaintext by asking for vault password.
-    $ gossh vault encrypt "your-sensitive-plaintext"
+  # Encrypt plaintext by asking for vault password.
+  $ gossh vault encrypt "your-sensitive-plaintext"
 
-    # Encrypt plaintext by vault password file.
-    $ gossh vault encrypt "your-sensitive-plaintext" -V /path/vault-password-file
+  # Encrypt plaintext by vault password file or script.
+  $ gossh vault encrypt "your-sensitive-plaintext" -V /path/vault-password-file-or-script
 
-	# Encrypt plaintext from terminal prompt.
-	$ gossh vault encrypt -V /path/vault-password-file`,
+  # Encrypt plaintext from terminal prompt.
+  $ gossh vault encrypt -V /path/vault-password-file`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) > 1 {
 			util.CobraCheckErrWithHelp(cmd, "to many args, only need one")

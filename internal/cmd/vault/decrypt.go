@@ -38,11 +38,11 @@ var decryptCmd = &cobra.Command{
 	Long: `
 Decrypt content encrypted by vault.`,
 	Example: `
-    # Decrypt cipher text by asking for vault password.
-    $ gossh vault decrypt GOSSH-AES256:a5c1b3c0cdad4669f84
+  # Decrypt cipher text by asking for vault password.
+  $ gossh vault decrypt GOSSH-AES256:a5c1b3c0cdad4669f84
 
-    # Decrypt cipher text by vault password file.
-    $ gossh vault decrypt GOSSH-AES256:a5c1b3c0cdad4669f84 -V /path/vault-password-file`,
+  # Decrypt cipher text by vault password file or script.
+  $ gossh vault decrypt GOSSH-AES256:a5c1b3c0cdad4669f84 -V /path/vault-password-file-or-script`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			util.CobraCheckErrWithHelp(cmd, "requires one arg to represent the vault encrypted content")
