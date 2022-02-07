@@ -23,6 +23,8 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"path"
+
 	"github.com/spf13/cobra"
 
 	"github.com/windvalley/gossh/internal/pkg/configflags"
@@ -66,6 +68,10 @@ Copy files and dirs from target hosts to local.`,
 
 		task.SetTargetHosts(args)
 		task.SetFetchFiles(srcFiles)
+
+		if tmpDir == "$HOME" {
+			tmpDir = path.Join("/home", configflags.Config.Auth.User)
+		}
 		task.SetFetchOptions(localDstDir, tmpDir)
 
 		task.Start()
@@ -83,7 +89,7 @@ func init() {
 		"local directory that files/dirs from target hosts will be copied to",
 	)
 
-	fetchCmd.Flags().StringVarP(&tmpDir, "tmp-dir", "t", "/tmp",
+	fetchCmd.Flags().StringVarP(&tmpDir, "tmp-dir", "t", "$HOME",
 		"directory of target hosts for storing temporary zip file",
 	)
 }

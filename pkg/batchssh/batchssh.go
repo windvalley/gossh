@@ -397,7 +397,7 @@ func (c *Client) FetchFiles(
 	}
 	defer session.Close()
 
-	zippedFileTmpDir := path.Join(tmpDir, "gossh-"+host.Host)
+	zippedFileTmpDir := path.Join(tmpDir, ".gossh-tmp-"+host.Host)
 	tmpZipFile := fmt.Sprintf("%s.%d", host.Host, time.Now().UnixMicro())
 	zippedFileFullpath := path.Join(zippedFileTmpDir, tmpZipFile)
 	_, err = c.executeCmd(
