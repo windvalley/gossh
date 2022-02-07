@@ -50,11 +50,11 @@ var pushCmd = &cobra.Command{
 	Long: `
 Copy local files and dirs to target hosts.`,
 	Example: `
-  # Copy a local file or dir to host1:/tmp/ by default.
+  # Copy a local file or dir to /tmp/ of the target hosts by default.
   $ gossh push host[1-2] -f /path/foo -k
 
-  # Copy local files and dirs to target hosts. 
-  $ gossh push host[1-2] -f /path/foo.txt,/path/bar/ -k
+  # Copy local files and dirs to /home/user/ of the target hosts. 
+  $ gossh push host[1-2] -f /path/foo.txt,/path/bar/ -d /home/user -k
 
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/push.md`,
 	PreRun: func(cmd *cobra.Command, args []string) {
