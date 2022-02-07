@@ -32,29 +32,29 @@ import (
 )
 
 const configTemplate = `auth:
-  # Login user.
+  # Default login user.
   # Default: $USER
   user: %q
 
-  # Password of the login user.
+  # Default password of the login user.
   # Default: ""
   password: %q
 
-  # Ask for password of login user.
+  # Ask for password of the login user.
   # Default: false
   ask-pass: %v
 
-  # File that holds the login user's password.
+  # File that holds the default password of login user.
   # Default: ""
   file: %q
 
-  # Identity files of pubkey authentication.
+  # Default identity files of pubkey authentication.
   # Default:
   #   - $HOME/.ssh/id_rsa
   #   - $HOME/.ssh/id_dsa
   identity-files: []
 
-  # Passphrase of the identity files.
+  # Default passphrase of the identity files.
   # Default: ""
   passphrase: %q
 
@@ -63,16 +63,16 @@ const configTemplate = `auth:
   vault-pass-file: %q
 
 hosts:
-  # File that holds the target hosts (format: one host/pattern per line).
+  # Default inventory file that holds the target hosts.
   # Default: ""
   file: %q
 
-  # Port of target hosts.
+  # Default port of target hosts.
   # Default: 22
   port: %d
 
 run:
-  # Use sudo to execute command/script or fetch files/dirs.
+  # Use sudo to run task.
   # Default: false
   sudo: %v
 
@@ -80,8 +80,10 @@ run:
   # Default: root
   as-user: %s
 
-  # Specify i18n envs when execute command/script.
-  # Default: original i18n value on target hosts
+  # Export systems environment variables LANG/LC_ALL/LANGUAGE 
+  # as this value when executing command/script.
+  # Available vaules: zh_CN.UTF-8, en_US.UTF-8, etc.
+  # Default: "" (do not export)
   lang: %q
 
   # Number of concurrent connections.
@@ -111,15 +113,16 @@ timeout:
   conn: %d
 
   # Timeout seconds for executing commands/script on each target host.
+  # NOTE: This command timeout includes the connection timeout (timeout.conn).
   # Default: 0
   command: %d
 
-  # Timeout seconds for running the current gossh task.
+  # Timeout seconds for running the entire gossh task.
   # Default: 0
   task: %d
 
 proxy:
-  # Proxy server address, and it will enable proxy if it not null.
+  # Proxy server address. It will enable proxy if it is not null.
   # Default: ""
   server: %q
 
@@ -150,8 +153,8 @@ var configCmd = &cobra.Command{
 	Short: "Generate gossh configuration file",
 	Long: `
 Generate gossh configuration file.
-
-$PWD/.gossh.yaml has higher priority than $HOME/.gossh.yaml`,
+Default configuration file path: $PWD/.gossh.yaml and $HOME/.gossh.yaml,
+and $PWD/.gossh.yaml has higher priority than $HOME/.gossh.yaml`,
 	Example: `
   # Generate default configuration content to screen.
   $ gossh config

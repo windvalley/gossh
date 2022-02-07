@@ -1,27 +1,27 @@
 auth:
-  # Login user.
+  # Default login user.
   # Default: $USER
-  user: ""
+  user: "xg"
 
-  # Password of the login user.
+  # Default password of the login user.
   # Default: ""
   password: ""
 
-  # Ask for password of login user.
+  # Ask for password of the login user.
   # Default: false
   ask-pass: false
 
-  # File that holds the login user's password.
+  # File that holds the default password of login user.
   # Default: ""
   file: ""
 
-  # Identity files of pubkey authentication.
+  # Default identity files of pubkey authentication.
   # Default:
   #   - $HOME/.ssh/id_rsa
   #   - $HOME/.ssh/id_dsa
   identity-files: []
 
-  # Passphrase of the identity files.
+  # Default passphrase of the identity files.
   # Default: ""
   passphrase: ""
 
@@ -30,16 +30,16 @@ auth:
   vault-pass-file: ""
 
 hosts:
-  # File that holds the target hosts (format: one host/pattern per line).
+  # Default inventory file that holds the target hosts.
   # Default: ""
   file: ""
 
-  # Port of target hosts.
+  # Default port of target hosts.
   # Default: 22
   port: 22
 
 run:
-  # Use sudo to execute command/script or fetch files/dirs.
+  # Use sudo to run task.
   # Default: false
   sudo: false
 
@@ -47,8 +47,9 @@ run:
   # Default: root
   as-user: root
 
-  # Specify i18n envs when execute command/script.
-  # Default: original i18n value on target hosts
+  # Export systems environment variables LANG/LC_ALL/LANGUAGE 
+  # as this value when executing command/script.
+  # Default: original variables values of the target hosts
   lang: ""
 
   # Number of concurrent connections.
@@ -78,15 +79,16 @@ timeout:
   conn: 10
 
   # Timeout seconds for executing commands/script on each target host.
+  # NOTE: This command timeout includes the connection timeout (timeout.conn).
   # Default: 0
   command: 0
 
-  # Timeout seconds for running the current gossh task.
+  # Timeout seconds for running the entire gossh task.
   # Default: 0
   task: 0
 
 proxy:
-  # Proxy server address, and it will enable proxy if it not null.
+  # Proxy server address. It will enable proxy if it is not null.
   # Default: ""
   server: ""
 
