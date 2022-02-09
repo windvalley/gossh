@@ -95,11 +95,12 @@ type Task struct {
 	id       string
 	taskType TaskType
 
-	sshClient            *batchssh.Client
-	sshAgent             net.Conn
-	defaultUser          string
-	defaultPass          *string
-	defaultIdentityFiles []string
+	sshClient             *batchssh.Client
+	sshAgent              net.Conn
+	defaultUser           string
+	defaultPass           *string
+	defaultIdentityFiles  []string
+	defaultSSHAuthMethods []ssh.AuthMethod
 
 	// Hostname or IP or host pattern or host group from command line arguments.
 	argHosts []string
@@ -296,6 +297,8 @@ func (t *Task) BatchRun() {
 		return
 	}
 
+	t.setDefaultSSHAuthMethods()
+
 	t.buildSSHClient()
 
 	allHosts, err := t.getAllHosts()
@@ -424,8 +427,6 @@ func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
 	helpErr := errors.New(
 		"need target hosts, you can specify hosts file by flag '-H', provide host/pattern/group as positional arguments")
 
-	sshAuthMethods := t.getDefaultSSHAuthMethods()
-
 	if t.configFlags.Hosts.Inventory == "" {
 		if len(t.argHosts) != 0 {
 			for _, hostOrPattern := range t.argHosts {
@@ -448,7 +449,7 @@ func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
 						User:     t.defaultUser,
 						Password: *t.defaultPass,
 						Keys:     t.defaultIdentityFiles,
-						SSHAuths: sshAuthMethods,
+						SSHAuths: t.defaultSSHAuthMethods,
 					})
 				}
 			}
@@ -469,7 +470,7 @@ func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
 	}
 
 	for _, v := range inventory.DeDuplHosts(targetHosts) {
-		hostSSHAuths := sshAuthMethods
+		var hostSSHAuths []ssh.AuthMethod
 
 		if v.Port == 0 {
 			v.Port = t.configFlags.Hosts.Port
@@ -483,15 +484,6 @@ func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
 			log.Debugf("Host Info: individual user '%s' for '%s'", v.User, v.Alias)
 		}
 
-		if v.Password == "" {
-			v.Password = *t.defaultPass
-			assignRealPass(&v.Password, v.Alias, "password")
-		} else {
-			assignRealPass(&v.Password, v.Alias, "password")
-			hostSSHAuths = append(hostSSHAuths, ssh.Password(v.Password))
-			log.Debugf("Individual Auth: add individual password for '%s'", v.Alias)
-		}
-
 		if len(v.Keys) != 0 {
 			keys := parseItentityFiles(v.Keys)
 			assignRealPass(&v.Passphrase, v.Alias, "passphrase")
@@ -503,6 +495,17 @@ func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
 				log.Debugf("Individual Auth: add individual pubkey auth for '%s'", v.Alias)
 			}
 		}
+
+		if v.Password == "" {
+			v.Password = *t.defaultPass
+			assignRealPass(&v.Password, v.Alias, "password")
+		} else {
+			assignRealPass(&v.Password, v.Alias, "password")
+			hostSSHAuths = append(hostSSHAuths, ssh.Password(v.Password))
+			log.Debugf("Individual Auth: add individual password for '%s'", v.Alias)
+		}
+
+		hostSSHAuths = append(hostSSHAuths, t.defaultSSHAuthMethods...)
 
 		hosts = append(hosts, &batchssh.Host{
 			Alias:    v.Alias,
@@ -586,7 +589,7 @@ func (t *Task) buildSSHClient() {
 	t.sshClient = sshClient
 }
 
-func (t *Task) getDefaultSSHAuthMethods() []ssh.AuthMethod {
+func (t *Task) setDefaultSSHAuthMethods() {
 	var (
 		auths    []ssh.AuthMethod
 		sshAgent net.Conn
@@ -632,21 +635,18 @@ func (t *Task) getDefaultSSHAuthMethods() []ssh.AuthMethod {
 		auths = append(auths, ssh.Password(*t.defaultPass))
 	}
 
-	return auths
+	t.defaultSSHAuthMethods = auths
 }
 
 func (t *Task) getProxySSHAuthMethods() []ssh.AuthMethod {
-	var (
-		proxyAuths []ssh.AuthMethod
-		sshAgent   net.Conn
-	)
+	var proxyAuths []ssh.AuthMethod
 
 	log.Debugf("Proxy Auth: proxy login user: %s", t.configFlags.Proxy.User)
 
 	if t.sshAgent != nil {
 		log.Debugf("Proxy Auth: connected to default SSH_AUTH_SOCK")
 
-		agentSigners := ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers)
+		agentSigners := ssh.PublicKeysCallback(agent.NewClient(t.sshAgent).Signers)
 		proxyAuths = append(proxyAuths, agentSigners)
 	}
 
