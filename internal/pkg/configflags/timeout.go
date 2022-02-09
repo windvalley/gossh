@@ -53,9 +53,7 @@ func (t *Timeout) AddFlagsTo(flags *pflag.FlagSet) {
 	flags.IntVarP(&t.Conn, flagTimeoutConn, "", t.Conn,
 		"timeout seconds for connecting each target host")
 	flags.IntVarP(&t.Command, flagTimeoutCommand, "", t.Command,
-		`timeout seconds for executing commands/script on each target host
-or copying local files and dirs to each target host
-or copying files and dirs from each target host to local`)
+		`timeout seconds for handling each target host`)
 }
 
 // Complete ...
