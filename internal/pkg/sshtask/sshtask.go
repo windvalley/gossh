@@ -593,21 +593,6 @@ func (t *Task) getDefaultSSHAuthMethods() []ssh.AuthMethod {
 		err      error
 	)
 
-	if *t.defaultPass != "" {
-		auths = append(auths, ssh.Password(*t.defaultPass))
-	} else {
-		log.Debugf("Default Auth: password of the login user '%s' not provided", t.defaultUser)
-	}
-
-	if len(t.defaultIdentityFiles) != 0 {
-		sshSigners := getSigners(t.defaultIdentityFiles, t.configFlags.Auth.Passphrase, "Default")
-		if len(sshSigners) == 0 {
-			log.Debugf("Default Auth: no valid default identity files")
-		} else {
-			auths = append(auths, ssh.PublicKeys(sshSigners...))
-		}
-	}
-
 	sshAuthSock := os.Getenv("SSH_AUTH_SOCK")
 	if sshAuthSock != "" {
 		sshAgent, err = net.Dial("unix", sshAuthSock)
@@ -620,6 +605,21 @@ func (t *Task) getDefaultSSHAuthMethods() []ssh.AuthMethod {
 		}
 
 		t.sshAgent = sshAgent
+	}
+
+	if len(t.defaultIdentityFiles) != 0 {
+		sshSigners := getSigners(t.defaultIdentityFiles, t.configFlags.Auth.Passphrase, "Default")
+		if len(sshSigners) == 0 {
+			log.Debugf("Default Auth: no valid default identity files")
+		} else {
+			auths = append(auths, ssh.PublicKeys(sshSigners...))
+		}
+	}
+
+	if *t.defaultPass != "" {
+		auths = append(auths, ssh.Password(*t.defaultPass))
+	} else {
+		log.Debugf("Default Auth: password of the login user '%s' not provided", t.defaultUser)
 	}
 
 	if *t.defaultPass == "" && t.configFlags.Run.Sudo {
@@ -643,12 +643,12 @@ func (t *Task) getProxySSHAuthMethods() []ssh.AuthMethod {
 
 	log.Debugf("Proxy Auth: proxy login user: %s", t.configFlags.Proxy.User)
 
-	if t.configFlags.Proxy.Password != "" {
-		proxyAuths = append(proxyAuths, ssh.Password(t.configFlags.Proxy.Password))
-	} else {
-		proxyAuths = append(proxyAuths, ssh.Password(*t.defaultPass))
+	if t.sshAgent != nil {
+		log.Debugf("Proxy Auth: connected to default SSH_AUTH_SOCK")
+
+		agentSigners := ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers)
+		proxyAuths = append(proxyAuths, agentSigners)
 	}
-	log.Debugf("Proxy Auth: received password of the proxy user")
 
 	proxyKeyfiles := parseItentityFiles(t.configFlags.Proxy.IdentityFiles)
 	if len(proxyKeyfiles) != 0 {
@@ -660,12 +660,12 @@ func (t *Task) getProxySSHAuthMethods() []ssh.AuthMethod {
 		}
 	}
 
-	if t.sshAgent != nil {
-		log.Debugf("Proxy Auth: connected to default SSH_AUTH_SOCK")
-
-		agentSigners := ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers)
-		proxyAuths = append(proxyAuths, agentSigners)
+	if t.configFlags.Proxy.Password != "" {
+		proxyAuths = append(proxyAuths, ssh.Password(t.configFlags.Proxy.Password))
+	} else {
+		proxyAuths = append(proxyAuths, ssh.Password(*t.defaultPass))
 	}
+	log.Debugf("Proxy Auth: received password of the proxy user")
 
 	return proxyAuths
 }
