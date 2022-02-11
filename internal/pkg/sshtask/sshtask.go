@@ -591,6 +591,7 @@ func (t *Task) buildSSHClient() {
 
 func (t *Task) setDefaultSSHAuthMethods() {
 	var (
+		signers  []ssh.Signer
 		auths    []ssh.AuthMethod
 		sshAgent net.Conn
 		err      error
@@ -604,7 +605,12 @@ func (t *Task) setDefaultSSHAuthMethods() {
 		} else {
 			log.Debugf("Default Auth: connected to SSH_AUTH_SOCK: %s", sshAuthSock)
 
-			auths = append(auths, ssh.PublicKeysCallback(agent.NewClient(sshAgent).Signers))
+			signers, err = agent.NewClient(sshAgent).Signers()
+			if err != nil {
+				log.Debugf("Default Auth: parse ssh-agent failed: %v", err)
+			} else {
+				log.Debugf("Default Auth: parse ssh-agent success")
+			}
 		}
 
 		t.sshAgent = sshAgent
@@ -612,11 +618,16 @@ func (t *Task) setDefaultSSHAuthMethods() {
 
 	if len(t.defaultIdentityFiles) != 0 {
 		sshSigners := getSigners(t.defaultIdentityFiles, t.configFlags.Auth.Passphrase, "Default")
-		if len(sshSigners) == 0 {
-			log.Debugf("Default Auth: no valid default identity files")
+
+		if len(sshSigners) != 0 {
+			signers = append(signers, sshSigners...)
 		} else {
-			auths = append(auths, ssh.PublicKeys(sshSigners...))
+			log.Debugf("Default Auth: no valid default identity files")
 		}
+	}
+
+	if len(signers) != 0 {
+		auths = append(auths, ssh.PublicKeys(signers...))
 	}
 
 	if *t.defaultPass != "" {
@@ -639,25 +650,38 @@ func (t *Task) setDefaultSSHAuthMethods() {
 }
 
 func (t *Task) getProxySSHAuthMethods() []ssh.AuthMethod {
-	var proxyAuths []ssh.AuthMethod
+	var (
+		signers    []ssh.Signer
+		proxyAuths []ssh.AuthMethod
+		err        error
+	)
 
 	log.Debugf("Proxy Auth: proxy login user: %s", t.configFlags.Proxy.User)
 
 	if t.sshAgent != nil {
-		log.Debugf("Proxy Auth: connected to default SSH_AUTH_SOCK")
+		log.Debugf("Proxy Auth: use default auth SSH_AUTH_SOCK")
 
-		agentSigners := ssh.PublicKeysCallback(agent.NewClient(t.sshAgent).Signers)
-		proxyAuths = append(proxyAuths, agentSigners)
+		signers, err = agent.NewClient(t.sshAgent).Signers()
+		if err != nil {
+			log.Debugf("Proxy Auth: parse default ssh-agent failed: %v", err)
+		} else {
+			log.Debugf("Proxy Auth: parse default ssh-agent success")
+		}
 	}
 
 	proxyKeyfiles := parseItentityFiles(t.configFlags.Proxy.IdentityFiles)
 	if len(proxyKeyfiles) != 0 {
 		sshSigners := getSigners(proxyKeyfiles, t.configFlags.Proxy.Passphrase, "Proxy")
-		if len(sshSigners) == 0 {
-			log.Debugf("Proxy Auth: no valid identity files for proxy")
+
+		if len(sshSigners) != 0 {
+			signers = append(signers, sshSigners...)
 		} else {
-			proxyAuths = append(proxyAuths, ssh.PublicKeys(sshSigners...))
+			log.Debugf("Proxy Auth: no valid identity files for proxy")
 		}
+	}
+
+	if len(signers) != 0 {
+		proxyAuths = append(proxyAuths, ssh.PublicKeys(signers...))
 	}
 
 	if t.configFlags.Proxy.Password != "" {
