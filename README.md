@@ -28,7 +28,8 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
 - Auto detect following authentication methods for the login user(default `$USER`):  
   `Password`: from inventory file, or from flag `-k/--auth.ask-pass`,`-p/--auth.password`,`-a/--auth.pass-file`, or from configuration file.  
   `Pubkey Authentication`: by identity files(default `$HOME/.ssh/{id_rsa,id_dsa}`), also include that with passphrase.  
-  `SSH-Agent Authentication`: through the system environment variable `$SSH_AUTH_SOCK`.
+  `SSH-Agent Authentication`: through the system environment variable `$SSH_AUTH_SOCK`.  
+  If the above three authentication methods are valid at the same time, the priority order is: `SSH-Agent` > `Pubkey` > `Password`.
 
 - Provide the target hosts by:  
   Hosts/host-patterns/host-group-names as positional arguments separated by space.  
@@ -123,9 +124,7 @@ $ make && make install
 $ gossh -h
 
 Gossh is a high-performance and high-concurrency ssh tool.
-This tool can efficiently manage tens of thousands of Linux server clusters.
-It can efficiently execute commands or a local shell script on target hosts,
-push files and dirs to target hosts, and fetch files and dirs from target hosts to local.
+It can efficiently manage tens of thousands of Linux server clusters.
 
 Find more information at: https://github.com/windvalley/gossh
 
@@ -135,8 +134,8 @@ Usage:
 Available Commands:
   command     Execute commands on target hosts
   script      Execute a local shell script on target hosts
-  push        Copy local files/dirs to target hosts
-  fetch       Copy files/dirs from target hosts to local
+  push        Copy local files and dirs to target hosts
+  fetch       Copy files and dirs from target hosts to local
   vault       Encryption and decryption utility
   config      Generate gossh configuration file
   version     Show gossh version information
@@ -173,9 +172,7 @@ Flags:
                                        (default same as 'auth.passphrase')
       --timeout.task int               timeout seconds for the entire gossh task
       --timeout.conn int               timeout seconds for connecting each target host (default 10)
-      --timeout.command int            timeout seconds for executing commands/script on each target host
-                                       or copying local files and dirs to each target host
-                                       or copying files and dirs from each target host to local
+      --timeout.command int            timeout seconds for handling each target host
       --config string                  config file (default {$PWD,$HOME}/.gossh.yaml)
   -h, --help                           help for gossh
 

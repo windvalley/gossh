@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0]
+
+### Changed
+
+- Optimize subcommand `config`.
+
+- Update configuration demo file `configs/gossh.yaml`.
+
+- Optimize examples of subcommands.
+
+- Change default tmp dir for subcommand `fetch`.
+  Default value of flag `-t, --tmp-dir` changed from `/tmp` to `$HOME`.
+
+- Optimize the priority of the ssh authentication methods.
+  Old: `password > pubkey > ssh-agent`,
+  New: `ssh-agent > pubkey > password`.
+  For details at ([#31](https://github.com/windvalley/gossh/issues/31)).
+
+- Optimize description of flag `--timeout.command`.
+
+### Fixed
+
+- Fix a bug about ssh authentication. The bug description:  
+  When attempting ssh-agent fails, pubkey authentication is skipped and password authentication is used directly.
+
+- Fix a bug about ssh-agent authentication method about proxy server.
+
 ## [1.10.0]
 
 ### Added
