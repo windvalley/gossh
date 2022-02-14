@@ -1,7 +1,7 @@
 auth:
   # Default login user.
   # Default: $USER
-  user: "xg"
+  user: ""
 
   # Default password of the login user.
   # Default: ""
@@ -47,9 +47,10 @@ run:
   # Default: root
   as-user: root
 
-  # Export systems environment variables LANG/LC_ALL/LANGUAGE 
+  # Export systems environment variables LANG/LC_ALL/LANGUAGE
   # as this value when executing command/script.
-  # Default: original variables values of the target hosts
+  # Available vaules: zh_CN.UTF-8, en_US.UTF-8, etc.
+  # Default: "" (null means do not export)
   lang: ""
 
   # Number of concurrent connections.

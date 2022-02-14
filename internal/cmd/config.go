@@ -24,6 +24,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -80,10 +81,10 @@ run:
   # Default: root
   as-user: %s
 
-  # Export systems environment variables LANG/LC_ALL/LANGUAGE 
+  # Export systems environment variables LANG/LC_ALL/LANGUAGE
   # as this value when executing command/script.
   # Available vaules: zh_CN.UTF-8, en_US.UTF-8, etc.
-  # Default: "" (do not export)
+  # Default: "" (null means do not export)
   lang: %q
 
   # Number of concurrent connections.
@@ -167,9 +168,14 @@ and $PWD/.gossh.yaml has higher priority than $HOME/.gossh.yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		config := configflags.Config
 
+		user := config.Auth.User
+		if user == os.Getenv("USER") {
+			user = ""
+		}
+
 		fmt.Printf(
 			configTemplate,
-			config.Auth.User, config.Auth.Password, config.Auth.AskPass,
+			user, config.Auth.Password, config.Auth.AskPass,
 			config.Auth.PassFile, config.Auth.Passphrase, config.Auth.VaultPassFile,
 			config.Hosts.Inventory, config.Hosts.Port,
 			config.Run.Sudo, config.Run.AsUser, config.Run.Lang, config.Run.Concurrency,
