@@ -32,7 +32,7 @@ auth:
 hosts:
   # Default inventory file that holds the target hosts.
   # Default: ""
-  file: ""
+  inventory: ""
 
   # Default port of target hosts.
   # Default: 22

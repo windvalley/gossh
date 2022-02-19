@@ -66,7 +66,7 @@ const configTemplate = `auth:
 hosts:
   # Default inventory file that holds the target hosts.
   # Default: ""
-  file: %q
+  inventory: %q
 
   # Default port of target hosts.
   # Default: 22
