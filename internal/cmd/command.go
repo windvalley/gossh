@@ -33,7 +33,7 @@ import (
 var shellCommand string
 
 const commandCmdExamples = `
-  # Execute 'uptime' on target hosts.
+  # Execute command 'uptime' on target hosts.
   $ gossh command host1 host2 -e "uptime" -u zhangsan -k
 
   # Use sudo as root to execute command on target hosts.

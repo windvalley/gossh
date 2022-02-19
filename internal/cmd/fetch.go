@@ -48,13 +48,7 @@ Copy files and dirs from target hosts to local.`,
   # Copy host1:/path/foo to local /tmp/backup/host1/path/foo.
   $ gossh fetch host1 -f /path/foo -d /tmp/backup
 
-  # Copy files and dirs from target hosts to local dir /tmp/backup/,
-  # and files in local dir /tmp/backup/ would be:
-  #    /tmp/backup/host1/path1/foo.txt
-  #    /tmp/backup/host1/path2/bar/
-  #    /tmp/backup/host2/path1/foo.txt
-  #    /tmp/backup/host2/path2/bar/
-  #
+  # Copy files and dirs from target hosts to local dir /tmp/backup/.
   $ gossh fetch host[1-2] -f /path1/foo.txt,/path2/bar/ -d /tmp/backup
 
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/fetch.md`,
