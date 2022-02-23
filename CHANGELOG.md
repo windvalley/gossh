@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.1]
+
+### Added
+
+- Add documentation.
+
+### Changed
+
+- Optimize examples of subcommand `fetch`.
+
+### Fixed
+
+- Subcommand `config`: `hosts.file` -> `hosts.inventory`.
+
+- `configs/gossh.yaml`: `hosts.file` -> `hosts.inventory`.
+
 ## [1.11.0]
 
 ### Changed

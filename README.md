@@ -219,6 +219,17 @@ user    0m13.529s
 sys     0m0.592s
 ```
 
+## Documentation
+
+- [Configuration](docs/config.md)
+- [Inventory](docs/inventory.md)
+- [Authentication](docs/authentication.md)
+- [Command](docs/command.md)
+- [Script](docs/script.md)
+- [Push](docs/push.md)
+- [Fetch](docs/fetch.md)
+- [Vault](docs/vault.md)
+
 ## 📝 Changelog
 
 [CHANGELOG](CHANGELOG.md)
