@@ -84,7 +84,7 @@ Modify `~/.gossh.yaml` or `./.gossh.yaml` as following:
 hosts:
   # Default inventory file that holds the target hosts.
   # Default: ""
-  file: "/path/hosts.txt"
+  inventory: "/path/hosts.txt"
 ```
 
 ```sh
