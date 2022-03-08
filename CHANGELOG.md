@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.2]
+
+### Changed
+
+- Optimize help usage information. Add neccessary positional arguments to Usage info for subcommands: `command`, `script`, `push`, `fetch`, `vault encrypt`, `vault decrypt`, `vault encrypt-file`, `vault decrypt-file`, `vault view`.
+
+  E.G.
+
+  ```sh
+  $ gossh command -h
+  ```
+
+  Output:
+
+  Before:
+
+  ```text
+  Execute commands on target hosts.
+
+  Usage:
+    gossh command [flags]
+  ...
+  ```
+
+  Now:
+
+  ```text
+  Execute commands on target hosts.
+
+  Usage:
+    gossh command [HOST...] [flags]
+  ...
+  ```
+
 ## [1.11.1]
 
 ### Added

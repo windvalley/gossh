@@ -41,7 +41,7 @@ var (
 
 // scriptCmd represents the script command
 var scriptCmd = &cobra.Command{
-	Use:   "script",
+	Use:   "script [HOST...]",
 	Short: "Execute a local shell script on target hosts",
 	Long: `
 Execute a local shell script on target hosts.`,

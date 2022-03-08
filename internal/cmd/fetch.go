@@ -40,7 +40,7 @@ var (
 
 // fetchCmd represents the fetch command
 var fetchCmd = &cobra.Command{
-	Use:   "fetch",
+	Use:   "fetch [HOST...]",
 	Short: "Copy files and dirs from target hosts to local",
 	Long: `
 Copy files and dirs from target hosts to local.`,

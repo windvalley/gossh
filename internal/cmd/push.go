@@ -45,7 +45,7 @@ var (
 
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
-	Use:   "push",
+	Use:   "push [HOST...]",
 	Short: "Copy local files and dirs to target hosts",
 	Long: `
 Copy local files and dirs to target hosts.`,

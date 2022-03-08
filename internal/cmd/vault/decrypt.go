@@ -33,7 +33,7 @@ import (
 
 // decryptCmd represents the vault decrypt command
 var decryptCmd = &cobra.Command{
-	Use:   "decrypt",
+	Use:   "decrypt CIPHER-STRING",
 	Short: "Decrypt content encrypted by vault",
 	Long: `
 Decrypt content encrypted by vault.`,

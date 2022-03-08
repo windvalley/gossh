@@ -39,7 +39,7 @@ var outputFile string
 //nolint:dupl
 // encryptFileCmd represents the vault encrypt-file command
 var encryptFileCmd = &cobra.Command{
-	Use:   "encrypt-file",
+	Use:   "encrypt-file FILENAME",
 	Short: "Encrypt a file",
 	Long: `
 Encrypt a file.`,

@@ -32,7 +32,7 @@ import (
 
 // viewCmd represents the vault view command
 var viewCmd = &cobra.Command{
-	Use:   "view",
+	Use:   "view FILENAME",
 	Short: "View vault encrypted file",
 	Long: `
 View vault encrypted file.`,

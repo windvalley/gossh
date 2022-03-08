@@ -33,7 +33,7 @@ import (
 
 // encryptCmd represents the vault encrypt command
 var encryptCmd = &cobra.Command{
-	Use:   "encrypt",
+	Use:   "encrypt [SENSITIVE-STRING]",
 	Short: "Encrypt sensitive content",
 	Long: `
 Encrypt sensitive content.`,

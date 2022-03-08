@@ -41,9 +41,9 @@ const commandCmdExamples = `
 
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/command.md`
 
-// commandCmd represents the exec command
+// commandCmd represents the 'command' command
 var commandCmd = &cobra.Command{
-	Use:   "command",
+	Use:   "command [HOST...]",
 	Short: "Execute commands on target hosts",
 	Long: `
 Execute commands on target hosts.`,

@@ -37,7 +37,7 @@ var deOutputFile string
 //nolint:dupl
 // decryptFileCmd represents the vault decrypt-file command
 var decryptFileCmd = &cobra.Command{
-	Use:   "decrypt-file",
+	Use:   "decrypt-file FILENAME",
 	Short: "Decrypt vault encrypted file",
 	Long: `
 Decrypt vault encrypted file.`,
