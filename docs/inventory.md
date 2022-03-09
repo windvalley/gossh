@@ -1,7 +1,7 @@
 # Inventory
 
 Inventory file is a file that stores the target hosts. Inventory file is not present by default.
-If you want `gossh` to use inventory file by default, you can specify it by `hosts.inventory` in the configuration file. Otherwise, you must use it by command flag `-H, --hosts.inventory`.
+If you want `gossh` to use inventory file by default, you can specify it by `hosts.inventory` in the configuration file. Otherwise, you must use it by command flag `-i, --hosts.inventory`.
 
 If you don't use an inventory file, you must provide the target hosts as positional arguments, separated by spaces.
 
@@ -59,7 +59,7 @@ The following examples used the inventory file above.
 
 ```sh
 # Get all hosts that in inventory by default.
-$ gossh command -H /path/hosts.txt -l
+$ gossh command -i /path/hosts.txt -l
 ```
 
 Output:

@@ -42,8 +42,8 @@ $ ssh-keygen -t dsa -f /path/id_rsa -N ""
 # copy pubkey to target host
 $ ssh-copy-id -i /path/id_rsa target_host
 
-# If /path/id_rsa is '~/.ssh/id_rsa', the flag '-i /path/id_rsa' can be omitted.
-$ gossh command target_host -e "uptime" -i /path/id_rsa
+# If /path/id_rsa is '~/.ssh/id_rsa', the flag '-I /path/id_rsa' can be omitted.
+$ gossh command target_host -e "uptime" -I /path/id_rsa
 ```
 
 ### Use Pubkey Authentication with passphrase
@@ -55,10 +55,10 @@ $ ssh-keygen -t dsa -f /path/id_rsa -N "the-passphrase"
 # copy pubkey to target host
 $ ssh-copy-id -i /path/id_rsa target_host
 
-# If /path/id_rsa is '~/.ssh/id_rsa', the flag '-i /path/id_rsa' can be omitted.
+# If /path/id_rsa is '~/.ssh/id_rsa', the flag '-I /path/id_rsa' can be omitted.
 # NOTE: "the-passphrase" can be encrypted by command `gossh vault encrypt`,
 # then you must add another flag `-V /paht/vault-pass-file`.
-$ gossh command target_host -e "uptime" -i /path/id_rsa -K "the-passphrase"
+$ gossh command target_host -e "uptime" -I /path/id_rsa -K "the-passphrase"
 ```
 
 ### Use SSH-Agent Authentication

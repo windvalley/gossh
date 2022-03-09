@@ -425,7 +425,7 @@ func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
 	var hosts []*batchssh.Host
 
 	helpErr := errors.New(
-		"need target hosts, you can specify hosts file by flag '-H', provide host/pattern/group as positional arguments")
+		"need target hosts, you can specify hosts file by flag '-i', provide host/pattern/group as positional arguments")
 
 	if t.configFlags.Hosts.Inventory == "" {
 		if len(t.argHosts) != 0 {

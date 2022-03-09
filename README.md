@@ -33,7 +33,7 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
 
 - Provide the target hosts by:  
   Hosts/host-patterns/host-group-names as positional arguments separated by space.  
-  Inventory file by flag `-H/--hosts.inventory` or from configuration file.
+  Inventory file by flag `-i/--hosts.inventory` or from configuration file.
 
 - Expand host patterns that from positional arguments or a inventory file to host list.
   Supported host patterns e.g.:
@@ -99,7 +99,7 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
   such as password or passphrase without compromising security.
 
 - For ease of use, it supports config file. You can write flags that are not frequently changed into the config file, so you don't need to laboriously specify these flags on the command line. If the flag in both command line and config file, flag that from command line takes precedence over the other.  
-  The default config file is `$PWD/.gossh.yaml` or `$HOME/.gossh.yaml`, and `$PWD/.gossh.yaml` has a higher priority.
+  The default config file is `$PWD/.gossh.yaml` or `$HOME/.gossh.yaml`, and `$PWD/.gossh.yaml` has a higher priority. Note that the config file is optional, that is, there can be no config file.
 
 - Provides subcommand `config` to help generate configuration file in easy way.
 
@@ -136,6 +136,7 @@ Available Commands:
   script      Execute a local shell script on target hosts
   push        Copy local files and dirs to target hosts
   fetch       Copy files and dirs from target hosts to local
+  play        Runs gossh playbooks
   vault       Encryption and decryption utility
   config      Generate gossh configuration file
   version     Show gossh version information
@@ -147,16 +148,17 @@ Flags:
   -p, --auth.password string           password of login user
   -k, --auth.ask-pass                  ask for the password of login user
   -a, --auth.pass-file string          file that holds the password of login user
-  -i, --auth.identity-files strings    identity files (default $HOME/.ssh/{id_rsa,id_dsa})
+  -I, --auth.identity-files strings    identity files (default $HOME/.ssh/{id_rsa,id_dsa})
   -K, --auth.passphrase string         passphrase of the identity files
   -V, --auth.vault-pass-file string    text file or executable file that holds the vault password
                                        for encryption and decryption
-  -H, --hosts.inventory string         file that holds the target hosts
+  -i, --hosts.inventory string         file that holds the target hosts
   -P, --hosts.port int                 port of the target hosts (default 22)
   -l, --hosts.list                     outputs a list of target hosts, and does not do anything else
   -s, --run.sudo                       use sudo to execute commands/script or fetch files/dirs
   -U, --run.as-user string             run via sudo as this user (default "root")
-  -L, --run.lang string                specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)
+  -L, --run.lang string                specify i18n while executing command
+                                       (e.g. zh_CN.UTF-8|en_US.UTF-8)
   -c, --run.concurrency int            number of concurrent connections (default 1)
   -o, --output.file string             file to which messages are output
   -j, --output.json                    output messages in json format
@@ -204,7 +206,7 @@ sys     1m24.263s
 **Gossh:**
 
 ```sh
-$ time gossh command -H hosts.list -e "uptime" -c 100 -k
+$ time gossh command -i hosts.list -e "uptime" -c 100 -k
 ```
 
 Output:

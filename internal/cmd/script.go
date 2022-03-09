@@ -50,7 +50,7 @@ Execute a local shell script on target hosts.`,
   $ gossh script host[1-3] -e foo.sh -k
 
   # Remove the copied 'foo.sh' on the target hosts after execution.
-  $ gossh script host[1-3] -H hosts.txt -e foo.sh -k -r
+  $ gossh script host[1-3] -i hosts.txt -e foo.sh -k -r
 
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/script.md`,
 	PreRun: func(cmd *cobra.Command, args []string) {

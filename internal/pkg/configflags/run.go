@@ -61,7 +61,8 @@ func (r *Run) AddFlagsTo(flags *pflag.FlagSet) {
 		flagRunLang,
 		"L",
 		r.Lang,
-		`specify i18n while executing command (e.g. zh_CN.UTF-8|en_US.UTF-8)`,
+		`specify i18n while executing command
+(e.g. zh_CN.UTF-8|en_US.UTF-8)`,
 	)
 	flags.IntVarP(&r.Concurrency, flagRunConcurrency, "c", r.Concurrency,
 		"number of concurrent connections")

@@ -6,6 +6,8 @@ If the flag in both command line and config file, flag that from command line ta
 
 The default config file is `$PWD/.gossh.yaml` or `$HOME/.gossh.yaml`, and `$PWD/.gossh.yaml` has a higher priority.
 
+Note that the config file is optional, that is, there can be no config file.
+
 ## Configuration contents demo
 
 Demo file can be found in git repo by location: `configs/gossh.yaml`, or use command `gossh config` to generate.

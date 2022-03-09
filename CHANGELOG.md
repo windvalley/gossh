@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.11.2]
+## [1.12.0]
 
 ### Changed
 
@@ -40,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     gossh command [HOST...] [flags]
   ...
   ```
+
+- Flag `-i,--auth.identity-files` changed to `-I,--auth.identity-files`,
+  and flag `-H,--hosts.inventory` changed to `-i,--hosts.inventory`.
 
 ## [1.11.1]
 

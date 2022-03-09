@@ -57,7 +57,7 @@ func (h *Hosts) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.StringVarP(
 		&h.Inventory,
 		flagHostsFile,
-		"H",
+		"i",
 		h.Inventory,
 		`file that holds the target hosts`,
 	)

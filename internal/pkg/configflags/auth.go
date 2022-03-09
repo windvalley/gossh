@@ -73,7 +73,7 @@ func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.BoolVarP(&a.AskPass, flagAuthAskPass, "k", a.AskPass, "ask for the password of login user")
 	fs.StringVarP(&a.PassFile, flagAuthPassFile, "a", a.PassFile,
 		`file that holds the password of login user`)
-	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "i", nil,
+	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "I", nil,
 		"identity files (default $HOME/.ssh/{id_rsa,id_dsa})")
 	fs.StringVarP(&a.Passphrase, flagAuthPassphrase, "K", a.Passphrase,
 		"passphrase of the identity files")
