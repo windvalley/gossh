@@ -50,7 +50,7 @@ import (
 var (
 	linuxUserRegex  = "[a-zA-Z0-9_.-]+[$]?"
 	sudoPromptRegex = fmt.Sprintf(
-		`(?s).*\[sudo\] password for %s: \n|(?s).*\[sudo\] %s 的密码：\n`,
+		`(?s).*\[sudo\] password for %s:(\n|)|(?s).*\[sudo\] %s 的密码：(\n|)`,
 		linuxUserRegex,
 		linuxUserRegex,
 	)
