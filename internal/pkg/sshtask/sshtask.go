@@ -339,22 +339,21 @@ func (t *Task) BatchRun() {
 // HandleOutput ...
 func (t *Task) HandleOutput() {
 	for res := range t.detailOutput {
-		output := ""
-
 		// Fix the problem of special characters ^M appearing at the end of
 		// the line break when writing files in text format.
 		outputNoR := strings.ReplaceAll(res.output, "\r\n", "\n")
 
-		// Trim leading and trailing blank characters.
-		outputNoSpace := strings.TrimSpace(outputNoR)
-
 		// Trim sudo password prompt messages.
+		outputNoSudoPrompt := ""
 		re, err := regexp.Compile(sudoPromptRegex)
 		if err != nil {
 			log.Debugf("re compile '%s' failed: %s", sudoPromptRegex, err)
 		} else {
-			output = re.ReplaceAllString(outputNoSpace, "")
+			outputNoSudoPrompt = re.ReplaceAllString(outputNoR, "")
 		}
+
+		// Trim leading and trailing blank characters.
+		output := strings.TrimSpace(outputNoSudoPrompt)
 
 		contextLogger := log.WithFields(log.Fields{
 			"hostname": res.hostname,
