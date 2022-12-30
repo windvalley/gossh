@@ -1,7 +1,7 @@
 # GoSSH
 
 [![Language](https://img.shields.io/badge/Language-Go-blue.svg)](https://go.dev)
-[![Github Workflow Status](https://img.shields.io/github/workflow/status/windvalley/gossh/GosshCI)](https://github.com/windvalley/gossh/actions/workflows/gosshci.yaml)
+[![Github Workflow Status](https://img.shields.io/github/actions/workflow/status/windvalley/gossh/gosshci.yaml?branch=main)](https://github.com/windvalley/gossh/actions/workflows/gosshci.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=windvalley_gossh&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=windvalley_gossh)
 [![Version](https://img.shields.io/github/v/release/windvalley/gossh?include_prereleases)](https://github.com/windvalley/gossh/releases)
 [![LICENSE](https://img.shields.io/github/license/windvalley/gossh)](LICENSE) <br>
@@ -136,7 +136,6 @@ Available Commands:
   script      Execute a local shell script on target hosts
   push        Copy local files and dirs to target hosts
   fetch       Copy files and dirs from target hosts to local
-  play        Runs gossh playbooks
   vault       Encryption and decryption utility
   config      Generate gossh configuration file
   version     Show gossh version information
