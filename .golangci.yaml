@@ -68,7 +68,6 @@ linters:
   enable:
     - bodyclose
     - deadcode
-    - depguard
     - dogsled
     - dupl
     - errcheck
@@ -118,6 +117,7 @@ linters:
   # - wsl
   # - gochecknoinits
   # - gocritic
+  # - depguard
 
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source

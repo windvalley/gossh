@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0]
+
+### Added
+
+Add flag `-z, --zip` for subcommand `push`.
+
+### Changed
+
+Improve the files transfer efficiency of the subcommand `push`.
+The subcommand `push` no longer uses zip compression by default. If you want to continue using zip compression, you can add the `-z` flag to the command line.
+
 ## [1.12.0]
 
 ### Changed

@@ -26,7 +26,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"os"
 	"path"
@@ -216,7 +215,7 @@ func (c *Client) ExecuteScript(
 	}
 	defer ftpC.Close()
 
-	file, err := c.pushFile(ftpC, srcFile, dstDir, allowOverwrite)
+	file, err := c.pushFile(ftpC, srcFile, dstDir, host.Host, allowOverwrite)
 	if err != nil {
 		return "", err
 	}
@@ -260,7 +259,7 @@ func (c *Client) PushFiles(
 	host *Host,
 	srcFiles, srcZipFiles []string,
 	dstDir string,
-	allowOverwrite bool,
+	allowOverwrite, enableZip bool,
 ) (string, error) {
 	client, err := c.getClient(host)
 	if err != nil {
@@ -274,52 +273,63 @@ func (c *Client) PushFiles(
 	}
 	defer ftpC.Close()
 
-	for i, f := range srcZipFiles {
-		srcFile := srcFiles[i]
-
-		dstZipFile := filepath.Base(f)
-
-		done := make(chan struct{})
-		var (
-			err  error
-			file *sftp.File
-		)
-		go func() {
-			defer close(done)
-
-			file, err = c.pushZipFile(ftpC, f, filepath.Base(srcFile), dstDir, allowOverwrite)
-			if err == nil {
-				file.Close()
+	if !enableZip {
+		for _, srcFile := range srcFiles {
+			err = c.pushFileOrDirV2(client, ftpC, srcFile, dstDir, host.Host, allowOverwrite)
+			if err != nil {
+				return "", err
 			}
-		}()
-
-		<-done
-
-		if err != nil {
-			return "", err
 		}
+	} else {
+		for i, f := range srcZipFiles {
+			srcFile := srcFiles[i]
 
-		session, err := client.NewSession()
-		if err != nil {
-			return "", err
-		}
-		defer session.Close()
+			dstZipFile := filepath.Base(f)
 
-		_, err = c.executeCmd(
-			session,
-			fmt.Sprintf(
-				`which unzip &>/dev/null && { cd %s;unzip -o %s;rm %s;} || 
+			done := make(chan struct{})
+			var (
+				err  error
+				file *sftp.File
+			)
+			go func() {
+				defer close(done)
+
+				file, err = pushZipFile(ftpC, f, filepath.Base(srcFile), dstDir, host.Host, allowOverwrite)
+				if err == nil {
+					file.Close()
+				}
+			}()
+
+			<-done
+
+			if err != nil {
+				return "", err
+			}
+
+			session, err := client.NewSession()
+			if err != nil {
+				return "", err
+			}
+			defer session.Close()
+
+			_, err = c.executeCmd(
+				session,
+				fmt.Sprintf(
+					`which unzip &>/dev/null && { cd %s;unzip -o %s;rm %s;} || 
 				{ echo "need install 'unzip' command";cd %s;rm %s;exit 1;}`,
-				dstDir,
-				dstZipFile,
-				dstZipFile,
-				dstDir,
-				dstZipFile,
-			),
-			host.Password,
-		)
-		if err != nil {
-			return "", err
+					dstDir,
+					dstZipFile,
+					dstZipFile,
+					dstDir,
+					dstZipFile,
+				),
+				host.Password,
+			)
+			if err != nil {
+				return "", err
+			}
+
+			log.Debugf("%s: %s unzipped", host.Host, f)
 		}
 	}
 
@@ -331,8 +341,9 @@ func (c *Client) PushFiles(
 	return fmt.Sprintf("'%s' %s been copied to '%s'", strings.Join(srcFiles, ","), hasOrHave, dstDir), nil
 }
 
-//nolint:funlen,gocyclo
 // FetchFiles from remote host.
+//
+//nolint:funlen,gocyclo
 func (c *Client) FetchFiles(
 	host *Host,
 	srcFiles []string,
@@ -551,119 +562,6 @@ func (c *Client) executeCmd(session *ssh.Session, command, password string) (str
 	return outputStr, nil
 }
 
-func (c *Client) pushFile(
-	ftpC *sftp.Client,
-	srcFile, dstDir string,
-	allowOverwrite bool,
-) (*sftp.File, error) {
-	homeDir := os.Getenv("HOME")
-	if strings.HasPrefix(srcFile, "~/") {
-		srcFile = strings.Replace(srcFile, "~", homeDir, 1)
-	}
-
-	content, err := ioutil.ReadFile(srcFile)
-	if err != nil {
-		return nil, err
-	}
-
-	fileStat, err := os.Stat(srcFile)
-	if err != nil {
-		return nil, err
-	}
-
-	srcFileBaseName := filepath.Base(srcFile)
-	dstFile := path.Join(dstDir, srcFileBaseName)
-
-	if !allowOverwrite {
-		dstFileInfo, _ := ftpC.Stat(dstFile)
-		if dstFileInfo != nil {
-			return nil, fmt.Errorf(
-				"%s alreay exists, you can add '-F' flag to overwrite it",
-				dstFile,
-			)
-		}
-	}
-
-	file, err := ftpC.Create(dstFile)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("dest dir '%s' not exist", dstDir)
-		}
-
-		if err, ok := err.(*sftp.StatusError); ok && err.Code == uint32(sftp.ErrSshFxPermissionDenied) {
-			return nil, fmt.Errorf("no permission to write to dest dir '%s'", dstDir)
-		}
-
-		return nil, err
-	}
-
-	_, err = file.Write(content)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := file.Chmod(fileStat.Mode()); err != nil {
-		return nil, err
-	}
-
-	if err := ftpC.Chtimes(dstFile, time.Now(), fileStat.ModTime()); err != nil {
-		return nil, err
-	}
-
-	return file, nil
-}
-
-func (c *Client) pushZipFile(
-	ftpC *sftp.Client,
-	srcZipFile, srcFileName, dstDir string,
-	allowOverwrite bool,
-) (*sftp.File, error) {
-	homeDir := os.Getenv("HOME")
-	if strings.HasPrefix(srcZipFile, "~/") {
-		srcZipFile = strings.Replace(srcZipFile, "~", homeDir, 1)
-	}
-
-	content, err := ioutil.ReadFile(srcZipFile)
-	if err != nil {
-		return nil, err
-	}
-
-	srcZipFileName := filepath.Base(srcZipFile)
-	dstZipFile := path.Join(dstDir, srcZipFileName)
-
-	dstFile := path.Join(dstDir, srcFileName)
-
-	if !allowOverwrite {
-		dstFileInfo, _ := ftpC.Stat(dstFile)
-		if dstFileInfo != nil {
-			return nil, fmt.Errorf(
-				"%s alreay exists, you can add '-F' flag to overwrite it",
-				dstFile,
-			)
-		}
-	}
-
-	file, err := ftpC.Create(dstZipFile)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("dest dir '%s' not exist", dstDir)
-		}
-
-		if err, ok := err.(*sftp.StatusError); ok && err.Code == uint32(sftp.ErrSshFxPermissionDenied) {
-			return nil, fmt.Errorf("no permission to write to dest dir '%s'", dstDir)
-		}
-
-		return nil, err
-	}
-
-	_, err = file.Write(content)
-	if err != nil {
-		return nil, err
-	}
-
-	return file, nil
-}
-
 func (c *Client) fetchZipFile(
 	ftpC *sftp.Client,
 	srcZipFile, dstDir string,
@@ -830,4 +728,14 @@ func WithProxyServer(proxyServer, user string, port int, auths []ssh.AuthMethod)
 
 		c.Proxy.SSHClient = proxyClient
 	}
+}
+
+// 判断是否是目录
+func isDir(path string) bool {
+	stat, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+
+	return stat.IsDir()
 }

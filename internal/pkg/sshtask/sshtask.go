@@ -114,6 +114,7 @@ type Task struct {
 	tmpDir         string
 	remove         bool
 	allowOverwrite bool
+	enableZip      bool
 
 	taskOutput   chan taskResult
 	detailOutput chan detailResult
@@ -204,9 +205,10 @@ func (t *Task) SetScriptOptions(destPath string, remove, allowOverwrite bool) {
 }
 
 // SetPushOptions ...
-func (t *Task) SetPushOptions(destPath string, allowOverwrite bool) {
+func (t *Task) SetPushOptions(destPath string, allowOverwrite, enableZip bool) {
 	t.dstDir = destPath
 	t.allowOverwrite = allowOverwrite
+	t.enableZip = enableZip
 }
 
 // SetFetchOptions ...
@@ -227,7 +229,7 @@ func (t *Task) RunSSH(host *batchssh.Host) (string, error) {
 	case ScriptTask:
 		return t.sshClient.ExecuteScript(host, t.scriptFile, t.dstDir, lang, runAs, sudo, t.remove, t.allowOverwrite)
 	case PushTask:
-		return t.sshClient.PushFiles(host, t.pushFiles.files, t.pushFiles.zipFiles, t.dstDir, t.allowOverwrite)
+		return t.sshClient.PushFiles(host, t.pushFiles.files, t.pushFiles.zipFiles, t.dstDir, t.allowOverwrite, t.enableZip)
 	case FetchTask:
 		return t.sshClient.FetchFiles(host, t.fetchFiles, t.dstDir, t.tmpDir, sudo, runAs)
 	default:
@@ -235,8 +237,9 @@ func (t *Task) RunSSH(host *batchssh.Host) (string, error) {
 	}
 }
 
-//nolint:gocyclo
 // BatchRun ...
+//
+//nolint:gocyclo
 func (t *Task) BatchRun() {
 	timeNow := time.Now()
 

@@ -1,8 +1,5 @@
 # go.makefile
 
-# Supports Go versions.
-GO_SUPPORTED_VERSIONS ?= 1.13|1.14|1.15|1.16|1.17
-
 # The project package name.
 ROOT_PACKAGE = github.com/windvalley/gossh
 # The project version package name.
@@ -44,11 +41,6 @@ endif
 
 EXCLUDE_TESTS = ${ROOT_PACKAGE}/test ${ROOT_PACKAGE}/pkg/log ${ROOT_PACKAGE}/third_party
 
-.PHONY: go.build.verify
-go.build.verify:
-ifneq ($(shell ${GO} version | grep -q -E '\bgo(${GO_SUPPORTED_VERSIONS})\b' && echo 0 || echo 1), 0)
-	$(error unsupported Go version. Supported versions: '${GO_SUPPORTED_VERSIONS}')
-endif
 
 .PHONY: go.build.%
 go.build.%:
@@ -63,10 +55,10 @@ go.build.%:
 	@echo "${OUTPUT_DIR}/platforms/${OS}/${ARCH}/${COMMAND}${GO_BIN_EXT}"
 
 .PHONY: go.build
-go.build: go.build.verify go.tidy $(addprefix go.build., $(addprefix ${PLATFORM}., ${BINS}))
+go.build: go.tidy $(addprefix go.build., $(addprefix ${PLATFORM}., ${BINS}))
 
 .PHONY: go.build.multiarch
-go.build.multiarch: go.build.verify go.tidy $(foreach p,${PLATFORMS},$(addprefix go.build., $(addprefix ${p}., ${BINS})))
+go.build.multiarch: go.tidy $(foreach p,${PLATFORMS},$(addprefix go.build., $(addprefix ${p}., ${BINS})))
 
 .PHONY: go.lint
 go.lint: tools.verify.golangci-lint

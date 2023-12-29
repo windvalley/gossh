@@ -34,6 +34,7 @@ import (
 
 	"github.com/windvalley/gossh/internal/pkg/configflags"
 	"github.com/windvalley/gossh/internal/pkg/sshtask"
+	"github.com/windvalley/gossh/pkg/log"
 	"github.com/windvalley/gossh/pkg/util"
 )
 
@@ -41,6 +42,7 @@ var (
 	files          []string
 	fileDstPath    string
 	allowOverwrite bool
+	enableZip      bool
 )
 
 // pushCmd represents the push command
@@ -50,11 +52,14 @@ var pushCmd = &cobra.Command{
 	Long: `
 Copy local files and dirs to target hosts.`,
 	Example: `
-  # Copy a local file or dir to /tmp/ of the target hosts by default.
+  Copy a local file or dir to /tmp/ of the target hosts by default.
   $ gossh push host[1-2] -f /path/foo -k
 
-  # Copy local files and dirs to /home/user/ of the target hosts. 
+  Copy local files and dirs to /home/user/ of the target hosts. 
   $ gossh push host[1-2] -f /path/foo.txt,/path/bar/ -d /home/user -k
+
+  Enable zip files feature (zip first, then push).
+  $ gossh push host[1-2] -f /path/foo.txt,/path/bar/ -d /home/user -k -z
 
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/push.md`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -76,34 +81,49 @@ Copy local files and dirs to target hosts.`,
 
 		var zipFiles []string
 
-		workDir, err := os.Getwd()
-		if err != nil {
-			util.CheckErr(err)
-		}
+		if enableZip {
+			log.Debugf("enabled zip files feature")
 
-		for _, f := range files {
-			fileName := filepath.Base(f)
-			zipName := "." + fileName + "." + fmt.Sprintf("%d", time.Now().UnixMicro())
-			zipFile := path.Join(workDir, zipName)
+			zipTimeStart := time.Now()
 
-			if err := util.Zip(strings.TrimSuffix(f, string(os.PathSeparator)), zipFile); err != nil {
+			workDir, err := os.Getwd()
+			if err != nil {
 				util.CheckErr(err)
 			}
 
-			zipFiles = append(zipFiles, zipFile)
-		}
+			for _, f := range files {
+				fileName := filepath.Base(f)
+				zipName := "." + fileName + "." + fmt.Sprintf("%d", time.Now().UnixMicro())
+				zipFile := path.Join(workDir, zipName)
 
-		defer func() {
-			for _, f := range zipFiles {
-				if err := os.Remove(f); err != nil {
-					fmt.Printf("Warning: %v\n", err)
+				if err := util.Zip(strings.TrimSuffix(f, string(os.PathSeparator)), zipFile); err != nil {
+					util.CheckErr(err)
 				}
+
+				stat, err := os.Stat(zipFile)
+				if err != nil {
+					util.CheckErr(err)
+				}
+				//nolint:gomnd
+				log.Debugf("zip file '%s' size: %d MB", zipFile, stat.Size()/1024/1024)
+
+				zipFiles = append(zipFiles, zipFile)
 			}
-		}()
+
+			defer func() {
+				for _, f := range zipFiles {
+					if err := os.Remove(f); err != nil {
+						fmt.Printf("Warning: %v\n", err)
+					}
+				}
+			}()
+
+			log.Debugf("zip files cost %v", time.Since(zipTimeStart))
+		}
 
 		task.SetTargetHosts(args)
 		task.SetPushfiles(files, zipFiles)
-		task.SetPushOptions(fileDstPath, allowOverwrite)
+		task.SetPushOptions(fileDstPath, allowOverwrite, enableZip)
 
 		task.Start()
 
@@ -126,6 +146,14 @@ func init() {
 		"F",
 		false,
 		"allow overwrite files/dirs if they already exist on target hosts",
+	)
+
+	pushCmd.Flags().BoolVarP(
+		&enableZip,
+		"zip",
+		"z",
+		false,
+		"enable zip files ('unzip' must be installed on target hosts)",
 	)
 
 	pushCmd.SetHelpFunc(func(command *cobra.Command, strings []string) {
