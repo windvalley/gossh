@@ -33,9 +33,10 @@ import (
 
 // Encode plain text.
 // Param keyLen available values: 16, 24, 32.
-//    AES-128 uses a 128 bit key (16 bytes),
-//    AES-192 uses a 192 bit key (24 bytes),
-//    AES-256 uses a 256 bit key (32 bytes).
+//
+//	AES-128 uses a 128 bit key (16 bytes),
+//	AES-192 uses a 192 bit key (24 bytes),
+//	AES-256 uses a 256 bit key (32 bytes).
 func Encode(plainText, key []byte, keyLen int) ([]byte, error) {
 	if keyLen != 16 && keyLen != 24 && keyLen != 32 {
 		return nil, errors.New("invalid key length, available length: 16, 24, 32")

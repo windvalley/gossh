@@ -24,7 +24,7 @@ package vault
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -34,8 +34,9 @@ import (
 
 var deOutputFile string
 
-//nolint:dupl
 // decryptFileCmd represents the vault decrypt-file command
+//
+//nolint:dupl
 var decryptFileCmd = &cobra.Command{
 	Use:   "decrypt-file FILENAME",
 	Short: "Decrypt vault encrypted file",
@@ -93,7 +94,7 @@ func init() {
 }
 
 func decryptFile(file, vaultPass string) (string, error) {
-	p, err := ioutil.ReadFile(file)
+	p, err := os.ReadFile(file)
 	if err != nil {
 		return "", err
 	}

@@ -66,7 +66,7 @@ fi`,
 
 	log.Debugf("%s: zip '%s' cost %s", host.Host, srcFile, time.Since(timeStart))
 
-	if err := fetchZipFile(ftpC, zippedFileFullpath, dstDir); err != nil {
+	if err = fetchZipFile(ftpC, zippedFileFullpath, dstDir); err != nil {
 		log.Errorf("%s: fetch zip file '%s' failed: %s", host.Host, zippedFileFullpath, err)
 		return err
 	}

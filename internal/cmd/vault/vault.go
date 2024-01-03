@@ -25,7 +25,6 @@ package vault
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -166,7 +165,7 @@ func getVaultPasswordFromFile() string {
 			return vaultPass
 		}
 
-		passwordContent, err := ioutil.ReadFile(vaultPassFile)
+		passwordContent, err := os.ReadFile(vaultPassFile)
 		if err != nil {
 			err = fmt.Errorf("read vault password file '%s' failed: %w", vaultPassFile, err)
 		}

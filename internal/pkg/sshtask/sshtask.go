@@ -492,8 +492,8 @@ func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
 
 		if len(v.Keys) != 0 {
 			keys := parseItentityFiles(v.Keys)
-			assignRealPass(&v.Passphrase, v.Alias, "passphrase")
-			sshSigners := getSigners(keys, v.Passphrase, "Individual")
+			passphrase := getRealPass(v.Passphrase, v.Alias, "passphrase")
+			sshSigners := getSigners(keys, passphrase, "Individual")
 			if len(sshSigners) == 0 {
 				log.Debugf("Individual Auth: no valid individual identity files for '%s'", v.Alias)
 			} else {
@@ -502,11 +502,11 @@ func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
 			}
 		}
 
+		realPassword := ""
 		if v.Password == "" {
-			v.Password = *t.defaultPass
-			assignRealPass(&v.Password, v.Alias, "password")
+			realPassword = getRealPass(*t.defaultPass, v.Alias, "password")
 		} else {
-			assignRealPass(&v.Password, v.Alias, "password")
+			realPassword = getRealPass(v.Password, v.Alias, "password")
 			hostSSHAuths = append(hostSSHAuths, ssh.Password(v.Password))
 			log.Debugf("Individual Auth: add individual password for '%s'", v.Alias)
 		}
@@ -518,7 +518,7 @@ func (t *Task) getAllHosts() ([]*batchssh.Host, error) {
 			Host:     v.Host,
 			Port:     v.Port,
 			User:     v.User,
-			Password: v.Password,
+			Password: realPassword,
 			Keys:     v.Keys,
 			SSHAuths: hostSSHAuths,
 		})
@@ -725,14 +725,14 @@ func getDefaultPassword(auth *configflags.Auth) string {
 		log.Debugf("Default Auth: received password of user '%s' from commandline flag or configuration file", auth.User)
 	}
 
-	assignRealPass(&password, "default", "password")
+	realPassword := getRealPass(password, "default", "password")
 
 	if auth.AskPass {
 		log.Debugf("Default Auth: ask for password of user '%s' by flag '-k/--auth.ask-pass'", auth.User)
-		password = getPasswordFromPrompt(auth.User)
+		realPassword = getPasswordFromPrompt(auth.User)
 	}
 
-	return password
+	return realPassword
 }
 
 func parseItentityFiles(identityFiles []string) (keyFiles []string) {
@@ -812,20 +812,22 @@ func getPasswordFromPrompt(loginUser string) string {
 	return password
 }
 
-func assignRealPass(pass *string, host, objectType string) {
-	var err error
-
-	if aes.IsAES256CipherText(*pass) {
+func getRealPass(pass string, host, objectType string) string {
+	if aes.IsAES256CipherText(pass) {
 		vaultPass := vault.GetVaultPassword()
 
-		*pass, err = aes.AES256Decode(*pass, vaultPass)
+		realPass, err := aes.AES256Decode(pass, vaultPass)
 		if err != nil {
 			log.Debugf("Vault: decrypt %s for '%s' failed: %s", objectType, host, err)
 			util.CheckErr(err)
 		}
 
 		log.Debugf("Vault: decrypt %s for '%s' success", objectType, host)
+
+		return realPass
 	}
+
+	return pass
 }
 
 func deDuplicate(hosts []string) []string {

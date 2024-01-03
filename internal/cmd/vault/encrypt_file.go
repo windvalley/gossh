@@ -25,7 +25,6 @@ package vault
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -36,8 +35,9 @@ import (
 
 var outputFile string
 
-//nolint:dupl
 // encryptFileCmd represents the vault encrypt-file command
+//
+//nolint:dupl
 var encryptFileCmd = &cobra.Command{
 	Use:   "encrypt-file FILENAME",
 	Short: "Encrypt a file",
@@ -110,7 +110,7 @@ func handleOutput(content, originalFile, newFile string) {
 }
 
 func encryptFile(file, vaultPass string) (string, error) {
-	p, err := ioutil.ReadFile(file)
+	p, err := os.ReadFile(file)
 	if err != nil {
 		return "", err
 	}
