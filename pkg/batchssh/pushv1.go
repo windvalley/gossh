@@ -28,8 +28,6 @@ func (c *Client) pushFileOrDir(
 			return err
 		}
 
-		log.Debugf("%s: '%s' -> '%s", host, srcFile, dstDir)
-
 		return nil
 	}
 

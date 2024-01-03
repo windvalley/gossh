@@ -33,9 +33,10 @@ import (
 )
 
 var (
-	srcFiles    []string
-	localDstDir string
-	tmpDir      string
+	srcFiles       []string
+	localDstDir    string
+	tmpDir         string
+	enableZipFiles bool
 )
 
 // fetchCmd represents the fetch command
@@ -45,11 +46,14 @@ var fetchCmd = &cobra.Command{
 	Long: `
 Copy files and dirs from target hosts to local.`,
 	Example: `
-  # Copy host1:/path/foo to local /tmp/backup/host1/path/foo.
-  $ gossh fetch host1 -f /path/foo -d /tmp/backup
+  Copy host1:/path/foo to local dir /tmp/backup/.
+  $ gossh fetch host1 -f /path/foo -d /tmp/backup -k
 
-  # Copy files and dirs from target hosts to local dir /tmp/backup/.
-  $ gossh fetch host[1-2] -f /path1/foo.txt,/path2/bar/ -d /tmp/backup
+  Copy files and dirs from target hosts to local dir /tmp/backup/.
+  $ gossh fetch host[1-2] -f /path1/foo.txt,/path2/bar/ -d /tmp/backup -k
+
+  Enable zip files feature (zip first, then fetch).
+  $ gossh fetch host[1-2] -f /path1/foo.txt,/path2/bar/ -d /tmp/backup -z -k
 
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/fetch.md`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -66,7 +70,7 @@ Copy files and dirs from target hosts to local.`,
 		if tmpDir == "$HOME" {
 			tmpDir = path.Join("/home", configflags.Config.Auth.User)
 		}
-		task.SetFetchOptions(localDstDir, tmpDir)
+		task.SetFetchOptions(localDstDir, tmpDir, enableZipFiles)
 
 		task.Start()
 
@@ -85,5 +89,13 @@ func init() {
 
 	fetchCmd.Flags().StringVarP(&tmpDir, "tmp-dir", "t", "$HOME",
 		"directory of target hosts for storing temporary zip file",
+	)
+
+	fetchCmd.Flags().BoolVarP(
+		&enableZipFiles,
+		"zip",
+		"z",
+		false,
+		"enable zip files ('zip' must be installed on target hosts)",
 	)
 }

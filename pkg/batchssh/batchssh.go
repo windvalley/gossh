@@ -28,7 +28,6 @@ import (
 	"io"
 	"net"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -39,7 +38,6 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/windvalley/gossh/pkg/log"
-	"github.com/windvalley/gossh/pkg/util"
 )
 
 const (
@@ -350,6 +348,8 @@ func (c *Client) FetchFiles(
 	dstDir, tmpDir string,
 	sudo bool,
 	runAs string,
+	enableZip bool,
+	hostCount int,
 ) (string, error) {
 	client, err := c.getClient(host)
 	if err != nil {
@@ -375,7 +375,7 @@ func (c *Client) FetchFiles(
 				continue
 			}
 
-			if !sudo {
+			if !sudo || !enableZip {
 				if err, ok := err1.(*sftp.StatusError); ok && err.Code == uint32(sftp.ErrSshFxPermissionDenied) {
 					noPermSrcFiles = append(noPermSrcFiles, f)
 					continue
@@ -402,73 +402,30 @@ func (c *Client) FetchFiles(
 		return "", err2
 	}
 
-	session, err := client.NewSession()
-	if err != nil {
-		return "", err
-	}
-	defer session.Close()
-
-	zippedFileTmpDir := path.Join(tmpDir, ".gossh-tmp-"+host.Host)
-	tmpZipFile := fmt.Sprintf("%s.%d", host.Host, time.Now().UnixMicro())
-	zippedFileFullpath := path.Join(zippedFileTmpDir, tmpZipFile)
-	_, err = c.executeCmd(
-		session,
-		fmt.Sprintf(
-			`if which zip &>/dev/null;then 
-    sudo -u %s -H bash -c '[[ ! -d %s ]] && { mkdir -p %s;chmod 777 %s;};zip -r %s %s'
-else
-	echo "need install 'zip' command"
-	exit 1
-fi`,
-			runAs,
-			zippedFileTmpDir,
-			zippedFileTmpDir,
-			zippedFileTmpDir,
-			zippedFileFullpath,
-			strings.Join(validSrcFiles, " "),
-		),
-		host.Password,
-	)
-	if err != nil {
-		log.Debugf("zip %s of %s failed: %s", strings.Join(validSrcFiles, ","), host.Host, err)
-		return "", err
-	}
-
-	file, err := c.fetchZipFile(ftpC, zippedFileFullpath, dstDir)
-	if err == nil {
-		file.Close()
-	}
-	if err != nil {
-		log.Debugf("fetch zip file '%s' from %s failed: %s", zippedFileFullpath, host.Host, err)
-		return "", err
-	}
-
-	session2, err := client.NewSession()
-	if err != nil {
-		return "", err
-	}
-	defer session2.Close()
-
-	_, err = c.executeCmd(
-		session2,
-		fmt.Sprintf("sudo -u %s -H bash -c 'rm -f %s'", runAs, zippedFileFullpath),
-		host.Password,
-	)
-	if err != nil {
-		log.Debugf("remove '%s:%s' failed: %s", host.Host, zippedFileFullpath, err)
-		return "", err
-	}
-
-	finalDstDir := path.Join(dstDir, host.Host)
-	localZippedFileFullpath := path.Join(dstDir, tmpZipFile)
-	defer func() {
-		if err := os.Remove(localZippedFileFullpath); err != nil {
-			log.Debugf("remove '%s' failed: %s", localZippedFileFullpath, err)
+	if hostCount > 1 {
+		dstDir = filepath.Join(dstDir, host.Host)
+		err = os.MkdirAll(dstDir, os.ModePerm)
+		if err != nil {
+			log.Errorf("make local dir '%s' failed: %v", dstDir, err)
+			return "", err
 		}
-	}()
-	if err := util.Unzip(localZippedFileFullpath, finalDstDir); err != nil {
-		log.Debugf("unzip '%s' to '%s' failed: %s", localZippedFileFullpath, finalDstDir, err)
-		return "", err
+		log.Debugf("make local dir '%s'", dstDir)
+	}
+
+	if enableZip {
+		for _, f := range validSrcFiles {
+			err = c.fetchFileWithZip(client, ftpC, f, dstDir, tmpDir, runAs, host)
+			if err != nil {
+				return "", err
+			}
+		}
+	} else {
+		for _, f := range validSrcFiles {
+			err = c.fetchFileOrDir(ftpC, f, dstDir, host.Host)
+			if err != nil {
+				return "", err
+			}
+		}
 	}
 
 	hasOrHave := "has"
@@ -560,44 +517,6 @@ func (c *Client) executeCmd(session *ssh.Session, command, password string) (str
 	}
 
 	return outputStr, nil
-}
-
-func (c *Client) fetchZipFile(
-	ftpC *sftp.Client,
-	srcZipFile, dstDir string,
-) (*sftp.File, error) {
-	homeDir := os.Getenv("HOME")
-	if strings.HasPrefix(dstDir, "~/") {
-		srcZipFile = strings.Replace(dstDir, "~", homeDir, 1)
-	}
-
-	srcZipFileName := filepath.Base(srcZipFile)
-	dstZipFile := path.Join(dstDir, srcZipFileName)
-
-	file, err := ftpC.Open(srcZipFile)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("'%s' not exist", srcZipFile)
-		}
-
-		if err, ok := err.(*sftp.StatusError); ok && err.Code == uint32(sftp.ErrSshFxPermissionDenied) {
-			return nil, fmt.Errorf("no permission to open '%s'", srcZipFile)
-		}
-
-		return nil, err
-	}
-
-	zipFile, err := os.Create(dstZipFile)
-	if err != nil {
-		return nil, fmt.Errorf("open local '%s' failed: %w", dstZipFile, err)
-	}
-
-	_, err = file.WriteTo(zipFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return file, nil
 }
 
 func (c *Client) getClient(host *Host) (*ssh.Client, error) {

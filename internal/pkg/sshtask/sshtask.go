@@ -25,7 +25,6 @@ package sshtask
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
 	"regexp"
@@ -212,9 +211,10 @@ func (t *Task) SetPushOptions(destPath string, allowOverwrite, enableZip bool) {
 }
 
 // SetFetchOptions ...
-func (t *Task) SetFetchOptions(destPath, tmpDir string) {
+func (t *Task) SetFetchOptions(destPath, tmpDir string, enableZipFiles bool) {
 	t.dstDir = destPath
 	t.tmpDir = tmpDir
+	t.enableZip = enableZipFiles
 }
 
 // RunSSH implements batchssh.Task
@@ -231,7 +231,11 @@ func (t *Task) RunSSH(host *batchssh.Host) (string, error) {
 	case PushTask:
 		return t.sshClient.PushFiles(host, t.pushFiles.files, t.pushFiles.zipFiles, t.dstDir, t.allowOverwrite, t.enableZip)
 	case FetchTask:
-		return t.sshClient.FetchFiles(host, t.fetchFiles, t.dstDir, t.tmpDir, sudo, runAs)
+		hosts, err := t.getAllHosts()
+		if err != nil {
+			return "", err
+		}
+		return t.sshClient.FetchFiles(host, t.fetchFiles, t.dstDir, t.tmpDir, sudo, runAs, t.enableZip, len(hosts))
 	default:
 		return "", fmt.Errorf("unknown task type: %v", t.taskType)
 	}
@@ -703,7 +707,7 @@ func getDefaultPassword(auth *configflags.Auth) string {
 	if authFile != "" {
 		var passwordContent []byte
 
-		passwordContent, err := ioutil.ReadFile(authFile)
+		passwordContent, err := os.ReadFile(authFile)
 		if err != nil {
 			err = fmt.Errorf("read password file '%s' failed: %w", authFile, err)
 		}
@@ -766,7 +770,7 @@ func getSigners(keyfiles []string, passphrase string, authKind string) []ssh.Sig
 }
 
 func getSigner(keyfile, passphrase string) (ssh.Signer, string) {
-	buf, err := ioutil.ReadFile(keyfile)
+	buf, err := os.ReadFile(keyfile)
 	if err != nil {
 		return nil, fmt.Sprintf("read identity file '%s' failed: %s", keyfile, err)
 	}
