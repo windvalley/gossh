@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/windvalley/gossh/pkg/log"
+	"github.com/windvalley/gossh/pkg/util"
 )
 
 const (
@@ -41,7 +42,7 @@ func (c *Client) pushFileOrDirV2(
 	}
 	defer session.Close()
 
-	if !isDir(srcFile) {
+	if !util.IsDir(srcFile) {
 		return pushFileV2(session, srcFile, dstDir, host)
 	}
 
@@ -52,19 +53,19 @@ func pushFileV2(session *ssh.Session, src, dest, host string) error {
 	go func() {
 		w, err := session.StdinPipe()
 		if err != nil {
-			log.Errorf("%s: failed to open stdin, error: %v", host, err)
+			log.Debugf("%s: failed to open stdin, error: %v", host, err)
 			return
 		}
 		defer w.Close()
 
 		fileinfo, err := os.Stat(src)
 		if err != nil {
-			log.Errorf("%s: failed to get file stat, error: %v", host, err)
+			log.Debugf("%s: failed to get file stat, file: %s, error: %v", host, src, err)
 			return
 		}
 
 		if err := createFile(w, host, src, fileinfo); err != nil {
-			return
+			log.Debugf("%s: failed to create file, file: %s, error: %v", host, src, err)
 		}
 	}()
 
@@ -75,21 +76,21 @@ func pushDirV2(session *ssh.Session, src, dest, host string) error {
 	go func() {
 		w, err := session.StdinPipe()
 		if err != nil {
-			log.Errorf("failed to open stdin, error: %v", err)
+			log.Debugf("%s: failed to open stdin, error: %v", host, err)
 			return
 		}
 		defer w.Close()
 
 		fileinfo, err := os.Stat(src)
 		if err != nil {
-			log.Errorf("failed to get file stat, error: %v", err)
+			log.Debugf("%s: failed to get file stat, file: %s, error: %v", host, src, err)
 			return
 		}
 
 		fmt.Fprintln(w, PushBeginFolder+getMode(fileinfo), PushBeginEndFolder, fileinfo.Name())
 
 		if err := walkDir(w, src, host); err != nil {
-			log.Errorf("failed to walk dir, error: %v", err)
+			log.Debugf("%s: failed to walk dir, dir: %s, error: %v", host, src, err)
 			return
 		}
 
@@ -164,8 +165,7 @@ func getMode(f fs.FileInfo) string {
 func checkAllowOverWrite(ftpC *sftp.Client, host, dstFile string) error {
 	f, err := ftpC.Stat(dstFile)
 	if err != nil && !os.IsNotExist(err) {
-		log.Errorf("%s: failed to stat %s, error: %v", host, dstFile, err)
-		return err
+		return fmt.Errorf("%s: failed to stat %s, error: %v", host, dstFile, err)
 	}
 
 	if f != nil {

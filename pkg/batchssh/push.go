@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/sftp"
 
 	"github.com/windvalley/gossh/pkg/log"
+	"github.com/windvalley/gossh/pkg/util"
 )
 
 // pushFileOrDir is less efficient than pushFileOrDirV2.
@@ -22,7 +23,7 @@ func (c *Client) pushFileOrDir(
 	srcFile, dstDir, host string,
 	allowOverwrite bool,
 ) error {
-	if !isDir(srcFile) {
+	if !util.IsDir(srcFile) {
 		_, err := c.pushFile(ftpC, srcFile, dstDir, host, allowOverwrite)
 		if err != nil {
 			return err
@@ -39,8 +40,7 @@ func (c *Client) pushFileOrDir(
 	remoteFilePath := path.Join(dstDir, filepath.Base(srcFile))
 	err = ftpC.MkdirAll(remoteFilePath)
 	if err != nil {
-		log.Errorf("%s: mkdir '%s' failed", host, remoteFilePath)
-		return err
+		return fmt.Errorf("%s: mkdir '%s' failed, error: %v", host, remoteFilePath, err)
 	}
 
 	for _, item := range localFiles {
@@ -49,14 +49,12 @@ func (c *Client) pushFileOrDir(
 		if item.IsDir() {
 			err = c.pushFileOrDir(ftpC, localFilePath, remoteFilePath, host, allowOverwrite)
 			if err != nil {
-				log.Errorf("%s: pushFileOrDir '%s' failed", host, localFilePath)
-				return err
+				return fmt.Errorf("%s: pushFileOrDir '%s' failed, error: %v", host, localFilePath, err)
 			}
 		} else {
 			_, err = c.pushFile(ftpC, localFilePath, remoteFilePath, host, allowOverwrite)
 			if err != nil {
-				log.Errorf("%s: pushFile '%s' failed", host, localFilePath)
-				return err
+				return fmt.Errorf("%s: pushFile '%s' failed, error: %v", host, localFilePath, err)
 			}
 		}
 	}
@@ -120,7 +118,7 @@ func (c *Client) pushFile(
 		return nil, err
 	}
 
-	log.Debugf("%s: '%s' -> '%s", host, srcFile, dstFile)
+	log.Debugf("%s: %s -> %s pushed", host, srcFile, dstFile)
 
 	return file, nil
 }

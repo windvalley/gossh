@@ -57,8 +57,7 @@ func (o *Output) AddFlagsTo(flags *pflag.FlagSet) {
 	flags.StringVarP(&o.File, flagOutputFile, "o", o.File, "file to which messages are output")
 	flags.BoolVarP(&o.JSON, flagOutputJSON, "j", o.JSON, "output messages in json format")
 	flags.BoolVarP(&o.Condense, flagOutputCondense, "C", o.Condense, "condense output and disable color")
-	flags.BoolVarP(&o.Quiet, flagOutputQuite, "q", o.Quiet,
-		"do not output messages to screen (except error messages)")
+	flags.BoolVarP(&o.Quiet, flagOutputQuite, "q", o.Quiet, "do not output messages to screen")
 	flags.BoolVarP(&o.Verbose, flagOutputVerbose, "v", o.Verbose, "show debug messages")
 }
 

@@ -27,7 +27,6 @@ import (
 	"strings"
 )
 
-// FileExists ...
 func FileExists(path string) bool {
 	path = rebuildPath(path)
 
@@ -39,7 +38,6 @@ func FileExists(path string) bool {
 	return !f.IsDir()
 }
 
-// DirExists ...
 func DirExists(path string) bool {
 	path = rebuildPath(path)
 
@@ -49,6 +47,15 @@ func DirExists(path string) bool {
 	}
 
 	return f.IsDir()
+}
+
+func IsDir(path string) bool {
+	stat, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+
+	return stat.IsDir()
 }
 
 func rebuildPath(path string) string {

@@ -26,6 +26,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/fatih/color"
 )
 
 // User can directly use package level functions
@@ -57,18 +59,20 @@ func Init(logfile string, json, verbose, quiet, condense bool) {
 
 	if logfile != "" {
 		//nolint:gomnd
-		file, err := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		f, err := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
-			fmt.Printf("Failed to log to '%s'\n", logfile)
+			errMsg := color.YellowString(fmt.Sprintf("Warning: Failed to write log to %s: %v\n", logfile, err))
+			println(errMsg)
+
 			if quiet {
 				std.Out = io.Discard
 			}
 		} else {
 			if !quiet {
-				mw := io.MultiWriter(os.Stdout, file)
+				mw := io.MultiWriter(os.Stdout, f)
 				std.Out = mw
 			} else {
-				std.Out = file
+				std.Out = f
 			}
 		}
 	} else {

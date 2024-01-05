@@ -49,9 +49,9 @@ const (
 	FailedIdentifier = "FAILED"
 )
 
-// Task execute command or copy file or execute script.
-type Task interface {
-	RunSSH(host *Host) (string, error)
+// Tasker for ssh.
+type Tasker interface {
+	SSH(host *Host) (string, error)
 }
 
 // Result of ssh command.
@@ -104,10 +104,7 @@ func NewClient(options ...func(*Client)) *Client {
 }
 
 // BatchRun command on remote servers.
-func (c *Client) BatchRun(
-	hosts []*Host,
-	sshTask Task,
-) <-chan *Result {
+func (c *Client) BatchRun(hosts []*Host, sshTask Tasker) <-chan *Result {
 	hostCh := make(chan *Host)
 	go func() {
 		defer close(hostCh)
@@ -128,7 +125,7 @@ func (c *Client) BatchRun(
 				go func() {
 					defer close(done)
 
-					output, err := sshTask.RunSSH(host)
+					output, err := sshTask.SSH(host)
 					if err != nil {
 						result = &Result{host.Alias, FailedIdentifier, err.Error()}
 					} else {
@@ -192,7 +189,7 @@ func (c *Client) ExecuteCmd(host *Host, command, lang, runAs string, sudo bool) 
 		command = exportLang + command
 	}
 
-	return c.executeCmd(session, command, host.Password)
+	return c.executeCmd(session, command, host)
 }
 
 // ExecuteScript on remote host.
@@ -249,7 +246,7 @@ func (c *Client) ExecuteScript(
 		command = exportLang + script
 	}
 
-	return c.executeCmd(session, command, host.Password)
+	return c.executeCmd(session, command, host)
 }
 
 // PushFiles to remote host.
@@ -321,7 +318,7 @@ func (c *Client) PushFiles(
 					dstDir,
 					dstZipFile,
 				),
-				host.Password,
+				host,
 			)
 			if err != nil {
 				return "", err
@@ -406,8 +403,7 @@ func (c *Client) FetchFiles(
 		dstDir = filepath.Join(dstDir, host.Host)
 		err = os.MkdirAll(dstDir, os.ModePerm)
 		if err != nil {
-			log.Errorf("make local dir '%s' failed: %v", dstDir, err)
-			return "", err
+			return "", fmt.Errorf("make local dir '%s' failed: %v", dstDir, err)
 		}
 		log.Debugf("make local dir '%s'", dstDir)
 	}
@@ -468,7 +464,7 @@ func (c *Client) FetchFiles(
 	return ret, nil
 }
 
-func (c *Client) executeCmd(session *ssh.Session, command, password string) (string, error) {
+func (c *Client) executeCmd(session *ssh.Session, command string, host *Host) (string, error) {
 	modes := ssh.TerminalModes{
 		ssh.ECHO:          0,
 		ssh.TTY_OP_ISPEED: 28800,
@@ -490,7 +486,7 @@ func (c *Client) executeCmd(session *ssh.Session, command, password string) (str
 		return "", err
 	}
 
-	out, isWrongPass := c.handleOutput(w, r, password)
+	out, isWrongPass := c.handleOutput(w, r, host.Password)
 
 	done := make(chan struct{})
 	go func() {
@@ -512,9 +508,10 @@ func (c *Client) executeCmd(session *ssh.Session, command, password string) (str
 	<-done
 
 	if err != nil {
-		log.Debugf("'%s' executed failed: %s", command, err)
+		log.Debugf("%s: execute command '%s' failed, error: %v, output: %s", host.Host, command, err, outputStr)
 		return "", errors.New(outputStr)
 	}
+	log.Debugf("%s: execute command '%s' success, output: %s", host.Host, command, outputStr)
 
 	return outputStr, nil
 }
@@ -640,21 +637,11 @@ func WithProxyServer(proxyServer, user string, port int, auths []ssh.AuthMethod)
 			proxySSHConfig,
 		)
 		if err1 != nil {
-			c.Proxy.Err = fmt.Errorf("connet to proxy %s:%d failed: %s", proxyServer, port, err1)
+			c.Proxy.Err = fmt.Errorf("connect to proxy %s:%d failed: %s", proxyServer, port, err1)
 
 			return
 		}
 
 		c.Proxy.SSHClient = proxyClient
 	}
-}
-
-// 判断是否是目录
-func isDir(path string) bool {
-	stat, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-
-	return stat.IsDir()
 }

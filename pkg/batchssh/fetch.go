@@ -19,8 +19,7 @@ func (c *Client) fetchFileOrDir(
 ) error {
 	fStat, err := ftpC.Stat(srcFile)
 	if err != nil {
-		log.Errorf("%s: stat '%s' failed: %v", host, srcFile, err)
-		return err
+		return fmt.Errorf("%s: stat '%s' failed: %v", host, srcFile, err)
 	}
 
 	if !fStat.IsDir() {
@@ -40,8 +39,7 @@ func (c *Client) fetchFileOrDir(
 	localFilePath := path.Join(dstDir, filepath.Base(srcFile))
 	err = os.MkdirAll(localFilePath, fStat.Mode().Perm())
 	if err != nil {
-		log.Errorf("make local dir '%s' failed: %v", localFilePath, err)
-		return err
+		return fmt.Errorf("make local dir '%s' failed: %v", localFilePath, err)
 	}
 	log.Debugf("make local dir '%s'", localFilePath)
 
@@ -51,14 +49,12 @@ func (c *Client) fetchFileOrDir(
 		if item.IsDir() {
 			err = c.fetchFileOrDir(ftpC, remoteFilePath, localFilePath, host)
 			if err != nil {
-				log.Errorf("%s: fetchFileOrDir '%s' failed, error: %v", host, remoteFilePath, err)
-				return err
+				return fmt.Errorf("%s: fetchFileOrDir '%s' failed, error: %v", host, remoteFilePath, err)
 			}
 		} else {
 			err = fetchFile(ftpC, remoteFilePath, localFilePath, host)
 			if err != nil {
-				log.Errorf("%s: fetchFile '%s' failed, error: %v", host, localFilePath, err)
-				return err
+				return fmt.Errorf("%s: fetchFile '%s' failed, error: %v", host, localFilePath, err)
 			}
 		}
 	}
@@ -112,7 +108,7 @@ func fetchFile(
 		return fmt.Errorf("chmod local file '%s' failed: %w", dstFile, err)
 	}
 
-	log.Debugf("%s: '%s' -> '%s fetched", host, srcFile, dstFile)
+	log.Debugf("%s: %s -> %s fetched", host, srcFile, dstFile)
 
 	return nil
 }

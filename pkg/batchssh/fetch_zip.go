@@ -57,18 +57,16 @@ fi`,
 			zippedFileFullpath,
 			srcFileName,
 		),
-		host.Password,
+		host,
 	)
 	if err != nil {
-		log.Errorf("%s: zip '%s' failed: %s", host.Host, srcFile, err)
-		return err
+		return fmt.Errorf("%s: zip '%s' failed: %s", host.Host, srcFile, err)
 	}
 
 	log.Debugf("%s: zip '%s' cost %s", host.Host, srcFile, time.Since(timeStart))
 
 	if err = fetchZipFile(ftpC, zippedFileFullpath, dstDir); err != nil {
-		log.Errorf("%s: fetch zip file '%s' failed: %s", host.Host, zippedFileFullpath, err)
-		return err
+		return fmt.Errorf("%s: fetch zip file '%s' failed: %s", host.Host, zippedFileFullpath, err)
 	}
 	log.Debugf("%s: fetched zip file '%s'", host.Host, zippedFileFullpath)
 
@@ -81,25 +79,23 @@ fi`,
 	_, err = c.executeCmd(
 		session2,
 		fmt.Sprintf("sudo -u %s -H bash -c 'rm -f %s'", runAs, zippedFileFullpath),
-		host.Password,
+		host,
 	)
 	if err != nil {
-		log.Errorf("%s: remove '%s' failed: %s", host.Host, zippedFileFullpath, err)
-		return err
+		return fmt.Errorf("%s: remove '%s' failed: %s", host.Host, zippedFileFullpath, err)
 	}
 	log.Debugf("%s: removed '%s'", host.Host, zippedFileFullpath)
 
 	localZippedFileFullpath := path.Join(dstDir, tmpZipFile)
 	defer func() {
 		if err := os.Remove(localZippedFileFullpath); err != nil {
-			log.Errorf("remove '%s' failed: %s", localZippedFileFullpath, err)
+			log.Debugf("remove '%s' failed: %s", localZippedFileFullpath, err)
 		} else {
 			log.Debugf("removed '%s'", localZippedFileFullpath)
 		}
 	}()
 	if err := util.Unzip(localZippedFileFullpath, dstDir); err != nil {
-		log.Errorf("unzip '%s' to '%s' failed: %s", localZippedFileFullpath, dstDir, err)
-		return err
+		return fmt.Errorf("unzip '%s' to '%s' failed: %s", localZippedFileFullpath, dstDir, err)
 	}
 	log.Debugf("unzipped '%s' to '%s'", localZippedFileFullpath, dstDir)
 
