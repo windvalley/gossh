@@ -157,13 +157,13 @@ Generate gossh configuration file.
 Default configuration file path: $PWD/.gossh.yaml and $HOME/.gossh.yaml,
 and $PWD/.gossh.yaml has higher priority than $HOME/.gossh.yaml`,
 	Example: `
-  # Generate default configuration content to screen.
+  Generate default configuration content to screen.
   $ gossh config
 
-  # Generate default configuration file.
+  Generate default configuration file.
   $ gossh config > ~/.gossh.yaml
 
-  # Generate configuration file with customized field values by specifying some global flags.
+  Generate configuration file with customized field values by specifying some global flags.
   $ gossh config -u zhangsan -c 100 -j --timeout.command 20 > ./.gossh.yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
 		config := configflags.Config

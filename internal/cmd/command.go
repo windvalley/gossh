@@ -33,11 +33,14 @@ import (
 var shellCommand string
 
 const commandCmdExamples = `
-  # Execute command 'uptime' on target hosts.
+  Execute command 'uptime' on target hosts.
   $ gossh command host1 host2 -e "uptime" -u zhangsan -k
 
-  # Use sudo as root to execute command on target hosts.
+  Use sudo as root to execute command on target hosts.
   $ gossh command host[1-2] -e "uptime" -u zhangsan -s
+
+  Use sudo as other user 'mysql' to execute command on target hosts.
+  $ gossh command host[1-2] -e "uptime" -u zhangsan -s -U mysql
 
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/command.md`
 

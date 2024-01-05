@@ -44,17 +44,19 @@ var encryptFileCmd = &cobra.Command{
 	Long: `
 Encrypt a file.`,
 	Example: `
-  # Encrypt a file by asking for vault password.
+  Encrypt a file by asking for vault password.
   $ gossh vault encrypt-file /path/auth.txt
 
-  # Encrypt a file by vault password file or script.
+  Encrypt a file by vault password file or script.
   $ gossh vault encrypt-file /path/auth.txt -V /path/vault-password-file-or-script
 
-  # Output encrypted content to another file.
+  Output encrypted content to another file.
   $ gossh vault encrypt-file /path/auth.txt -O /path/encryption.txt
 
-  # Output encrypted content to screen.
-  $ gossh vault encrypt-file /path/auth.txt -O -`,
+  Output encrypted content to screen.
+  $ gossh vault encrypt-file /path/auth.txt -O -
+
+  Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/vault.md`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			util.CobraCheckErrWithHelp(cmd, "requires one arg to represent a file to be encrypted")

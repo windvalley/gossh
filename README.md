@@ -169,9 +169,9 @@ Flags:
       --proxy.identity-files strings   identity files for proxy (default same as 'auth.identity-files')
       --proxy.passphrase string        passphrase of the identity files for proxy
                                        (default same as 'auth.passphrase')
+  -t, --timeout.command int            timeout seconds for handling each target host
       --timeout.task int               timeout seconds for the entire gossh task
       --timeout.conn int               timeout seconds for connecting each target host (default 10)
-      --timeout.command int            timeout seconds for handling each target host
       --config string                  config file (default {$PWD,$HOME}/.gossh.yaml)
   -h, --help                           help for gossh
 

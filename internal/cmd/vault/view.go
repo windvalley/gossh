@@ -37,11 +37,13 @@ var viewCmd = &cobra.Command{
 	Long: `
 View vault encrypted file.`,
 	Example: `
-  # View a vault encrypted file by asking for vault password.
+  View a vault encrypted file by asking for vault password.
   $ gossh vault view /path/auth.txt
 
-  # View a vault encrypted file by vault password file or script.
-  $ gossh vault view /path/auth.txt -V /path/vault-password-file-or-script`,
+  View a vault encrypted file by vault password file or script.
+  $ gossh vault view /path/auth.txt -V /path/vault-password-file-or-script
+
+  Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/vault.md`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			util.CobraCheckErrWithHelp(cmd, "requires one arg to represent the vault encrypted file")

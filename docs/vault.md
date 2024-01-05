@@ -51,7 +51,7 @@ Confirm plaintext:
 GOSSH-AES256:349a1220bc8adbb6b784624e8f4e913b24cf0836c45b73e9ab16c66cec7c3adf
 ```
 
-### demo3
+#### demo3
 
 ```sh
 $ gossh vault encrypt "the-password" -V ./vault-pass-file

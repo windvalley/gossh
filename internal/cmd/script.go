@@ -46,10 +46,10 @@ var scriptCmd = &cobra.Command{
 	Long: `
 Execute a local shell script on target hosts.`,
 	Example: `
-  # Execute foo.sh on target hosts.
+  Execute foo.sh on target hosts.
   $ gossh script host[1-3] -e foo.sh -k
 
-  # Remove the copied 'foo.sh' on the target hosts after execution.
+  Remove the copied 'foo.sh' on the target hosts after execution.
   $ gossh script host[1-3] -i hosts.txt -e foo.sh -k -r
 
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/script.md`,
