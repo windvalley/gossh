@@ -87,15 +87,16 @@ func init() {
 		"local directory that files/dirs from target hosts will be copied to",
 	)
 
-	fetchCmd.Flags().StringVarP(&tmpDir, "tmp-dir", "t", "$HOME",
-		"directory of target hosts for storing temporary zip file",
-	)
-
 	fetchCmd.Flags().BoolVarP(
 		&enableZipFiles,
 		"zip",
 		"z",
 		false,
 		"enable zip files ('zip' must be installed on target hosts)",
+	)
+
+	fetchCmd.Flags().StringVarP(&tmpDir, "tmp-dir", "T", "$HOME",
+		`directory for storing temporary zip file on target hosts, 
+only useful if the -z flag is used`,
 	)
 }
