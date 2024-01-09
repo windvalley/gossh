@@ -299,7 +299,7 @@ func (t *Task) handleOutput() {
 		outputNoSudoPrompt := ""
 		re, err := regexp.Compile(sudoPromptRegex)
 		if err != nil {
-			log.Debugf("re compile '%s' failed: %s", sudoPromptRegex, err)
+			log.Debugf("regexp compile '%s' failed: %s", sudoPromptRegex, err)
 		} else {
 			outputNoSudoPrompt = re.ReplaceAllString(outputNoR, "")
 		}

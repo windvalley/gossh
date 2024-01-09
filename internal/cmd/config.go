@@ -91,6 +91,12 @@ run:
   # Default: 1
   concurrency: %d
 
+  # Linux Command Blacklist for gossh subcommands 'command' and 'script'.
+  # Commands listed in this blacklist will be prohibited from executing on remote hosts for security reasons.
+  # You can add flag '-n, --no-safe-check' to disable this feature.
+  # Default: ["rm", "reboot", "halt", "shutdown", "init", "mkfs", "mkfs.*", "umount", "dd"]
+  command-blacklist: []
+
 output:
   # File to which messages are output.
   # Default: ""
@@ -195,6 +201,7 @@ func init() {
 			"auth.identity-files",
 			"proxy.identity-files",
 			"hosts.list",
+			"run.command-blacklist",
 		)
 
 		command.Parent().HelpFunc()(command, strings)

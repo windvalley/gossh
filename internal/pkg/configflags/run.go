@@ -24,23 +24,26 @@ package configflags
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/pflag"
 )
 
 const (
-	flagRunSudo        = "run.sudo"
-	flagRunAsUser      = "run.as-user"
-	flagRunLang        = "run.lang"
-	flagRunConcurrency = "run.concurrency"
+	flagRunSudo             = "run.sudo"
+	flagRunAsUser           = "run.as-user"
+	flagRunLang             = "run.lang"
+	flagRunConcurrency      = "run.concurrency"
+	flagRunCommandBlacklist = "run.command-blacklist"
 )
 
 // Run ...
 type Run struct {
-	Sudo        bool   `json:"sudo" mapstructure:"sudo"`
-	AsUser      string `json:"as-user" mapstructure:"as-user"`
-	Lang        string `json:"lang" mapstructure:"lang"`
-	Concurrency int    `json:"concurrency" mapstructure:"concurrency"`
+	Sudo             bool     `json:"sudo" mapstructure:"sudo"`
+	AsUser           string   `json:"as-user" mapstructure:"as-user"`
+	Lang             string   `json:"lang" mapstructure:"lang"`
+	Concurrency      int      `json:"concurrency" mapstructure:"concurrency"`
+	CommandBlacklist []string `json:"command-blacklist" mapstructure:"command-blacklist"`
 }
 
 // NewRun ...
@@ -66,10 +69,28 @@ func (r *Run) AddFlagsTo(flags *pflag.FlagSet) {
 	)
 	flags.IntVarP(&r.Concurrency, flagRunConcurrency, "c", r.Concurrency,
 		"number of concurrent connections")
+	flags.StringSliceVarP(
+		&r.CommandBlacklist,
+		flagRunCommandBlacklist,
+		"B",
+		r.CommandBlacklist,
+		`commands that are prohibited from execution on target hosts
+(default: rm,reboot,halt,shutdown,init,mkfs,mkfs.*,umount,dd)`,
+	)
 }
 
 // Complete ...
 func (r *Run) Complete() error {
+	newSlice := make([]string, 0)
+	for _, s := range r.CommandBlacklist {
+		item := strings.TrimSpace(s)
+		if item != "" {
+			newSlice = append(newSlice, item)
+		}
+	}
+
+	r.CommandBlacklist = newSlice
+
 	return nil
 }
 

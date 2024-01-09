@@ -75,8 +75,19 @@ func (c *ConfigFlags) Complete() error {
 	if err := c.Auth.Complete(); err != nil {
 		return err
 	}
-
+	if err := c.Hosts.Complete(); err != nil {
+		return err
+	}
+	if err := c.Run.Complete(); err != nil {
+		return err
+	}
+	if err := c.Output.Complete(); err != nil {
+		return err
+	}
 	if err := c.Proxy.Complete(); err != nil {
+		return err
+	}
+	if err := c.Timeout.Complete(); err != nil {
 		return err
 	}
 

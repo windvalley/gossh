@@ -23,14 +23,35 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/spf13/cobra"
 
 	"github.com/windvalley/gossh/internal/pkg/configflags"
 	"github.com/windvalley/gossh/internal/pkg/sshtask"
+	"github.com/windvalley/gossh/pkg/log"
 	"github.com/windvalley/gossh/pkg/util"
 )
 
-var shellCommand string
+var (
+	shellCommand string
+	noSafeCheck  bool
+)
+
+var defaultCommandBlacklist = []string{
+	"rm",
+	"reboot",
+	"halt",
+	"shutdown",
+	"poweroff",
+	"init",
+	"mkfs",
+	"mkfs.*",
+	"umount",
+	"dd",
+}
 
 const commandCmdExamples = `
   Execute command 'uptime' on target hosts.
@@ -55,6 +76,21 @@ Execute commands on target hosts.`,
 		if errs := configflags.Config.Validate(); len(errs) != 0 {
 			util.CheckErr(errs)
 		}
+
+		if noSafeCheck {
+			log.Debugf("Skip the safety check of commands before execution")
+		} else {
+			if len(configflags.Config.Run.CommandBlacklist) == 0 {
+				configflags.Config.Run.CommandBlacklist = defaultCommandBlacklist
+				log.Debugf("Using default command blacklist for the safety check: %s", defaultCommandBlacklist)
+			} else {
+				log.Debugf("Using custom command blacklist for the safety check: %s", configflags.Config.Run.CommandBlacklist)
+			}
+
+			if err := checkCommand(shellCommand, configflags.Config.Run.CommandBlacklist); err != nil {
+				util.CheckErr(err)
+			}
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		task := sshtask.NewTask(sshtask.CommandTask, configflags.Config)
@@ -76,4 +112,43 @@ func init() {
 		"",
 		"commands to be executed on target hosts",
 	)
+	commandCmd.Flags().BoolVarP(
+		&noSafeCheck,
+		"no-safe-check",
+		"n",
+		false,
+		"ignore dangerous commands (from '-B,--run.command-blacklist') check",
+	)
+}
+
+func checkCommand(command string, commandBlacklist []string) error {
+	unsafeCommands := make([]string, 0)
+
+	commands := strings.FieldsFunc(command, func(r rune) bool {
+		if r == ';' || r == '|' || r == '&' || r == ' ' {
+			return true
+		}
+		return false
+	})
+
+	for _, cmd := range commands {
+		for _, unsafeCmd := range commandBlacklist {
+			re := regexp.MustCompile(fmt.Sprintf(`^%s(?:\s+|;)*$`, unsafeCmd))
+			if re.MatchString(cmd) {
+				unsafeCommands = append(unsafeCommands, cmd)
+				break
+			}
+		}
+	}
+
+	if len(unsafeCommands) > 0 {
+		unsafeCommands = util.RemoveDuplStr(unsafeCommands)
+
+		return fmt.Errorf(
+			"found dangerous commands: '%s', you can add '-n/--no-safe-check' flag to ignore this check",
+			strings.Join(unsafeCommands, ", "),
+		)
+	}
+
+	return nil
 }
