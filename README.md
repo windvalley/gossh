@@ -96,6 +96,8 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
 - Provides subcommand `vault` to encrypt/decrypt confidential information
   such as password or passphrase without compromising security.
 
+- Support the detection of dangerous commands that will be executed on target hosts, and allow users to customize a blacklist of commands.
+
 - For ease of use, it supports config file. You can write flags that are not frequently changed into the config file, so you don't need to laboriously specify these flags on the command line. If the flag in both command line and config file, flag that from command line takes precedence over the other.  
   The default config file is `$PWD/.gossh.yaml` or `$HOME/.gossh.yaml`, and `$PWD/.gossh.yaml` has a higher priority. Note that the config file is optional, that is, there can be no config file.
 
@@ -157,10 +159,12 @@ Flags:
   -L, --run.lang string                specify i18n while executing command
                                        (e.g. zh_CN.UTF-8|en_US.UTF-8)
   -c, --run.concurrency int            number of concurrent connections (default 1)
+  -B, --run.command-blacklist strings  commands that are prohibited from execution on target hosts
+                                       (default: rm,reboot,halt,shutdown,init,mkfs,mkfs.*,umount,dd)
   -o, --output.file string             file to which messages are output
   -j, --output.json                    output messages in json format
   -C, --output.condense                condense output and disable color
-  -q, --output.quiet                   do not output messages to screen (except error messages)
+  -q, --output.quiet                   do not output messages to screen
   -v, --output.verbose                 show debug messages
   -X, --proxy.server string            proxy server address
       --proxy.port int                 proxy server port (default 22)

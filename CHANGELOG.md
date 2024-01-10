@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.0]
+
+### Added
+
+Add dangerous commands detection feature for subcommand `command` and `script`:
+
+- Add global flag: `-B, --run.command-blacklist` for specifying dangerous commands.
+  Default dangerous commands: `["rm", "reboot", "halt", "shutdown", "init", "mkfs", "mkfs.*", "umount", "dd"]`
+
+- Add flag `-n, --no-safe-check` for subcommands `command` and `script` to disable dangerous commands detection.
+
+- Add option `run.command-blacklist` to config file for subcommand `config`.
+
+### Changed
+
+- `gossh fetch` flags have been changed:
+  Before: `-t, --tmp-dir string directory of target hosts for storing temporary zip file (default "$HOME")`
+  After: `-T, --tmp-dir string directory for storing temporary zip file on target hosts, only useful if the -z flag is used (default "$HOME")`
+
+- Add short flag `-t` for `--timeout.command`:
+  Before: `--timeout.command int`
+  After: `-t, --timeout.command int`
+
+- Optimize help usage information for subcommands.
+
+- Optimize output messages and enrich debug log information.
+
 ## [1.14.0]
 
 ### Added
