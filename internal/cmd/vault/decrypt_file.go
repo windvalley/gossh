@@ -34,8 +34,6 @@ import (
 
 var deOutputFile string
 
-// decryptFileCmd represents the vault decrypt-file command
-//
 //nolint:dupl
 var decryptFileCmd = &cobra.Command{
 	Use:   "decrypt-file FILENAME",
@@ -66,7 +64,7 @@ Decrypt vault encrypted file.`,
 		}
 
 		if !util.FileExists(args[0]) {
-			util.CheckErr(fmt.Sprintf("file '%s' not found", args[0]))
+			util.PrintErrExit(fmt.Sprintf("file '%s' not found", args[0]))
 		}
 
 		return nil
@@ -77,7 +75,9 @@ Decrypt vault encrypted file.`,
 		file := args[0]
 
 		content, err := decryptFile(file, vaultPass)
-		util.CheckErr(err)
+		if err != nil {
+			util.PrintErrExit(err)
+		}
 
 		handleOutput(content, file, deOutputFile)
 

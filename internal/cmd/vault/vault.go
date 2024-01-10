@@ -103,7 +103,7 @@ func getVaultConfirmPassword() string {
 	prompt := "New Vault password: "
 	password, err := getConfirmPasswordFromPrompt(prompt)
 	if err != nil {
-		util.CheckErr(fmt.Sprintf("get vault password from terminal prompt failed: %s", err))
+		util.PrintErrExit(fmt.Sprintf("get vault password from terminal prompt failed: %s", err))
 	}
 
 	log.Debugf("Vault: confirmed vault password that from terminal prompt")
@@ -124,7 +124,7 @@ func GetVaultPassword() string {
 	for {
 		password, err = getPasswordFromPrompt(prompt)
 		if err != nil {
-			util.CheckErr(fmt.Sprintf("get vault password from terminal prompt '%s' failed: %s", prompt, err))
+			util.PrintErrExit(fmt.Sprintf("get vault password from terminal prompt '%s' failed: %s", prompt, err))
 		}
 		if password != "" {
 			break
@@ -142,20 +142,22 @@ func getVaultPasswordFromFile() string {
 	vaultPassFile := configflags.Config.Auth.VaultPassFile
 	if vaultPassFile != "" {
 		ok, err := isExectuable(vaultPassFile)
-		util.CheckErr(err)
+		if err != nil {
+			util.PrintErrExit(err)
+		}
 
 		if ok {
 			bin := fmt.Sprintf("./%s", vaultPassFile)
 			out, err1 := exec.Command(bin).Output()
 			if err1 != nil {
-				util.CheckErr(fmt.Errorf(
+				util.PrintErrExit(fmt.Errorf(
 					"problem executing file '%s': %s, if this is not a executable file, "+
 						"remove the executable bit from the file", vaultPassFile, err1))
 			}
 
 			vaultPass := strings.TrimSpace(string(out))
 			if vaultPass == "" {
-				util.CheckErr(fmt.Sprintf(
+				util.PrintErrExit(fmt.Sprintf(
 					"problem executing file '%s': output cannot be empty, if this is not a script, "+
 						"remove the executable bit from the file", vaultPassFile))
 			}
@@ -168,16 +170,16 @@ func getVaultPasswordFromFile() string {
 		passwordContent, err := os.ReadFile(vaultPassFile)
 		if err != nil {
 			err = fmt.Errorf("read vault password file '%s' failed: %w", vaultPassFile, err)
+			util.PrintErrExit(err)
 		}
-		util.CheckErr(err)
 
 		vaultPass := strings.TrimSpace(string(passwordContent))
 		if vaultPass == "" {
-			util.CheckErr("vault password file cannot be empty")
+			util.PrintErrExit("vault password file cannot be empty")
 		}
 
 		if strings.HasPrefix(vaultPass, "#!/") {
-			util.CheckErr(fmt.Sprintf(
+			util.PrintErrExit(fmt.Sprintf(
 				"'%s' looks like a script file, please add the executable bit to this file",
 				vaultPassFile,
 			))

@@ -38,7 +38,7 @@ func CobraCheckErrWithHelp(cmd *cobra.Command, errMsg interface{}) {
 
 		fmt.Println()
 
-		CheckErr(errMsg)
+		PrintErrExit(errMsg)
 	}
 }
 
@@ -46,7 +46,7 @@ func CobraCheckErrWithHelp(cmd *cobra.Command, errMsg interface{}) {
 func CobraMarkHiddenGlobalFlags(command *cobra.Command, flags ...string) {
 	for _, v := range flags {
 		if err := command.Flags().MarkHidden(v); err != nil {
-			CheckErr(fmt.Sprintf("cannot mark hidden flag: %s", err))
+			PrintErrExit(fmt.Sprintf("cannot mark hidden flag: %s", err))
 		}
 	}
 }

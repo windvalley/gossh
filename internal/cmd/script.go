@@ -57,11 +57,11 @@ Execute a local shell script on target hosts.`,
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/script.md`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := configflags.Config.Validate(); len(errs) != 0 {
-			util.CheckErr(errs)
+			util.PrintErrExit(errs)
 		}
 
 		if scriptFile != "" && !util.FileExists(scriptFile) {
-			util.CheckErr(fmt.Sprintf("script '%s' not found", scriptFile))
+			util.PrintErrExit(fmt.Sprintf("script '%s' not found", scriptFile))
 		}
 
 		if noSafeCheck {
@@ -75,7 +75,7 @@ Execute a local shell script on target hosts.`,
 			}
 
 			if err := checkScript(scriptFile, configflags.Config.Run.CommandBlacklist); err != nil {
-				util.CheckErr(err)
+				util.PrintErrExit(err)
 			}
 		}
 	},

@@ -231,8 +231,9 @@ func (t *Task) batchRunSSH() {
 			t.err = errors.New("need flag '-d/--dest-path' or '-l/--hosts.list'")
 		} else {
 			if !util.DirExists(t.dstDir) {
-				err := os.MkdirAll(t.dstDir, os.ModePerm)
-				util.CheckErr(err)
+				if err := os.MkdirAll(t.dstDir, os.ModeDir); err != nil {
+					util.PrintErrExit(err)
+				}
 			}
 		}
 	}
@@ -694,8 +695,8 @@ func getDefaultPassword(auth *configflags.Auth) string {
 		passwordContent, err := os.ReadFile(authFile)
 		if err != nil {
 			err = fmt.Errorf("read password file '%s' failed: %w", authFile, err)
+			util.PrintErrExit(err)
 		}
-		util.CheckErr(err)
 
 		password = strings.TrimSpace(string(passwordContent))
 
@@ -784,8 +785,8 @@ func getPasswordFromPrompt(loginUser string) string {
 	passwordByte, err := term.ReadPassword(0)
 	if err != nil {
 		err = fmt.Errorf("get password from terminal failed: %s", err)
+		util.PrintErrExit(err)
 	}
-	util.CheckErr(err)
 
 	password := string(passwordByte)
 
@@ -803,7 +804,7 @@ func getRealPass(pass string, host, objectType string) string {
 		realPass, err := aes.AES256Decode(pass, vaultPass)
 		if err != nil {
 			log.Debugf("Vault: decrypt %s for '%s' failed: %s", objectType, host, err)
-			util.CheckErr(err)
+			util.PrintErrExit(err)
 		}
 
 		log.Debugf("Vault: decrypt %s for '%s' success", objectType, host)

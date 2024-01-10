@@ -90,7 +90,9 @@ func initConfig() {
 	} else {
 		// Find home directory.
 		home, err := os.UserHomeDir()
-		util.CheckErr(err)
+		if err != nil {
+			util.PrintErrExit(err)
+		}
 
 		// Search the default configuration file.
 		viper.AddConfigPath(".")
@@ -99,21 +101,22 @@ func initConfig() {
 		viper.SetConfigName(".gossh")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	// Read in environment variables that match.
+	viper.AutomaticEnv()
 
 	// If a config file is found, read it in.
 	_ = viper.ReadInConfig()
 
 	if err := viper.BindPFlags(rootCmd.PersistentFlags()); err != nil {
-		util.CheckErr(err)
+		util.PrintErrExit(err)
 	}
 
 	if err := viper.Unmarshal(&configflags.Config); err != nil {
-		util.CheckErr(err)
+		util.PrintErrExit(err)
 	}
 
 	if err := configflags.Config.Complete(); err != nil {
-		util.CheckErr(err)
+		util.PrintErrExit(err)
 	}
 }
 

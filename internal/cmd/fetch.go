@@ -58,7 +58,7 @@ Copy files and dirs from target hosts to local.`,
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/fetch.md`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := configflags.Config.Validate(); len(errs) != 0 {
-			util.CheckErr(errs)
+			util.PrintErrExit(errs)
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {

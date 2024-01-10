@@ -55,7 +55,7 @@ Decrypt content encrypted by vault.`,
 		}
 
 		if !aes.IsAES256CipherText(args[0]) {
-			util.CheckErr(fmt.Sprintf("'%s' is not vault encrypted content", args[0]))
+			util.PrintErrExit(fmt.Sprintf("'%s' is not vault encrypted content", args[0]))
 		}
 
 		return nil
@@ -65,8 +65,8 @@ Decrypt content encrypted by vault.`,
 		plainText, err := aes.AES256Decode(args[0], vaultPass)
 		if err != nil {
 			err = fmt.Errorf("decrypt failed: %w", err)
+			util.PrintErrExit(err)
 		}
-		util.CheckErr(err)
 
 		fmt.Printf("\n%s\n", plainText)
 	},

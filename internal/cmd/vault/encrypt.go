@@ -61,14 +61,14 @@ Encrypt sensitive content.`,
 		plainPassword, err := getPlainPassword(args)
 		if err != nil {
 			err = fmt.Errorf("get plaintext to be encrypted failed: %s", err)
+			util.PrintErrExit(err)
 		}
-		util.CheckErr(err)
 
 		encryptContent, err := aes.AES256Encode(plainPassword, vaultPass)
 		if err != nil {
 			err = fmt.Errorf("encrypt failed: %w", err)
+			util.PrintErrExit(err)
 		}
-		util.CheckErr(err)
 
 		fmt.Printf("\n%s\n", encryptContent)
 	},

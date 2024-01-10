@@ -54,7 +54,7 @@ View vault encrypted file.`,
 		}
 
 		if !util.FileExists(args[0]) {
-			util.CheckErr(fmt.Sprintf("file '%s' not found", args[0]))
+			util.PrintErrExit(fmt.Sprintf("file '%s' not found", args[0]))
 		}
 
 		return nil
@@ -65,9 +65,12 @@ View vault encrypted file.`,
 		file := args[0]
 
 		decryptContent, err := decryptFile(file, vaultPass)
-		util.CheckErr(err)
+		if err != nil {
+			util.PrintErrExit(err)
+		}
 
-		err = util.LessContent(decryptContent)
-		util.CheckErr(err)
+		if err := util.LessContent(decryptContent); err != nil {
+			util.PrintErrExit(err)
+		}
 	},
 }

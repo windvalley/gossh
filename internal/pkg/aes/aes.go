@@ -53,7 +53,7 @@ func AES256Encode(plainText, key string) (string, error) {
 func AES256Decode(hexCipherText, key string) (string, error) {
 	defer func() {
 		if err := recover(); err != nil {
-			util.CheckErr("decryption failed: wrong vault password")
+			util.PrintErrExit("decryption failed: wrong vault password")
 		}
 	}()
 

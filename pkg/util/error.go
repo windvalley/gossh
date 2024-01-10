@@ -29,17 +29,11 @@ import (
 	"github.com/fatih/color"
 )
 
-// CheckErr and exit.
-func CheckErr(msg interface{}) {
-	if msg != nil {
-		fmt.Fprintln(os.Stderr, color.RedString("Error:"), msg)
-		os.Exit(1)
-	}
+func PrintErr(msg interface{}) {
+	fmt.Fprintln(os.Stderr, color.RedString("Error:"), msg)
 }
 
-// PrintErr with red color if err not nil.
-func PrintErr(msg interface{}) {
-	if msg != nil {
-		fmt.Fprintln(os.Stderr, color.RedString("Error:"), msg)
-	}
+func PrintErrExit(msg interface{}) {
+	fmt.Fprintln(os.Stderr, color.RedString("Error:"), msg)
+	os.Exit(1)
 }

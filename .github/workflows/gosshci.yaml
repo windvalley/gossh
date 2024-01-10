@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        go_version: [1.18]
+        go_version: [1.21]
         os: [ubuntu-latest]
 
     steps:

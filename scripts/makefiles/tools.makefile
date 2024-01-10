@@ -20,7 +20,7 @@ install.swagger:
 
 .PHONY: install.golangci-lint
 install.golangci-lint:
-	@${GO} install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.41.1
+	@${GO} install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
 
 .PHONY: install.go-junit-report
 install.go-junit-report:

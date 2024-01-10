@@ -67,7 +67,7 @@ Encrypt a file.`,
 		}
 
 		if !util.FileExists(args[0]) {
-			util.CheckErr(fmt.Sprintf("file '%s' not found", args[0]))
+			util.PrintErrExit(fmt.Sprintf("file '%s' not found", args[0]))
 		}
 
 		return nil
@@ -78,7 +78,9 @@ Encrypt a file.`,
 		file := args[0]
 
 		content, err := encryptFile(file, vaultPass)
-		util.CheckErr(err)
+		if err != nil {
+			util.PrintErrExit(err)
+		}
 
 		handleOutput(content, file, outputFile)
 
@@ -108,7 +110,9 @@ func handleOutput(content, originalFile, newFile string) {
 		err = writeContentToOriFile(originalFile, content)
 	}
 
-	util.CheckErr(err)
+	if err != nil {
+		util.PrintErrExit(err)
+	}
 }
 
 func encryptFile(file, vaultPass string) (string, error) {

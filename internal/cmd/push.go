@@ -64,14 +64,14 @@ Copy local files and dirs to target hosts.`,
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/push.md`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := configflags.Config.Validate(); len(errs) != 0 {
-			util.CheckErr(errs)
+			util.PrintErrExit(errs)
 		}
 
 		if len(files) != 0 {
 			for _, f := range files {
 				_, err := os.Stat(f)
 				if err != nil {
-					util.CheckErr(err)
+					util.PrintErrExit(err)
 				}
 			}
 		}
@@ -88,7 +88,7 @@ Copy local files and dirs to target hosts.`,
 
 			workDir, err := os.Getwd()
 			if err != nil {
-				util.CheckErr(err)
+				util.PrintErrExit(err)
 			}
 
 			for _, f := range files {
@@ -97,12 +97,12 @@ Copy local files and dirs to target hosts.`,
 				zipFile := path.Join(workDir, zipName)
 
 				if err := util.Zip(strings.TrimSuffix(f, string(os.PathSeparator)), zipFile); err != nil {
-					util.CheckErr(err)
+					util.PrintErrExit(err)
 				}
 
 				stat, err := os.Stat(zipFile)
 				if err != nil {
-					util.CheckErr(err)
+					util.PrintErrExit(err)
 				}
 				//nolint:gomnd
 				log.Debugf("zip file '%s' size: %d MB", zipFile, stat.Size()/1024/1024)

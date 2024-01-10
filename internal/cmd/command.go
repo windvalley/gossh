@@ -73,7 +73,7 @@ Execute commands on target hosts.`,
 	Example: commandCmdExamples,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if errs := configflags.Config.Validate(); len(errs) != 0 {
-			util.CheckErr(errs)
+			util.PrintErrExit(errs)
 		}
 
 		if noSafeCheck {
@@ -87,7 +87,7 @@ Execute commands on target hosts.`,
 			}
 
 			if err := checkCommand(shellCommand, configflags.Config.Run.CommandBlacklist); err != nil {
-				util.CheckErr(err)
+				util.PrintErrExit(err)
 			}
 		}
 	},
