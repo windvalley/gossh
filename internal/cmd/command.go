@@ -65,7 +65,6 @@ const commandCmdExamples = `
 
   Find more examples at: https://github.com/windvalley/gossh/blob/main/docs/command.md`
 
-// commandCmd represents the 'command' command
 var commandCmd = &cobra.Command{
 	Use:   "command [HOST...]",
 	Short: "Execute commands on target hosts",
@@ -125,7 +124,7 @@ func checkCommand(command string, commandBlacklist []string) error {
 	unsafeCommands := make([]string, 0)
 
 	commands := strings.FieldsFunc(command, func(r rune) bool {
-		if r == ';' || r == '|' || r == '&' || r == ' ' {
+		if r == ';' || r == '|' || r == '&' || r == ' ' || r == '\t' || r == '\n' {
 			return true
 		}
 		return false
@@ -133,7 +132,7 @@ func checkCommand(command string, commandBlacklist []string) error {
 
 	for _, cmd := range commands {
 		for _, unsafeCmd := range commandBlacklist {
-			re := regexp.MustCompile(fmt.Sprintf(`^%s(?:\s+|;)*$`, unsafeCmd))
+			re := regexp.MustCompile(fmt.Sprintf(`(^|/)%s(?:\s+|;)*$`, unsafeCmd))
 			if re.MatchString(cmd) {
 				unsafeCommands = append(unsafeCommands, cmd)
 				break

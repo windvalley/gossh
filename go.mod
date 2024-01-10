@@ -1,6 +1,6 @@
 module github.com/windvalley/gossh
 
-go 1.17
+go 1.18
 
 require (
 	github.com/ScaleFT/sshkeys v0.0.0-20200327173127-6142f742bca5
@@ -8,7 +8,7 @@ require (
 	github.com/go-project-pkg/expandhost v0.1.1
 	github.com/go-project-pkg/version v0.0.0-20211203112436-8252efa62491
 	github.com/pkg/sftp v1.10.1
-	github.com/spf13/cobra v1.3.0
+	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.10.0
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
@@ -20,7 +20,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect

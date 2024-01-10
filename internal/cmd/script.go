@@ -24,11 +24,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/windvalley/gossh/internal/pkg/configflags"
 	"github.com/windvalley/gossh/internal/pkg/sshtask"
+	"github.com/windvalley/gossh/pkg/log"
 	"github.com/windvalley/gossh/pkg/util"
 )
 
@@ -61,6 +63,21 @@ Execute a local shell script on target hosts.`,
 		if scriptFile != "" && !util.FileExists(scriptFile) {
 			util.CheckErr(fmt.Sprintf("script '%s' not found", scriptFile))
 		}
+
+		if noSafeCheck {
+			log.Debugf("Skip the safety check of commands before execution")
+		} else {
+			if len(configflags.Config.Run.CommandBlacklist) == 0 {
+				configflags.Config.Run.CommandBlacklist = defaultCommandBlacklist
+				log.Debugf("Using default command blacklist for the safety check: %s", defaultCommandBlacklist)
+			} else {
+				log.Debugf("Using custom command blacklist for the safety check: %s", configflags.Config.Run.CommandBlacklist)
+			}
+
+			if err := checkScript(scriptFile, configflags.Config.Run.CommandBlacklist); err != nil {
+				util.CheckErr(err)
+			}
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		task := sshtask.NewTask(sshtask.ScriptTask, configflags.Config)
@@ -91,4 +108,21 @@ func init() {
 	scriptCmd.Flags().BoolVarP(&force, "force", "F", false,
 		"allow overwrite script file if it already exists on target hosts",
 	)
+
+	scriptCmd.Flags().BoolVarP(
+		&noSafeCheck,
+		"no-safe-check",
+		"n",
+		false,
+		"ignore dangerous commands (from '-B,--run.command-blacklist') check",
+	)
+}
+
+func checkScript(scriptFile string, commandBlacklist []string) error {
+	script, err := os.ReadFile(scriptFile)
+	if err != nil {
+		return fmt.Errorf("read script file '%s' failed: %w", scriptFile, err)
+	}
+
+	return checkCommand(string(script), commandBlacklist)
 }
