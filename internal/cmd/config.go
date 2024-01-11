@@ -23,8 +23,9 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"bytes"
 	"fmt"
-	"os"
+	"text/template"
 
 	"github.com/spf13/cobra"
 
@@ -35,61 +36,61 @@ import (
 const configTemplate = `auth:
   # Default login user.
   # Default: $USER
-  user: %q
+  user: {{ .Auth.User }}
 
   # Default password of the login user.
   # Default: ""
-  password: %q
+  password: {{ .Auth.Password }}
 
   # Ask for password of the login user.
   # Default: false
-  ask-pass: %v
+  ask-pass: {{ .Auth.AskPass }}
 
   # File that holds the default password of login user.
   # Default: ""
-  file: %q
+  file: {{ .Auth.PassFile }}
 
   # Default identity files of pubkey authentication.
-  # Default:
-  #   - $HOME/.ssh/id_rsa
-  #   - $HOME/.ssh/id_dsa
+  # Default: ["$HOME/.ssh/id_rsa", "$HOME/.ssh/id_dsa"]
   identity-files: []
 
   # Default passphrase of the identity files.
   # Default: ""
-  passphrase: %q
+  passphrase: {{ .Auth.Passphrase }}
 
   # File that holds the vault password for encryption and decryption.
   # Default: ""
-  vault-pass-file: %q
+  vault-pass-file: {{ .Auth.VaultPassFile }}
 
 hosts:
   # Default inventory file that holds the target hosts.
+  # The file content format can be referred to at: 
+  # https://github.com/windvalley/gossh/blob/main/docs/inventory.md
   # Default: ""
-  inventory: %q
+  inventory: {{ .Hosts.Inventory }}
 
   # Default port of target hosts.
   # Default: 22
-  port: %d
+  port: {{ .Hosts.Port }}
 
 run:
   # Use sudo to run task.
   # Default: false
-  sudo: %v
+  sudo: {{ .Run.Sudo }}
 
   # Run via sudo as this user.
   # Default: root
-  as-user: %s
+  as-user: {{ .Run.AsUser }}
 
   # Export systems environment variables LANG/LC_ALL/LANGUAGE
   # as this value when executing command/script.
   # Available vaules: zh_CN.UTF-8, en_US.UTF-8, etc.
   # Default: "" (null means do not export)
-  lang: %q
+  lang: {{ .Run.Lang }}
 
   # Number of concurrent connections.
   # Default: 1
-  concurrency: %d
+  concurrency: {{ .Run.Concurrency }}
 
   # Linux Command Blacklist for gossh subcommands 'command' and 'script'.
   # Commands listed in this blacklist will be prohibited from executing on remote hosts for security reasons.
@@ -100,50 +101,54 @@ run:
 output:
   # File to which messages are output.
   # Default: ""
-  file: %q
+  file: {{ .Output.File }}
 
   # Output messages in json format.
   # Default: false
-  json: %v
+  json: {{ .Output.JSON }}
+
+  # Condense output and disable color.
+  # Default: false
+  condense: {{ .Output.Condense }}
 
   # Show debug messages.
   # Default: false
-  verbose: %v
+  verbose: {{ .Output.Verbose }}
 
-  # Do not output messages to screen (except error messages).
+  # Do not output messages to screen.
   # Default: false
-  quite: %v
+  quite: {{ .Output.Quiet }}
 
 timeout:
   # Timeout seconds for connecting each target host.
   # Default: 10 (seconds)
-  conn: %d
+  conn: {{ .Timeout.Conn }}
 
   # Timeout seconds for executing commands/script on each target host.
   # NOTE: This command timeout includes the connection timeout (timeout.conn).
   # Default: 0
-  command: %d
+  command: {{ .Timeout.Command }}
 
   # Timeout seconds for running the entire gossh task.
   # Default: 0
-  task: %d
+  task: {{ .Timeout.Task }}
 
 proxy:
   # Proxy server address. It will enable proxy if it is not null.
   # Default: ""
-  server: %q
+  server: {{ .Proxy.Server }}
 
   # Proxy server port.
   # Default: 22
-  port: %d
+  port: {{ .Proxy.Port }}
 
   # Login user for proxy.
   # Default: value of 'auth.user'
-  user: %q
+  user: {{ .Proxy.User }}
 
   # Password for proxy.
   # Default: value of 'auth.password'
-  password: %q
+  password: {{ .Proxy.Password }}
 
   # Identity files for proxy.
   # Default: value of 'auth.identity-files'
@@ -151,8 +156,7 @@ proxy:
 
   # Passphrase of the identity files for proxy.
   # Default: value of 'auth.passphrase'
-  passphrase: %q
-`
+  passphrase: {{ .Proxy.Passphrase }}`
 
 // configCmd represents the config command
 var configCmd = &cobra.Command{
@@ -172,24 +176,18 @@ and $PWD/.gossh.yaml has higher priority than $HOME/.gossh.yaml`,
   Generate configuration file with customized field values by specifying some global flags.
   $ gossh config -u zhangsan -c 100 -j --timeout.command 20 > ./.gossh.yaml`,
 	Run: func(cmd *cobra.Command, args []string) {
-		config := configflags.Config
-
-		user := config.Auth.User
-		if user == os.Getenv("USER") {
-			user = ""
+		var conf bytes.Buffer
+		template, err := template.New("config-template").Parse(configTemplate)
+		if err != nil {
+			util.PrintErrExit(fmt.Errorf("parse config template failed: %w", err))
 		}
 
-		fmt.Printf(
-			configTemplate,
-			user, config.Auth.Password, config.Auth.AskPass,
-			config.Auth.PassFile, config.Auth.Passphrase, config.Auth.VaultPassFile,
-			config.Hosts.Inventory, config.Hosts.Port,
-			config.Run.Sudo, config.Run.AsUser, config.Run.Lang, config.Run.Concurrency,
-			config.Output.File, config.Output.JSON, config.Output.Verbose, config.Output.Quiet,
-			config.Timeout.Conn, config.Timeout.Command, config.Timeout.Task,
-			config.Proxy.Server, config.Proxy.Port, config.Proxy.User,
-			config.Proxy.Password, config.Proxy.Passphrase,
-		)
+		config := configflags.Config
+		if err := template.Execute(&conf, config); err != nil {
+			util.PrintErrExit(fmt.Errorf("render config template failed: %w", err))
+		}
+
+		fmt.Println(conf.String())
 	},
 }
 
