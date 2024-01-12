@@ -4,9 +4,10 @@
 [![Github Workflow Status](https://img.shields.io/github/actions/workflow/status/windvalley/gossh/gosshci.yaml?branch=main)](https://github.com/windvalley/gossh/actions/workflows/gosshci.yaml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=windvalley_gossh&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=windvalley_gossh)
 [![Version](https://img.shields.io/github/v/release/windvalley/gossh?include_prereleases)](https://github.com/windvalley/gossh/releases)
-[![LICENSE](https://img.shields.io/github/license/windvalley/gossh)](LICENSE) <br>
+![Supports](https://img.shields.io/badge/Supports-macOS,%20Linux-orange)
 ![Page Views](https://views.whatilearened.today/views/github/windvalley/gossh.svg)
 [![Release Download Total](https://img.shields.io/github/downloads/windvalley/gossh/total)](https://github.com/windvalley/gossh/releases)
+[![LICENSE](https://img.shields.io/github/license/windvalley/gossh)](LICENSE)
 
 Gossh is a high-performance and high-concurrency ssh tool written in Go.
 It can efficiently manage tens of thousands of Linux server clusters.
