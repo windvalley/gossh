@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/pkg/sftp"
@@ -106,11 +105,6 @@ func fetchZipFile(
 	ftpC *sftp.Client,
 	srcZipFile, dstDir string,
 ) error {
-	homeDir := os.Getenv("HOME")
-	if strings.HasPrefix(dstDir, "~/") {
-		srcZipFile = strings.Replace(dstDir, "~", homeDir, 1)
-	}
-
 	srcZipFileName := filepath.Base(srcZipFile)
 	dstZipFile := path.Join(dstDir, srcZipFileName)
 

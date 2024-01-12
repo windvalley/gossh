@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/pkg/sftp"
 
@@ -66,11 +65,6 @@ func fetchFile(
 	ftpC *sftp.Client,
 	srcFile, dstDir, host string,
 ) error {
-	homeDir := os.Getenv("HOME")
-	if strings.HasPrefix(srcFile, "~/") {
-		srcFile = strings.Replace(srcFile, "~", homeDir, 1)
-	}
-
 	remoteFile, err := ftpC.Open(srcFile)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
