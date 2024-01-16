@@ -50,9 +50,9 @@ go.build.%:
 	$(eval ARCH := $(word 2,$(subst _, ,${PLATFORM})))
 	$(eval GO_BIN_EXT = $(if $(findstring windows,${OS}),.exe,))
 	@echo "==========> Building binary '${COMMAND}${GO_BIN_EXT}' ${VERSION} for ${OS} ${ARCH}"
-	@mkdir -p ${OUTPUT_DIR}/platforms/${OS}/${ARCH}
-	@CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} ${GO} build ${GO_BUILD_FLAGS} -o ${OUTPUT_DIR}/platforms/${OS}/${ARCH}/${COMMAND}${GO_BIN_EXT} ${ROOT_PACKAGE}/cmd/${COMMAND}
-	@echo "${OUTPUT_DIR}/platforms/${OS}/${ARCH}/${COMMAND}${GO_BIN_EXT}"
+	@mkdir -p ${OUTPUT_DIR}/bins
+	@CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} ${GO} build ${GO_BUILD_FLAGS} -o ${OUTPUT_DIR}/bins/${COMMAND}${GO_BIN_EXT}-${VERSION}-${OS}-${ARCH} ${ROOT_PACKAGE}/cmd/${COMMAND}
+	@echo "${OUTPUT_DIR}/bins/${COMMAND}${GO_BIN_EXT}-${VERSION}-${OS}-${ARCH}"
 
 .PHONY: go.build
 go.build: go.tidy $(addprefix go.build., $(addprefix ${PLATFORM}., ${BINS}))
@@ -98,7 +98,7 @@ go.install.%:
 	$(eval ARCH := $(word 2,$(subst _, ,${PLATFORM})))
 	$(eval GO_BIN_EXT = $(if $(findstring windows,${OS}),.exe,))
 	@echo "==========> Install binary '${COMMAND}${GO_BIN_EXT}' ${VERSION} for ${OS} ${ARCH}"
-	cp ${OUTPUT_DIR}/platforms/${OS}/${ARCH}/${COMMAND}${GO_BIN_EXT} /usr/local/bin/
+	cp ${OUTPUT_DIR}/bins/${COMMAND}${GO_BIN_EXT}-${VERSION}-${OS}-${ARCH} /usr/local/bin/gossh
 
 .PHONY: go.install
 go.install: $(addprefix go.install., $(addprefix ${PLATFORM}., ${BINS})) 

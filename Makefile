@@ -16,7 +16,7 @@ define USAGE_OPTIONS
 Options:
 
    PLATFORMS   The multiple platforms to build.
-               Default is 'darwin_amd64 darwin_arm64 linux_amd64 linux_arm64 windows_amd64'.
+               Default is 'darwin_amd64 darwin_arm64 linux_amd64 linux_arm64'.
                This option is available when using: make build.multiarch.
                Example: make build.multiarch PLATFORMS="linux_amd64"
 endef

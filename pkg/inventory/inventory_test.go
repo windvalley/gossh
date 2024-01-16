@@ -48,7 +48,6 @@ func TestGetAllHosts(t *testing.T) {
 					Password: "123456",
 					Keys: []string{
 						"~/.ssh/id_rsa",
-						"~/.ssh/id_ecdsa",
 					},
 					Passphrase: "xxx",
 				},
@@ -122,7 +121,6 @@ func TestGetHostsByGroup(t *testing.T) {
 					Password: "123456",
 					Keys: []string{
 						"~/.ssh/id_rsa",
-						"~/.ssh/id_ecdsa",
 					},
 					Passphrase: "xxx",
 				},

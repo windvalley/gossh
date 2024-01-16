@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimize config template and config file.
 - Optimize pubkeys authentication.
 - Optimize some flags description.
+- Optimize Makefile.
 
 ## [1.15.0]
 
