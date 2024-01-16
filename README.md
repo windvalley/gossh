@@ -144,41 +144,41 @@ Available Commands:
   completion  Generate the autocompletion script for the specified shell
 
 Flags:
-  -u, --auth.user string               login user (default $USER)
-  -p, --auth.password string           password of login user
-  -k, --auth.ask-pass                  ask for the password of login user
-  -a, --auth.pass-file string          file that holds the password of login user
-  -I, --auth.identity-files strings    identity files (default ~/.ssh/id_rsa)
-  -K, --auth.passphrase string         passphrase of the identity files
-  -V, --auth.vault-pass-file string    text file or executable file that holds the vault password
-                                       for encryption and decryption
-  -i, --hosts.inventory string         file that holds the target hosts
-  -P, --hosts.port int                 port of the target hosts (default 22)
-  -l, --hosts.list                     outputs a list of target hosts, and does not do anything else
-  -s, --run.sudo                       use sudo to execute commands/script or fetch files/dirs
-  -U, --run.as-user string             run via sudo as this user (default "root")
-  -L, --run.lang string                specify i18n while executing command
-                                       (e.g. zh_CN.UTF-8|en_US.UTF-8)
-  -c, --run.concurrency int            number of concurrent connections (default 1)
-  -B, --run.command-blacklist strings  commands that are prohibited from execution on target hosts
-                                       (default: rm,reboot,halt,shutdown,init,mkfs,mkfs.*,umount,dd)
-  -o, --output.file string             file to which messages are output
-  -j, --output.json                    output messages in json format
-  -C, --output.condense                condense output and disable color
-  -q, --output.quiet                   do not output messages to screen
-  -v, --output.verbose                 show debug messages
-  -X, --proxy.server string            proxy server address
-      --proxy.port int                 proxy server port (default 22)
-      --proxy.user string              login user for proxy (default same as 'auth.user')
-      --proxy.password string          password for proxy (default same as 'auth.password')
-      --proxy.identity-files strings   identity files for proxy (default same as 'auth.identity-files')
-      --proxy.passphrase string        passphrase of the identity files for proxy
-                                       (default same as 'auth.passphrase')
-  -t, --timeout.command int            timeout seconds for handling each target host
-      --timeout.task int               timeout seconds for the entire gossh task
-      --timeout.conn int               timeout seconds for connecting each target host (default 10)
-      --config string                  config file (default {$PWD,$HOME}/.gossh.yaml)
-  -h, --help                           help for gossh
+  -u, --auth.user string                login user (default $USER)
+  -p, --auth.password string            password of login user
+  -k, --auth.ask-pass                   ask for the password of login user
+  -a, --auth.pass-file string           file that holds the password of login user
+  -I, --auth.identity-files strings     identity files (default [~/.ssh/id_rsa])
+  -K, --auth.passphrase string          passphrase of the identity files
+  -V, --auth.vault-pass-file string     text file or executable file that holds the vault password
+                                        for encryption and decryption
+  -i, --hosts.inventory string          file that holds the target hosts
+  -P, --hosts.port int                  port of the target hosts (default 22)
+  -l, --hosts.list                      outputs a list of target hosts, and does not do anything else
+  -s, --run.sudo                        use sudo to execute commands/script or fetch files/dirs
+  -U, --run.as-user string              run via sudo as this user (default "root")
+  -L, --run.lang string                 specify i18n while executing command
+                                        (e.g. zh_CN.UTF-8|en_US.UTF-8)
+  -c, --run.concurrency int             number of concurrent connections (default 1)
+  -B, --run.command-blacklist strings   commands that are prohibited from execution on target hosts
+                                        (default: [rm,reboot,halt,shutdown,init,mkfs,mkfs.*,umount,dd])
+  -o, --output.file string              file to which messages are output
+  -j, --output.json                     output messages in json format
+  -C, --output.condense                 condense output and disable color
+  -q, --output.quiet                    do not output messages to screen
+  -v, --output.verbose                  show debug messages
+  -X, --proxy.server string             proxy server address
+      --proxy.port int                  proxy server port (default 22)
+      --proxy.user string               login user for proxy (default same as 'auth.user')
+      --proxy.password string           password for proxy (default same as 'auth.password')
+      --proxy.identity-files strings    identity files for proxy (default same as 'auth.identity-files')
+      --proxy.passphrase string         passphrase of the identity files for proxy
+                                        (default same as 'auth.passphrase')
+  -t, --timeout.command int             timeout seconds for handling each target host
+      --timeout.task int                timeout seconds for the entire gossh task
+      --timeout.conn int                timeout seconds for connecting each target host (default 10)
+      --config string                   config file (default {$PWD,$HOME}/.gossh.yaml)
+  -h, --help                            help for gossh
 
 Use "gossh [command] --help" for more information about a command.
 ```

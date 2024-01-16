@@ -37,7 +37,6 @@ const (
 	flagRunCommandBlacklist = "run.command-blacklist"
 )
 
-// Run ...
 type Run struct {
 	Sudo             bool     `json:"sudo" mapstructure:"sudo"`
 	AsUser           string   `json:"as-user" mapstructure:"as-user"`
@@ -46,7 +45,6 @@ type Run struct {
 	CommandBlacklist []string `json:"command-blacklist" mapstructure:"command-blacklist"`
 }
 
-// NewRun ...
 func NewRun() *Run {
 	return &Run{
 		Sudo:        false,
@@ -55,7 +53,6 @@ func NewRun() *Run {
 	}
 }
 
-// AddFlagsTo ...
 func (r *Run) AddFlagsTo(flags *pflag.FlagSet) {
 	flags.BoolVarP(&r.Sudo, flagRunSudo, "s", r.Sudo, "use sudo to execute commands/script or fetch files/dirs")
 	flags.StringVarP(&r.AsUser, flagRunAsUser, "U", r.AsUser, "run via sudo as this user")
@@ -75,11 +72,10 @@ func (r *Run) AddFlagsTo(flags *pflag.FlagSet) {
 		"B",
 		r.CommandBlacklist,
 		`commands that are prohibited from execution on target hosts
-(default: rm,reboot,halt,shutdown,init,mkfs,mkfs.*,umount,dd)`,
+(default: [rm,reboot,halt,shutdown,init,mkfs,mkfs.*,umount,dd])`,
 	)
 }
 
-// Complete ...
 func (r *Run) Complete() error {
 	newSlice := make([]string, 0)
 	for _, s := range r.CommandBlacklist {
@@ -94,7 +90,6 @@ func (r *Run) Complete() error {
 	return nil
 }
 
-// Validate ...
 func (r *Run) Validate() (errs []error) {
 	if r.Concurrency < 1 {
 		errs = append(errs, fmt.Errorf(

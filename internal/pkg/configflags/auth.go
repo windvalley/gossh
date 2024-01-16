@@ -53,14 +53,14 @@ type Auth struct {
 	VaultPassFile string   `json:"vault-pass-file" mapstructure:"vault-pass-file"`
 }
 
-// NewAuth ...
+// NewAuth config.
 func NewAuth() *Auth {
 	return &Auth{
 		User:          "",
 		Password:      "",
 		AskPass:       false,
 		PassFile:      "",
-		IdentityFiles: []string{},
+		IdentityFiles: []string{"~/.ssh/id_rsa"},
 		Passphrase:    "",
 		VaultPassFile: "",
 	}
@@ -68,13 +68,13 @@ func NewAuth() *Auth {
 
 // AddFlagsTo pflagSet.
 func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
-	fs.StringVarP(&a.User, flagAuthUser, "u", "", "login user (default $USER)")
+	fs.StringVarP(&a.User, flagAuthUser, "u", a.User, "login user (default $USER)")
 	fs.StringVarP(&a.Password, flagAuthPassword, "p", a.Password, "password of login user")
 	fs.BoolVarP(&a.AskPass, flagAuthAskPass, "k", a.AskPass, "ask for the password of login user")
 	fs.StringVarP(&a.PassFile, flagAuthPassFile, "a", a.PassFile,
 		`file that holds the password of login user`)
-	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "I", nil,
-		"identity files (default ~/.ssh/id_rsa)")
+	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "I", a.IdentityFiles,
+		"identity files")
 	fs.StringVarP(&a.Passphrase, flagAuthPassphrase, "K", a.Passphrase,
 		"passphrase of the identity files")
 	fs.StringVarP(&a.VaultPassFile, flagAuthVaultPassFile, "V", a.VaultPassFile,
