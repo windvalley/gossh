@@ -47,8 +47,8 @@ func TestGetAllHosts(t *testing.T) {
 					User:     "vagrant",
 					Password: "123456",
 					Keys: []string{
-						"~/.ssh/id_dsa",
 						"~/.ssh/id_rsa",
+						"~/.ssh/id_ecdsa",
 					},
 					Passphrase: "xxx",
 				},
@@ -121,8 +121,8 @@ func TestGetHostsByGroup(t *testing.T) {
 					User:     "vagrant",
 					Password: "123456",
 					Keys: []string{
-						"~/.ssh/id_dsa",
 						"~/.ssh/id_rsa",
+						"~/.ssh/id_ecdsa",
 					},
 					Passphrase: "xxx",
 				},

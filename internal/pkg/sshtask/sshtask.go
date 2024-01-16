@@ -245,10 +245,10 @@ func (t *Task) batchRunSSH() {
 	authConf := t.configFlags.Auth
 	runConf := t.configFlags.Run
 
-	log.Debugf("Default Auth: login user '%s'", authConf.User)
+	log.Debugf("Auth: login user '%s'", authConf.User)
 
 	if runConf.Sudo {
-		log.Debugf("Default Auth: use sudo as user '%s'", runConf.AsUser)
+		log.Debugf("Auth: use sudo as user '%s'", runConf.AsUser)
 	}
 
 	t.setDefaultSSHAuthMethods()
@@ -592,15 +592,15 @@ func (t *Task) setDefaultSSHAuthMethods() {
 	if sshAuthSock != "" {
 		sshAgent, err = net.Dial("unix", sshAuthSock)
 		if err != nil {
-			log.Debugf("Default Auth: connect ssh-agent failed: %s", err)
+			log.Debugf("Auth: connect ssh-agent failed: %s", err)
 		} else {
-			log.Debugf("Default Auth: connected to SSH_AUTH_SOCK: %s", sshAuthSock)
+			log.Debugf("Auth: connected to SSH_AUTH_SOCK: %s", sshAuthSock)
 
 			signers, err = agent.NewClient(sshAgent).Signers()
 			if err != nil {
-				log.Debugf("Default Auth: parse ssh-agent failed: %v", err)
+				log.Debugf("Auth: parse ssh-agent failed: %v", err)
 			} else {
-				log.Debugf("Default Auth: parse ssh-agent success")
+				log.Debugf("Auth: parse ssh-agent success")
 			}
 		}
 
@@ -608,12 +608,12 @@ func (t *Task) setDefaultSSHAuthMethods() {
 	}
 
 	if len(t.defaultIdentityFiles) != 0 {
-		sshSigners := getSigners(t.defaultIdentityFiles, t.configFlags.Auth.Passphrase, "Default")
+		sshSigners := getSigners(t.defaultIdentityFiles, t.configFlags.Auth.Passphrase, "")
 
 		if len(sshSigners) != 0 {
 			signers = append(signers, sshSigners...)
 		} else {
-			log.Debugf("Default Auth: no valid default identity files")
+			log.Debugf("Auth: no valid default identity files")
 		}
 	}
 
@@ -624,12 +624,12 @@ func (t *Task) setDefaultSSHAuthMethods() {
 	if t.defaultPass != "" {
 		auths = append(auths, ssh.Password(t.defaultPass))
 	} else {
-		log.Debugf("Default Auth: password of the login user '%s' not provided", t.defaultUser)
+		log.Debugf("Auth: password of the login user '%s' not provided", t.defaultUser)
 	}
 
 	if t.defaultPass == "" && t.configFlags.Run.Sudo {
 		log.Debugf(
-			"Default Auth: using sudo as other user needs password. Prompt for password of the login user '%s'",
+			"Auth: using sudo as other user needs password. Prompt for password of the login user '%s'",
 			t.defaultUser,
 		)
 
@@ -700,20 +700,20 @@ func getDefaultPassword(auth *configflags.Auth) string {
 
 		password = strings.TrimSpace(string(passwordContent))
 
-		log.Debugf("Default Auth: read password of user '%s' from file '%s'", authFile, auth.User)
+		log.Debugf("Auth: read password of user '%s' from file '%s'", authFile, auth.User)
 	}
 
 	passwordFromFlag := auth.Password
 	if passwordFromFlag != "" {
 		password = passwordFromFlag
 
-		log.Debugf("Default Auth: received password of user '%s' from commandline flag or configuration file", auth.User)
+		log.Debugf("Auth: received password of user '%s' from commandline flag or configuration file", auth.User)
 	}
 
 	realPassword := getRealPass(password, "default", "password")
 
 	if auth.AskPass {
-		log.Debugf("Default Auth: ask for password of user '%s' by flag '-k/--auth.ask-pass'", auth.User)
+		log.Debugf("Auth: ask for password of user '%s' by flag '-k/--auth.ask-pass'", auth.User)
 		realPassword = getPasswordFromPrompt(auth.User)
 	}
 
@@ -739,7 +739,10 @@ func getSigners(keyfiles []string, passphrase string, authKind string) []ssh.Sig
 		msgHead string
 	)
 
-	msgHead = authKind + " Auth: "
+	msgHead = "Auth: "
+	if authKind != "" {
+		msgHead = authKind + " Auth: "
+	}
 
 	for _, f := range keyfiles {
 		signer, msg := getSigner(f, passphrase)
@@ -792,7 +795,7 @@ func getPasswordFromPrompt(loginUser string) string {
 
 	fmt.Println("")
 
-	log.Debugf("Default Auth: received password of the login user '%s' from terminal prompt", loginUser)
+	log.Debugf("Auth: received password of the login user '%s' from terminal prompt", loginUser)
 
 	return password
 }

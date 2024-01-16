@@ -26,7 +26,7 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
 
 - Auto detect following authentication methods for the login user(default `$USER`):  
   `Password`: from inventory file, or from flag `-k/--auth.ask-pass`,`-p/--auth.password`,`-a/--auth.pass-file`, or from configuration file.  
-  `Pubkey Authentication`: by identity files(default `$HOME/.ssh/{id_rsa,id_dsa}`), also include that with passphrase.  
+  `Pubkey Authentication`: by identity files(default `~/.ssh/id_rsa`), also include that with passphrase.  
   `SSH-Agent Authentication`: through the system environment variable `$SSH_AUTH_SOCK`.  
   If the above three authentication methods are valid at the same time, the priority order is: `SSH-Agent` > `Pubkey` > `Password`.
 
@@ -48,7 +48,7 @@ Feel free to open a new issue if you have any issues, questions or suggestions a
 
   ```text
   alias_name_node1 host=node1.sre.im
-  alias_name_node2 host=192.168.33.12 port=8022 user=vagrant password=123456 keys=~/.ssh/id_dsa,~/.ssh/id_rsa passphrase=xxx
+  alias_name_node2 host=192.168.33.12 port=8022 user=vagrant password=123456 keys=~/.ssh/id_rsa passphrase=xxx
   node3.sre.im user=vagrant password=GOSSH-AES256:9cfe499133b69a6c7fc62b5b6ba72d3d8dfb4d0e7987170a40c5d50bb5d71e19
   ```
 
@@ -148,7 +148,7 @@ Flags:
   -p, --auth.password string           password of login user
   -k, --auth.ask-pass                  ask for the password of login user
   -a, --auth.pass-file string          file that holds the password of login user
-  -I, --auth.identity-files strings    identity files (default $HOME/.ssh/{id_rsa,id_dsa})
+  -I, --auth.identity-files strings    identity files (default ~/.ssh/id_rsa)
   -K, --auth.passphrase string         passphrase of the identity files
   -V, --auth.vault-pass-file string    text file or executable file that holds the vault password
                                        for encryption and decryption

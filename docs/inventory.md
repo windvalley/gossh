@@ -17,7 +17,7 @@ node100.sre.im
 # hosts group
 [webserver]
 # host entry
-alias_name_node2 host=192.168.33.12 port=8022 user=vagrant password=123456 keys=~/.ssh/id_dsa,~/.ssh/id_rsa passphrase=xxx
+alias_name_node2 host=192.168.33.12 port=8022 user=vagrant password=123456 keys=~/.ssh/id_rsa passphrase=xxx
 node[06-07].sre.im port=9022 user=lisi password=654321
 node08.sre.im
 

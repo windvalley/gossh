@@ -74,7 +74,7 @@ func (a *Auth) AddFlagsTo(fs *pflag.FlagSet) {
 	fs.StringVarP(&a.PassFile, flagAuthPassFile, "a", a.PassFile,
 		`file that holds the password of login user`)
 	fs.StringSliceVarP(&a.IdentityFiles, flagAuthIdentityFiles, "I", nil,
-		"identity files (default $HOME/.ssh/{id_rsa,id_dsa})")
+		"identity files (default ~/.ssh/id_rsa)")
 	fs.StringVarP(&a.Passphrase, flagAuthPassphrase, "K", a.Passphrase,
 		"passphrase of the identity files")
 	fs.StringVarP(&a.VaultPassFile, flagAuthVaultPassFile, "V", a.VaultPassFile,
@@ -118,7 +118,6 @@ func getDefaultIdentityFiles() ([]string, error) {
 
 	identityFiles := []string{
 		fmt.Sprintf("%s/.ssh/id_rsa", home),
-		fmt.Sprintf("%s/.ssh/id_dsa", home),
 	}
 
 	return identityFiles, nil

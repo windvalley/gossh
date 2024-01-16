@@ -6,7 +6,7 @@ It will auto detect above three authentication methods for the login user. The d
 
 `Password` can be from variable `password` that in inventory file, or from flag `-k/--auth.ask-pass`,`-p/--auth.password`,`-a/--auth.pass-file`, or from relative items in configuration file.
 
-`Pubkey Authentication` is enabled by default through identity files(default `$HOME/.ssh/{id_rsa,id_dsa}` if not specified). The identity files with passphrase are also supported, you can use flag `-K, --auth.passphrase` to specify it.
+`Pubkey Authentication` is enabled by default through identity files(default `~/.ssh/id_rsa` if not specified). The identity files with passphrase are also supported, you can use flag `-K, --auth.passphrase` to specify it.
 
 If the system environment variable `$SSH_AUTH_SOCK` exists, `SSH-Agent Authentication` will be auto enabled.
 
@@ -36,10 +36,10 @@ $ gossh command target_host -e "uptime"
 ### Use Pubkey Authentication with no passphrase
 
 ```sh
-# generate rsa or dsa
-$ ssh-keygen -t dsa -f /path/id_rsa -N ""
+# Generate identity files with no passphrase.
+$ ssh-keygen -t rsa -f /path/id_rsa -N ""
 
-# copy pubkey to target host
+# Copy pubkey to target host.
 $ ssh-copy-id -i /path/id_rsa target_host
 
 # If /path/id_rsa is '~/.ssh/id_rsa', the flag '-I /path/id_rsa' can be omitted.
@@ -49,10 +49,10 @@ $ gossh command target_host -e "uptime" -I /path/id_rsa
 ### Use Pubkey Authentication with passphrase
 
 ```sh
-# generate rsa or dsa
-$ ssh-keygen -t dsa -f /path/id_rsa -N "the-passphrase"
+# Generate identity files with passphrase.
+$ ssh-keygen -t rsa -f /path/id_rsa -N "the-passphrase"
 
-# copy pubkey to target host
+# Copy pubkey to target host.
 $ ssh-copy-id -i /path/id_rsa target_host
 
 # If /path/id_rsa is '~/.ssh/id_rsa', the flag '-I /path/id_rsa' can be omitted.
