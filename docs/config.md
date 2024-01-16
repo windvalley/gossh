@@ -14,13 +14,13 @@ Demo file can be found in git repo by location: `configs/gossh.yaml`, or use com
 
 ```yaml
 auth:
-  # Default login user.
+  # The login user.
   # Default: $USER
-  user: ""
+  user:
 
-  # Default password of the login user.
+  # The password of the login user.
   # Default: ""
-  password: ""
+  password:
 
   # Ask for password of the login user.
   # Default: false
@@ -28,26 +28,26 @@ auth:
 
   # File that holds the default password of login user.
   # Default: ""
-  file: ""
+  file:
 
-  # Default identity files of pubkey authentication.
-  # Default:
-  #   - $HOME/.ssh/id_rsa
-  #   - $HOME/.ssh/id_dsa
-  identity-files: []
+  # The identity files of pubkey authentication.
+  # Default: [~/.ssh/id_rsa]
+  identity-files: [~/.ssh/id_rsa]
 
-  # Default passphrase of the identity files.
+  # The passphrase of the identity files.
   # Default: ""
-  passphrase: ""
+  passphrase:
 
   # File that holds the vault password for encryption and decryption.
   # Default: ""
-  vault-pass-file: ""
+  vault-pass-file:
 
 hosts:
   # Default inventory file that holds the target hosts.
+  # The file content format can be referred to at:
+  # https://github.com/windvalley/gossh/blob/main/docs/inventory.md
   # Default: ""
-  inventory: ""
+  inventory:
 
   # Default port of target hosts.
   # Default: 22
@@ -66,26 +66,37 @@ run:
   # as this value when executing command/script.
   # Available vaules: zh_CN.UTF-8, en_US.UTF-8, etc.
   # Default: "" (null means do not export)
-  lang: ""
+  lang:
 
   # Number of concurrent connections.
   # Default: 1
   concurrency: 1
 
+  # Linux Command Blacklist for gossh subcommands 'command' and 'script'.
+  # Commands listed in this blacklist will be prohibited from executing on remote hosts for security reasons.
+  # You can add flag '-n, --no-safe-check' to disable this feature.
+  # Default: [rm, reboot, halt, shutdown, init, mkfs, mkfs.*, umount, dd]
+  command-blacklist:
+    [rm, reboot, halt, shutdown, init, mkfs, mkfs.*, umount, dd]
+
 output:
   # File to which messages are output.
   # Default: ""
-  file: ""
+  file:
 
   # Output messages in json format.
   # Default: false
   json: false
 
+  # Condense output and disable color.
+  # Default: false
+  condense: false
+
   # Show debug messages.
   # Default: false
   verbose: false
 
-  # Do not output messages to screen (except error messages).
+  # Do not output messages to screen.
   # Default: false
   quite: false
 
@@ -106,27 +117,27 @@ timeout:
 proxy:
   # Proxy server address. It will enable proxy if it is not null.
   # Default: ""
-  server: ""
+  server:
 
   # Proxy server port.
   # Default: 22
   port: 22
 
-  # Login user for proxy.
-  # Default: value of 'auth.user'
-  user: ""
+  # Proxy server user.
+  # Default: the same as 'auth.user'
+  user:
 
   # Password for proxy.
-  # Default: value of 'auth.password'
-  password: ""
+  # Default: the same as 'auth.password'
+  password:
 
   # Identity files for proxy.
-  # Default: value of 'auth.identity-files'
-  identity-files: []
+  # Default: the same as 'auth.identity-files'
+  identity-files:
 
   # Passphrase of the identity files for proxy.
-  # Default: value of 'auth.passphrase'
-  passphrase: ""
+  # Default: the same as 'auth.passphrase'
+  passphrase:
 ```
 
 ## Examples
