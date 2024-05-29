@@ -237,11 +237,11 @@ func (c *Client) ExecuteScript(
 	command := ""
 	switch {
 	case sudo && remove:
-		command = fmt.Sprintf("%ssudo -u %s -H bash -c '%s;rm -f %s'", exportLang, runAs, script, script)
+		command = fmt.Sprintf("%ssudo -u %s -H bash -c '%s;rc=$?;rm -f %s;exit $rc'", exportLang, runAs, script, script)
 	case sudo && !remove:
 		command = fmt.Sprintf("%ssudo -u %s -H bash -c '%s'", exportLang, runAs, script)
 	case !sudo && remove:
-		command = fmt.Sprintf("%s%s;rm -f %s", exportLang, script, script)
+		command = fmt.Sprintf("%s%s;rc=$?;rm -f %s;exit $rc", exportLang, script, script)
 	case !sudo && !remove:
 		command = exportLang + script
 	}
