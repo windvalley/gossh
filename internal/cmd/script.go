@@ -23,6 +23,7 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -60,23 +61,28 @@ Execute a local shell script on target hosts.`,
 			util.PrintErrExit(errs)
 		}
 
-		if scriptFile != "" && !util.FileExists(scriptFile) {
+		if scriptFile == "" {
+			return
+		}
+
+		if !util.FileExists(scriptFile) {
 			util.PrintErrExit(fmt.Sprintf("script '%s' not found", scriptFile))
 		}
 
 		if noSafeCheck {
 			log.Debugf("Skip the safety check of commands before execution")
-		} else {
-			if len(configflags.Config.Run.CommandBlacklist) == 0 {
-				configflags.Config.Run.CommandBlacklist = defaultCommandBlacklist
-				log.Debugf("Using default command blacklist for the safety check: %s", defaultCommandBlacklist)
-			} else {
-				log.Debugf("Using custom command blacklist for the safety check: %s", configflags.Config.Run.CommandBlacklist)
-			}
+			return
+		}
 
-			if err := checkScript(scriptFile, configflags.Config.Run.CommandBlacklist); err != nil {
-				util.PrintErrExit(err)
-			}
+		if len(configflags.Config.Run.CommandBlacklist) == 0 {
+			log.Debugf("Using default command blacklist for the safety check: %s", defaultCommandBlacklist)
+			configflags.Config.Run.CommandBlacklist = defaultCommandBlacklist
+		} else {
+			log.Debugf("Using custom command blacklist for the safety check: %s", configflags.Config.Run.CommandBlacklist)
+		}
+
+		if err := checkScript(scriptFile, configflags.Config.Run.CommandBlacklist); err != nil {
+			util.PrintErrExit(err)
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -119,6 +125,10 @@ func init() {
 }
 
 func checkScript(scriptFile string, commandBlacklist []string) error {
+	if scriptFile == "" {
+		return errors.New("empty script name")
+	}
+
 	script, err := os.ReadFile(scriptFile)
 	if err != nil {
 		return fmt.Errorf("read script file '%s' failed: %w", scriptFile, err)
