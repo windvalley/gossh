@@ -177,6 +177,7 @@ func (c *Client) ExecuteCmd(host *Host, command, lang, runAs string, sudo bool) 
 	if err != nil {
 		return "", err
 	}
+	defer session.Close()
 
 	exportLang := ""
 	if lang != "" {
