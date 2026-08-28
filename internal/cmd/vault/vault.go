@@ -197,7 +197,7 @@ func getPasswordFromPrompt(prompt string) (string, error) {
 	fmt.Fprint(os.Stderr, prompt)
 
 	var passwordByte []byte
-	passwordByte, err := term.ReadPassword(0)
+	passwordByte, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		return "", err
 	}

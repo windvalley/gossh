@@ -31,7 +31,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ScaleFT/sshkeys"
 	"github.com/go-project-pkg/expandhost"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
@@ -608,7 +607,8 @@ func (t *Task) setDefaultSSHAuthMethods() {
 	}
 
 	if len(t.defaultIdentityFiles) != 0 {
-		sshSigners := getSigners(t.defaultIdentityFiles, t.configFlags.Auth.Passphrase, "")
+		passphrase := getRealPass(t.configFlags.Auth.Passphrase, "default", "passphrase")
+		sshSigners := getSigners(t.defaultIdentityFiles, passphrase, "")
 
 		if len(sshSigners) != 0 {
 			signers = append(signers, sshSigners...)
@@ -662,7 +662,8 @@ func (t *Task) getProxySSHAuthMethods() []ssh.AuthMethod {
 
 	proxyKeyfiles := parseItentityFiles(t.configFlags.Proxy.IdentityFiles)
 	if len(proxyKeyfiles) != 0 {
-		sshSigners := getSigners(proxyKeyfiles, t.configFlags.Proxy.Passphrase, "Proxy")
+		passphrase := getRealPass(t.configFlags.Proxy.Passphrase, "default", "proxy passphrase")
+		sshSigners := getSigners(proxyKeyfiles, passphrase, "Proxy")
 
 		if len(sshSigners) != 0 {
 			signers = append(signers, sshSigners...)
@@ -766,16 +767,16 @@ func getSigner(keyfile, passphrase string) (ssh.Signer, string) {
 	pubkey, err := ssh.ParsePrivateKey(buf)
 	if err != nil {
 		_, ok := err.(*ssh.PassphraseMissingError)
-		if ok {
-			pubkeyWithPassphrase, err1 := sshkeys.ParseEncryptedPrivateKey(buf, []byte(passphrase))
-			if err1 != nil {
-				return nil, fmt.Sprintf("parse identity file '%s' with passphrase failed: %s", keyfile, err1)
-			}
-
-			return pubkeyWithPassphrase, fmt.Sprintf("parsed identity file '%s' with passphrase", keyfile)
+		if !ok {
+			return nil, fmt.Sprintf("parse identity file '%s' failed: %s", keyfile, err)
 		}
 
-		return nil, fmt.Sprintf("parse identity file '%s' failed: %s", keyfile, err)
+		pubkey, err = ssh.ParsePrivateKeyWithPassphrase(buf, []byte(passphrase))
+		if err != nil {
+			return nil, fmt.Sprintf("parse identity file '%s' with passphrase failed: %s", keyfile, err)
+		}
+
+		return pubkey, fmt.Sprintf("parsed identity file '%s' with passphrase", keyfile)
 	}
 
 	return pubkey, fmt.Sprintf("parsed identity file '%s'", keyfile)
@@ -785,7 +786,7 @@ func getPasswordFromPrompt(loginUser string) string {
 	fmt.Fprintf(os.Stderr, "Password for %s: ", loginUser)
 
 	var passwordByte []byte
-	passwordByte, err := term.ReadPassword(0)
+	passwordByte, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		err = fmt.Errorf("get password from terminal failed: %s", err)
 		util.PrintErrExit(err)
