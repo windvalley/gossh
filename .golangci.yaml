@@ -35,7 +35,7 @@ linters-settings:
     min-complexity: 15
   goimports:
     local-prefixes: github.com/windvalley/gossh
-  gomnd:
+  mnd:
     settings:
       mnd:
         # don't include the "operation" and "assign"
@@ -70,14 +70,13 @@ linters:
     - dogsled
     - dupl
     - errcheck
-    - exportloopref
     - exhaustive
     - funlen
     - goconst
     - gocyclo
     - gofmt
     - goimports
-    - gomnd
+    - mnd
     - goprintffuncname
     - gosec
     - gosimple
@@ -121,7 +120,7 @@ issues:
   exclude-rules:
     - path: _test\.go
       linters:
-        - gomnd
+        - mnd
 
     - path: pkg/golinters/errcheck.go
       text: "SA1019: errCfg.Exclude is deprecated: use ExcludeFunctions instead"

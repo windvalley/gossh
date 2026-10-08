@@ -104,7 +104,7 @@ Copy local files and dirs to target hosts.`,
 				if err != nil {
 					util.PrintErrExit(err)
 				}
-				//nolint:gomnd
+				//nolint:mnd
 				log.Debugf("zip file '%s' size: %d MB", zipFile, stat.Size()/1024/1024)
 
 				zipFiles = append(zipFiles, zipFile)

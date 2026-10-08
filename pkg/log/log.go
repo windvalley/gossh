@@ -58,7 +58,7 @@ func Init(logfile string, json, verbose, quiet, condense bool) {
 	}
 
 	if logfile != "" {
-		//nolint:gomnd
+		//nolint:mnd
 		f, err := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
 			errMsg := color.YellowString(fmt.Sprintf("Warning: Failed to write log to %s: %v\n", logfile, err))

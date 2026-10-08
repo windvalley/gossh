@@ -216,7 +216,7 @@ func (c *Client) ExecuteScript(
 		return "", err
 	}
 
-	//nolint:gomnd,govet
+	//nolint:mnd,govet
 	if err := file.Chmod(0755); err != nil {
 		return "", err
 	}
@@ -472,7 +472,7 @@ func (c *Client) executeCmd(session *ssh.Session, command string, host *Host) (s
 		ssh.TTY_OP_OSPEED: 28800,
 	}
 
-	//nolint:gomnd
+	//nolint:mnd
 	if err := session.RequestPty("xterm", 100, 100, modes); err != nil {
 		return "", err
 	}
@@ -568,7 +568,7 @@ func (c *Client) handleOutput(w io.Writer, r io.Reader, password string) (<-chan
 		sudoTimes := 0
 
 		for {
-			//nolint:gomnd
+			//nolint:mnd
 			buf := make([]byte, 2048)
 			n, err := r.Read(buf)
 			if err != nil {
