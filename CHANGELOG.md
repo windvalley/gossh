@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.2]
+
+### Fixed
+
+- Support `rsa-sha2-256` and `rsa-sha2-512` signature algorithms for RSA public key authentication, so that RSA keys work with SSH servers that have disabled the legacy `ssh-rsa` (SHA-1) signature algorithm, such as OpenSSH 8.8+ ([#45](https://github.com/windvalley/gossh/issues/45)).
+
+- Fix the bug that subcommand `script` marks a failed execution as `SUCCESS` when the script exits with a non-zero status ([#37](https://github.com/windvalley/gossh/issues/37)).
+
+- Fix the build failure on AIX ([#35](https://github.com/windvalley/gossh/issues/35)).
+
+- Fix the problem of reading empty script name for subcommand `script`.
+
+- Fix subcommand `command` to ensure the session is properly closed.
+
+- Fix the vault and ssh password prompt failure `The handle is invalid` on Windows.
+
+- Fix that the vault-encrypted passphrase does not work for default and proxy identity files.
+
+### Changed
+
+- Upgrade `golang.org/x/crypto` to v0.39.0 and bump other Go packages to recent versions. Go 1.23+ is now required to build gossh.
+
 ## [1.15.1]
 
 ### Changed
